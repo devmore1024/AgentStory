@@ -32,6 +32,7 @@
 15. [AgentStory 视觉风格参考调研](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E8%A7%86%E8%A7%89%E9%A3%8E%E6%A0%BC%E5%8F%82%E8%80%83%E8%B0%83%E7%A0%94.md)
 16. [AgentStory design-system](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20design-system.md)
 17. [AgentStory 技术方案设计](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)
+18. [AgentStory 本地开发环境规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E8%A7%84%E8%8C%83.md)
 
 ---
 
@@ -82,10 +83,16 @@
 - [AgentStory 技术方案设计](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)
   - 用途：查看首版系统架构、模块拆分、生成链路、异步任务、投影模型和 MVP 实施顺序
 
+- [AgentStory 本地开发环境规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E8%A7%84%E8%8C%83.md)
+  - 用途：查看本地 PostgreSQL、Redis、环境变量、seed、启动顺序和响应式调试要求
+
 ### 开发与数据
 
 - [AgentStory 技术方案设计](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)
   - 用途：查看推荐技术栈、系统模块、核心数据流、任务队列和技术决策
+
+- [AgentStory 本地开发环境规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E8%A7%84%E8%8C%83.md)
+  - 用途：查看本地开发阶段的数据库、Redis、环境变量和初始化约定
 
 - [AgentStory 开发任务清单](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E5%BC%80%E5%8F%91%E4%BB%BB%E5%8A%A1%E6%B8%85%E5%8D%95.md)
   - 用途：查看按阶段和模块拆分的研发执行项与 MVP 验收任务
@@ -175,6 +182,7 @@
 - 视觉风格参考调研
 - AgentStory design-system
 - 技术方案设计
+- 本地开发环境规范
 - 开发任务拆解
 - 数据结构草案
 - 接口草案

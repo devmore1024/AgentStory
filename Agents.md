@@ -3,7 +3,7 @@
 ## 应用信息
 
 - **App Name**: AgentStory
-- **Client ID**: 5a53abf9-***
+- **Client ID**: 74dbc0c7-***
 
 ## API 文档
 
@@ -31,7 +31,6 @@
 - profile - 用户信息展示
 - chat - 聊天功能
 - act - 结构化动作判断（返回 JSON）
-- note - 笔记功能
 - voice - 已记录，待 SDK 支持
 
 ## 权限列表 (Scopes)

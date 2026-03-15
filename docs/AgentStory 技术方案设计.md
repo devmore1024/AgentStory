@@ -76,16 +76,23 @@
 - `AnimalProfile`、`StoryThread`、`StoryEpisode`、`FeedStory` 等对象天然适合关系建模
 - `json/jsonb` 可以承载 `storyPreferences`、`dimensionScores`、`meta`
 
+首版建议：
+
+- 数据库可以先使用本地 `PostgreSQL`
+- 也可以直接使用托管的 `dev` 数据库
+- 不建议直接把测试 / 生产环境和开发共用
+
 ### 3.3 缓存与异步任务
 
-- `Redis`
-- `BullMQ` 或等价队列
+- 首期可选：`不使用 Redis`
+- 后续增强：`Redis + BullMQ` 或等价队列
 
 推荐原因：
 
-- 自动连载、短篇生成、AI 评论都需要异步任务
-- 任务状态查询、重试、延迟执行都更容易做
-- 首页推荐、发现流也可以适度缓存
+- 自动连载、短篇生成、AI 评论都需要异步能力
+- MVP 前期可先用数据库 `jobs` 表承接任务和状态
+- 当任务量上升后，再切换到 `Redis + 队列`
+- 首页推荐、发现流缓存也可在后期再加
 
 ### 3.4 文件与静态资源
 
@@ -196,6 +203,8 @@
 
 首版推荐采用“单体应用 + 异步 Worker”的结构，而不是一开始上微服务。
 
+在 MVP 前期，Worker 可以先基于数据库任务表轮询运行；当异步量上升后，再升级为 `Redis + 队列`。
+
 ### 5.1 架构图
 
 ```text
@@ -213,8 +222,9 @@ Core App
 
 Infra
   ├── PostgreSQL
-  ├── Redis
-  ├── Queue / Worker
+  ├── Generation Jobs Table
+  ├── Worker
+  ├── Redis (optional, phase 2+)
   ├── Object Storage
   ├── SecondMe API
   └── LLM Provider
@@ -226,7 +236,25 @@ Infra
 - 生成任务虽然异步，但业务边界还没有大到必须拆服务
 - MVP 的复杂度主要在链路，而不是在超高并发
 
-### 5.3 为什么前端必须按响应式设计实现
+### 5.3 为什么首期可以先不用 Redis
+
+- 当前更重要的是先跑通登录、动物人格、首页、故事详情和基础生成链路
+- Redis 会让本地环境和部署资源多一层复杂度
+- 使用数据库任务表也能支撑首版低频异步任务
+
+首期建议：
+
+- 短篇生成：数据库任务表 + Worker 轮询
+- 连载生成：数据库任务表 + cron 调度
+- AI 评论：数据库任务表 + 延迟轮询
+
+当出现以下情况时，再补 Redis：
+
+- 任务量明显增加
+- 重试和延迟调度变复杂
+- 需要更稳定的任务吞吐和监控
+
+### 5.4 为什么前端必须按响应式设计实现
 
 - AgentStory 首页是书架式结构，天然需要同时兼顾手机纵向浏览和桌面大屏陈列
 - 我的页有人格维度图和时间线，若只按单端设计，很容易在另一端失真
@@ -530,11 +558,55 @@ AI 评论：
 
 ---
 
-## 10. 任务队列设计
+## 10. 异步任务设计
 
-首版建议维护 3 类队列：
+首版建议优先采用数据库任务表，后续再升级为独立队列。
 
-### 10.1 Episode Queue
+### 10.1 首期推荐方案
+
+建议增加一张：
+
+- `generation_jobs`
+
+建议字段：
+
+- `id`
+- `jobType`
+- `status`
+- `payload`
+- `attemptCount`
+- `maxAttempts`
+- `runAt`
+- `startedAt`
+- `finishedAt`
+- `lastError`
+- `createdAt`
+- `updatedAt`
+
+`jobType` 首版建议：
+
+- `episode_generate`
+- `short_story_generate`
+- `ai_comment_generate`
+
+`status` 首版建议：
+
+- `queued`
+- `running`
+- `succeeded`
+- `failed`
+
+Worker 轮询逻辑建议：
+
+1. 扫描 `runAt <= now()` 且 `status = queued`
+2. 抢占任务并更新为 `running`
+3. 执行业务逻辑
+4. 写回 `succeeded / failed`
+5. 若可重试，则递增 `attemptCount` 并重置 `runAt`
+
+### 10.2 Episode Queue
+
+如果后续接入 Redis，对应迁移为 `Episode Queue`。
 
 用于每日连载生成。
 
@@ -546,7 +618,9 @@ AI 评论：
 - `styleId`
 - `generateDate`
 
-### 10.2 ShortStory Queue
+### 10.3 ShortStory Queue
+
+如果后续接入 Redis，对应迁移为 `ShortStory Queue`。
 
 用于用户主动触发的短篇生成。
 
@@ -557,7 +631,9 @@ AI 评论：
 - `bookId`
 - `triggerScene`
 
-### 10.3 AIComment Queue
+### 10.4 AIComment Queue
+
+如果后续接入 Redis，对应迁移为 `AIComment Queue`。
 
 用于发现页 AI 评论生成。
 
@@ -567,7 +643,7 @@ AI 评论：
 - `userId`
 - `trigger`
 
-### 10.4 重试策略
+### 10.5 重试策略
 
 建议：
 
@@ -711,9 +787,12 @@ AI 评论：
 - `story_likes`
 - `ai_comments`
 
-可选：
+可选但首期强烈建议：
 
 - `generation_jobs`
+
+后续增强可加：
+
 - `generation_logs`
 
 ---
@@ -727,6 +806,7 @@ AI 评论：
 - 首页书架读取
 - 故事详情页读取
 - 首页与故事详情页响应式骨架
+- `generation_jobs` 表和基础 Worker 跑通
 
 ### Phase 2
 
@@ -747,6 +827,7 @@ AI 评论：
 - 生成质量优化
 - 缓存优化
 - 任务监控与告警
+- 视任务规模决定是否接入 Redis
 
 ---
 
@@ -764,13 +845,20 @@ AI 评论：
 - 但业务还没复杂到必须拆微服务
 - 单体应用更利于当前阶段快速迭代
 
-### 17.3 为什么推荐规则驱动推荐
+### 17.3 为什么前期推荐“数据库 jobs 表”而不是直接上 Redis
+
+- 更少依赖，更快启动
+- 更适合当前文档阶段和 MVP 低频异步量
+- 对开发同学更容易观察和排查
+- 后续升级到 Redis 队列时，任务模型仍可复用
+
+### 17.4 为什么推荐规则驱动推荐
 
 - 首版内容量小
 - 动物人格与故事映射本来就有明确规则
 - 规则更容易解释，也更利于调优
 
-### 17.4 为什么响应式必须进入技术方案而不是只留在设计规范里
+### 17.5 为什么响应式必须进入技术方案而不是只留在设计规范里
 
 - 首页书架和我的页维度图都直接影响产品理解
 - 如果技术方案里不提前约束，开发阶段很容易只完成单尺寸页面
@@ -788,6 +876,7 @@ AI 评论：
 | 动物人格和推荐脱节 | 用户不信任系统 | 推荐服务只使用可解释规则输入 |
 | 前台查询过重 | 首页和我的页变慢 | Feed 和 Timeline 都使用投影表 |
 | 大屏和小屏体验断裂 | 产品感知不一致 | 组件从一开始按响应式设计，关键页面做断点验收 |
+| 首期基础设施过重 | 启动成本高 | 开发期先用托管 dev DB 或本地 DB，异步先用 jobs 表 |
 
 ---
 
