@@ -30,9 +30,10 @@
 13. [AgentStory 首版风格配置表](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E9%A6%96%E7%89%88%E9%A3%8E%E6%A0%BC%E9%85%8D%E7%BD%AE%E8%A1%A8.md)
 14. [AgentStory Prompt 配置表](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20Prompt%20%E9%85%8D%E7%BD%AE%E8%A1%A8.md)
 15. [AgentStory 视觉风格参考调研](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E8%A7%86%E8%A7%89%E9%A3%8E%E6%A0%BC%E5%8F%82%E8%80%83%E8%B0%83%E7%A0%94.md)
-16. [AgentStory design-system](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20design-system.md)
-17. [AgentStory 技术方案设计](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)
-18. [AgentStory 本地开发环境规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E8%A7%84%E8%8C%83.md)
+16. [AgentStory 绘本封面参考](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E7%BB%98%E6%9C%AC%E5%B0%81%E9%9D%A2%E5%8F%82%E8%80%83.md)
+17. [AgentStory design-system](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20design-system.md)
+18. [AgentStory 技术方案设计](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)
+19. [AgentStory 本地开发环境规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E8%A7%84%E8%8C%83.md)
 
 ---
 
@@ -76,6 +77,9 @@
 
 - [AgentStory 视觉风格参考调研](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E8%A7%86%E8%A7%89%E9%A3%8E%E6%A0%BC%E5%8F%82%E8%80%83%E8%B0%83%E7%A0%94.md)
   - 用途：查看外部相似产品的视觉参考、可借鉴方向和不建议照搬的边界
+
+- [AgentStory 绘本封面参考](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E7%BB%98%E6%9C%AC%E5%B0%81%E9%9D%A2%E5%8F%82%E8%80%83.md)
+  - 用途：查看官方绘本封面样例、外部图片链接和适合 AgentStory 的封面语言
 
 - [AgentStory design-system](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20design-system.md)
   - 用途：查看 AgentStory 首版的正式视觉系统，包括色彩、字体、组件、图表和动效基线
@@ -145,6 +149,7 @@
 - [AgentStory 首版风格配置表](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E9%A6%96%E7%89%88%E9%A3%8E%E6%A0%BC%E9%85%8D%E7%BD%AE%E8%A1%A8.md)
 - [AgentStory Prompt 配置表](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20Prompt%20%E9%85%8D%E7%BD%AE%E8%A1%A8.md)
 - [AgentStory 视觉风格参考调研](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E8%A7%86%E8%A7%89%E9%A3%8E%E6%A0%BC%E5%8F%82%E8%80%83%E8%B0%83%E7%A0%94.md)
+- [AgentStory 绘本封面参考](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E7%BB%98%E6%9C%AC%E5%B0%81%E9%9D%A2%E5%8F%82%E8%80%83.md)
 - [AgentStory design-system](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20design-system.md)
 
 ### 做开发拆解或数据设计时
@@ -180,6 +185,7 @@
 - 首版风格配置表
 - Prompt 配置表
 - 视觉风格参考调研
+- 绘本封面参考
 - AgentStory design-system
 - 技术方案设计
 - 本地开发环境规范
