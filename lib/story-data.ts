@@ -87,7 +87,11 @@ export function getResolvedKeyScenes(book: StoryBook) {
 }
 
 export function getResolvedCoverImage(book: Pick<StoryBook, "slug" | "coverImage">) {
-  return book.coverImage ?? `/covers/${book.slug}`;
+  if (!book.coverImage || book.coverImage.startsWith("/covers/") || book.coverImage.endsWith(".svg")) {
+    return `/images/covers/${book.slug}.png`;
+  }
+
+  return book.coverImage;
 }
 
 export const getCategoriesWithBooks = cache(async (): Promise<StoryCategory[]> => {

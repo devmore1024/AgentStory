@@ -18,7 +18,7 @@ export default async function HomePage() {
         title: latestEpisode.title,
         bookTitle: latestEpisode.bookTitle,
         excerpt: latestEpisode.excerpt,
-        statusLabel: "Agent 正在行动"
+        statusLabel: "Agent 正在进入"
       }
     : {
         title: "故事已经开始改写，新的入口正在慢慢打开。",

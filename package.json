@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "generate:covers": "node scripts/generate-book-covers.js"
   },
   "dependencies": {
     "next": "^15.2.4",
