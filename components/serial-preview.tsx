@@ -7,23 +7,20 @@ type EpisodePreview = {
 
 export function SerialPreview({ episode }: { episode: EpisodePreview }) {
   return (
-    <section className="rounded-[32px] border border-[rgba(255,255,255,0.45)] bg-[linear-gradient(135deg,rgba(95,127,98,0.98),rgba(134,169,201,0.96))] p-6 text-[var(--text-on-accent)] shadow-[var(--shadow-large)] sm:p-7">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(255,253,248,0.72)]">今日自动推荐</p>
-      <div className="mt-4 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+    <section className="rounded-[28px] border border-[var(--border-light)] bg-[linear-gradient(135deg,rgba(95,127,98,0.18),rgba(134,169,201,0.18))] p-5 shadow-[var(--shadow-medium)] sm:p-6">
+      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div>
-          <p className="accent-font text-2xl text-[rgba(255,253,248,0.82)]">{episode.statusLabel}</p>
-          <h2 className="display-font mt-2 text-3xl leading-tight sm:text-4xl">{episode.title}</h2>
-          <p className="mt-3 text-sm font-semibold uppercase tracking-[0.16em] text-[rgba(255,253,248,0.72)]">
-            正在穿越 · {episode.bookTitle}
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{episode.statusLabel}</p>
+          <h2 className="display-font mt-2 text-2xl leading-tight text-[var(--text-primary)] sm:text-3xl">
+            正在进入《{episode.bookTitle}》
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{episode.title}</p>
         </div>
-        <div className="rounded-[26px] bg-[rgba(255,250,243,0.14)] p-4 shadow-[var(--shadow-small)] backdrop-blur">
-          <p className="text-sm leading-7 text-[rgba(255,253,248,0.92)]">{episode.excerpt}</p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="rounded-full bg-[rgba(255,255,255,0.16)] px-3 py-1.5 text-xs font-semibold">连续更新</span>
-            <span className="rounded-full bg-[rgba(255,255,255,0.16)] px-3 py-1.5 text-xs font-semibold">跨书推进</span>
-            <span className="rounded-full bg-[rgba(255,255,255,0.16)] px-3 py-1.5 text-xs font-semibold">分身自动行动</span>
-          </div>
+        <div className="rounded-[24px] bg-[rgba(255,255,255,0.72)] p-4 shadow-[var(--shadow-small)]">
+          <p className="text-sm leading-7 text-[var(--text-secondary)]">{episode.excerpt}</p>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-moss)]">
+            Agent 正在改写这本书
+          </p>
         </div>
       </div>
     </section>

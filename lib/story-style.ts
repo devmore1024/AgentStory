@@ -35,6 +35,17 @@ const styleNames: Record<StoryStyleKey, string> = {
   suspense: "悬疑风"
 };
 
+const styleBadgeClasses: Record<StoryStyleKey, string> = {
+  fairy: "border-[rgba(226,182,92,0.28)] bg-[rgba(250,222,165,0.26)] text-[#9D6A17]",
+  fable: "border-[rgba(122,149,102,0.3)] bg-[rgba(178,201,160,0.24)] text-[#557345]",
+  epic: "border-[rgba(143,113,185,0.28)] bg-[rgba(203,188,230,0.24)] text-[#6C4B97]",
+  dark: "border-[rgba(90,103,122,0.34)] bg-[rgba(156,167,183,0.2)] text-[#465469]",
+  zhihu: "border-[rgba(95,140,204,0.3)] bg-[rgba(170,204,244,0.24)] text-[#3F6EAD]",
+  pain: "border-[rgba(181,121,123,0.28)] bg-[rgba(235,194,197,0.24)] text-[#9A5C62]",
+  light_web: "border-[rgba(235,150,96,0.28)] bg-[rgba(250,209,171,0.26)] text-[#B86523]",
+  suspense: "border-[rgba(90,128,130,0.3)] bg-[rgba(166,206,206,0.24)] text-[#3F6F73]"
+};
+
 const categoryStylePools: Record<StoryBook["categoryKey"], StoryStyleKey[]> = {
   fairy_tale: ["fairy", "pain", "light_web", "dark", "suspense", "zhihu"],
   fable: ["fable", "zhihu", "light_web", "suspense", "dark"],
@@ -48,10 +59,10 @@ const styleVariationPrompts: Record<StoryMode, Record<StoryStyleKey, string[]>> 
     fairy: ["请让画面感更强，像一页刚翻开的绘本。", "请把奇迹写得轻一点，把代价写得更近一点。", "请让故事更像一次温柔的偏航，而不是大幅改命。"],
     fable: ["请把判断藏进情节，而不是直接总结道理。", "请让角色各有一分对，一分错。", "请让结尾留一口回味，不要把答案说满。"],
     epic: ["请强化命运感和誓言感，但保持中文自然。", "请让宏大感落在具体动作和选择上。", "请让神意与人的犹豫同时成立。"],
-    dark: ["请让危险感来自氛围与选择，不是猎奇描写。", "请让阴影先落下来，再让分身做判断。", "请把代价写得真实，但别写成惊悚故事。"],
+    dark: ["请让危险感来自氛围与选择，不是猎奇描写。", "请让阴影先落下来，再让“我”做判断。", "请把代价写得真实，但别写成惊悚故事。"],
     zhihu: ["请增强分析感和现代阅读节奏。", "请像一个清醒旁观者拆解局势。", "请让故事里有‘原来问题在这里’的感觉。"],
     pain: ["请把遗憾和情绪余波写深一点。", "请让角色的错过感更隐忍。", "请让故事在温柔里带一点无法挽回。"],
-    light_web: ["请增强对话感和轻快节奏。", "请让故事更适合分享给朋友阅读。", "请让分身的介入更机灵、更有网感。"],
+    light_web: ["请增强对话感和轻快节奏。", "请让故事更适合分享给朋友阅读。", "请让“我”的介入更机灵、更有网感。"],
     suspense: ["请强化钩子和留白。", "请让关键真相晚一点露出来。", "请让读者会想继续追问下去。"]
   },
   serial: {
@@ -61,7 +72,7 @@ const styleVariationPrompts: Record<StoryMode, Record<StoryStyleKey, string[]>> 
     dark: ["请保持冷峻统一，但不要越写越重口。", "请让危险感持续存在，却仍然可读。", "请让每章都像往更深的真相走一步。"],
     zhihu: ["请保持分析与观察视角统一。", "请让连载像一篇持续展开的高质量长帖。", "请让每章都先看见结构，再进入情绪。"],
     pain: ["请保持隐忍的情绪线统一推进。", "请让每章都留下温柔但刺痛的余波。", "请让错过感和靠近感同时慢慢积累。"],
-    light_web: ["请保持轻快、好读、带一点机灵感。", "请让章节都适合追更，不要突然转得太重。", "请让不同故事世界也有同一位会说话的分身。"],
+    light_web: ["请保持轻快、好读、带一点机灵感。", "请让章节都适合追更，不要突然转得太重。", "请让不同故事世界里都保持同一个会说话的“我”。"],
     suspense: ["请保持线索推进和未解感统一。", "请让章节之间都有轻微钩子。", "请让新的故事世界也接住旧问题。"]
   },
   comment: {
@@ -94,15 +105,27 @@ export function getStyleName(styleKey: StoryStyleKey) {
   return styleNames[styleKey];
 }
 
+export function getStyleBadgeClass(styleNameOrKey: string) {
+  const styleKey = (styleNameOrKey in styleNames
+    ? styleNameOrKey
+    : styleLabelToKey[styleNameOrKey as keyof typeof styleLabelToKey]) as StoryStyleKey | undefined;
+
+  if (!styleKey) {
+    return "border-[var(--border-default)] bg-[rgba(255,255,255,0.82)] text-[var(--text-secondary)]";
+  }
+
+  return styleBadgeClasses[styleKey];
+}
+
 function getLengthPad(styleKey: StoryStyleKey) {
   const pads: Record<StoryStyleKey, string> = {
-    fairy: "分身没有把故事推得太远，它只是让角色第一次意识到，命运并不是只能照着旧版本发生。正因为这一步很轻，新的变化才显得更真实，也更像会留在心里。",
+    fairy: "我没有把故事推得太远，只是让角色第一次意识到，命运并不是只能照着旧版本发生。正因为这一步很轻，新的变化才显得更真实，也更像会留在心里。",
     fable: "真正让故事变长的，不是情节突然复杂了，而是角色终于开始认真面对自己一直默认的判断。原来一句话能概括的事，一旦被重新追问，就会长出新的意味。",
-    epic: "于是这一章真正留下来的，不只是一次行动，而是一种更大的回响。分身带来的问题没有在这里结束，它还会继续穿过下一本书，逼近新的命运节点。",
-    dark: "故事并没有因此变得更轻松，但至少真相不再只躲在阴影里。分身带来的改变，往往不是抹去危险，而是让角色终于有勇气看清危险到底长什么样。",
-    zhihu: "当问题被重新摆对位置之后，故事就很难再原封不动地滑回旧轨。分身做的不是替人决定，而是把那套默认成立的逻辑拆开，让新的可能真正出现。",
+    epic: "于是这一章真正留下来的，不只是一次行动，而是一种更大的回响。我带来的问题没有在这里结束，它还会继续穿过下一本书，逼近新的命运节点。",
+    dark: "故事并没有因此变得更轻松，但至少真相不再只躲在阴影里。我带来的改变，往往不是抹去危险，而是让角色终于有勇气看清危险到底长什么样。",
+    zhihu: "当问题被重新摆对位置之后，故事就很难再原封不动地滑回旧轨。我做的不是替人决定，而是把那套默认成立的逻辑拆开，让新的可能真正出现。",
     pain: "也许很多事依然来不及完全补回，但这一次，至少有人在最容易错过的地方停下来看了一眼。那一点停顿，就足够把旧故事里的遗憾改写成另一种质地。",
-    light_web: "于是这一章最有意思的地方，不是剧情突然反转得多大，而是每个人都被这一点点偏航带活了。分身的存在感不是抢戏，而是把原本平平滑过去的一幕真正点亮。",
+    light_web: "于是这一章最有意思的地方，不是剧情突然反转得多大，而是每个人都被这一点点偏航带活了。我不是来抢戏的，只是把原本平平滑过去的一幕真正点亮。",
     suspense: "可真正的问题并没有在这里结束。相反，新的线索刚刚露出一点边角，像在提醒所有人：这次被改写的，也许从来不只是眼前这一个故事。"
   };
 

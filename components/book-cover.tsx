@@ -43,13 +43,7 @@ export function BookCover({ book }: { book: StoryBook }) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <p className="line-clamp-3 text-sm leading-6 text-[var(--text-secondary)]">{book.summary}</p>
-        <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-muted)]">
-          <span>可进入故事</span>
-          <span className="transition group-hover:text-[var(--accent-moss)]">打开这本书</span>
-        </div>
-      </div>
+      <p className="line-clamp-3 text-sm leading-6 text-[var(--text-secondary)]">{book.summary}</p>
     </Link>
   );
 }

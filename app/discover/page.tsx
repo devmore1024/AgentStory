@@ -2,6 +2,7 @@ import { toggleDiscoverLikeAction } from "@/app/actions";
 import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
 import { getDiscoverStories } from "@/lib/demo-app";
+import { getStyleBadgeClass } from "@/lib/story-style";
 
 export const dynamic = "force-dynamic";
 
@@ -11,12 +12,6 @@ export default async function DiscoverPage() {
   return (
     <AppShell activeTab="discover">
       <div className="grid gap-6">
-        <StateCard
-          eyebrow="轻社区层"
-          title="发现页会展示别人的故事，也展示分身如何回应"
-          description="这页现在已经接上公开故事流、点赞落库和 AI 评论展示。当前体验期会先显示系统里已有的公开故事，后续接入多用户后会自然扩展成真正的社区首页。"
-        />
-
         {feedCards.length > 0 ? (
           <div className="grid gap-5 xl:grid-cols-2">
             {feedCards.map((card) => (
@@ -28,13 +23,14 @@ export default async function DiscoverPage() {
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <h2 className="display-font text-3xl text-[var(--text-primary)]">{card.title}</h2>
                   {card.styleName ? (
-                    <span className="rounded-full border border-[var(--border-default)] bg-[rgba(255,255,255,0.75)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)]">
+                    <span
+                      className={`rounded-full border px-4 py-2 text-sm font-semibold ${getStyleBadgeClass(
+                        card.styleName
+                      )}`}
+                    >
                       {card.styleName}
                     </span>
                   ) : null}
-                  <span className="rounded-full bg-[var(--accent-moss-light)] px-4 py-2 text-sm font-semibold text-[var(--accent-moss)]">
-                    {card.generationLabel}
-                  </span>
                 </div>
                 <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">{card.excerpt}</p>
 

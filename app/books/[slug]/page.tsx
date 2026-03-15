@@ -38,13 +38,7 @@ export default async function BookDetailPage({
             <h1 className="display-font mt-4 text-4xl leading-tight text-[var(--text-primary)] sm:text-5xl">{book.title}</h1>
             <p className="mt-4 text-base leading-8 text-[var(--text-secondary)]">{book.summary}</p>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
-              <Link
-                href={`/books/${book.slug}/read`}
-                className="flex min-h-11 items-center justify-center rounded-full border border-[var(--border-default)] bg-[rgba(255,255,255,0.8)] px-5 py-3 text-sm font-semibold text-[var(--text-primary)] shadow-[var(--shadow-small)] transition hover:border-[var(--accent-moss)] hover:text-[var(--accent-moss)]"
-              >
-                阅读
-              </Link>
+            <div className="mt-6">
               {currentContext ? (
                 <form action={createShortStoryAction}>
                   <input type="hidden" name="slug" value={book.slug} />

@@ -202,20 +202,20 @@ function getCommentStyleKey(book: StoryBook): StoryStyleKey {
 
 function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleKey: StoryStyleKey) {
   const openingByStyle: Record<StoryStyleKey, string> = {
-    fairy: `故事一开始并没有急着把危险送到你眼前。${book.title}里的风先吹过了树林，像有人提前翻到了结局那一页，而你的分身只是站在路边，看着事情还没真正发生。`,
+    fairy: `故事一开始并没有急着把危险送到眼前。${book.title}里的风先吹过了树林，像有人提前翻到了结局那一页，而我只是站在路边，看着事情还没真正发生。`,
     fable: `这个故事原本很短，短到像一句早就写好的判断。可当${persona.animalName}停在${book.title}的现场时，它没有急着得出结论，而是先看见了每个角色都在躲着的那一点犹豫。`,
-    epic: `在${book.title}的世界里，命运通常比人更早开口。可这一次，你的分身在众神、誓言与预言之间先问了一句：如果还可以再选一次，故事会不会往另一边倒去？`,
-    dark: `真正让故事变冷的，不是夜色，而是每个人都默认结局会照旧发生。你的分身走进《${book.title}》时，先看见的是那个没人愿意点破的危险。`,
-    zhihu: `如果把《${book.title}》当成一个已经写好的局面来看，问题从来不只是“接下来会发生什么”，而是“为什么所有人都默认只能这么发生”。你的分身就是在这里开口的。`,
-    pain: `《${book.title}》真正刺人的地方，从来不是那一幕结局，而是所有人明明来得及，却还是慢了一点。你的分身走进去时，先碰到的正是这种来不及。`,
-    light_web: `故事本来准备按老剧本往下滑，可你的分身偏偏在《${book.title}》最该沉默的时候插了一句嘴。场面没有立刻翻车，反而一下子变得更好玩了。`,
-    suspense: `《${book.title}》的表面看起来照旧推进，可你的分身很快发现，真正值得在意的并不是眼前这一幕，而是每个人都默契跳过的那个细节。`
+    epic: `在${book.title}的世界里，命运通常比人更早开口。可这一次，我在众神、誓言与预言之间先问了一句：如果还可以再选一次，故事会不会往另一边倒去？`,
+    dark: `真正让故事变冷的，不是夜色，而是每个人都默认结局会照旧发生。我走进《${book.title}》时，先看见的是那个没人愿意点破的危险。`,
+    zhihu: `如果把《${book.title}》当成一个已经写好的局面来看，问题从来不只是“接下来会发生什么”，而是“为什么所有人都默认只能这么发生”。我就是在这里开口的。`,
+    pain: `《${book.title}》真正刺人的地方，从来不是那一幕结局，而是所有人明明来得及，却还是慢了一点。我走进去时，先碰到的正是这种来不及。`,
+    light_web: `故事本来准备按老剧本往下滑，可我偏偏在《${book.title}》最该沉默的时候插了一句嘴。场面没有立刻翻车，反而一下子变得更好玩了。`,
+    suspense: `《${book.title}》的表面看起来照旧推进，可我很快发现，真正值得在意的并不是眼前这一幕，而是每个人都默契跳过的那个细节。`
   };
 
   const middleByStyle: Record<StoryStyleKey, string> = {
     fairy: `它没有替谁做决定，只是把一个新的问题放在角色面前。${persona.mappingReason}于是故事开始松动，不再只剩下原来的那条路。`,
     fable: `它没有急着给答案，而是先让角色把自己一直没看见的盲点说出来。于是原本一句话就能讲完的寓言，忽然被拉长成一次真正的选择。`,
-    epic: `分身没有对抗神意，它只是把“顺从”和“承担”之外的第三种回答轻轻摆出来。于是原本宏大的命运，第一次像是要向一个普通问题低头。`,
+    epic: `我没有对抗神意，只是把“顺从”和“承担”之外的第三种回答轻轻摆出来。于是原本宏大的命运，第一次像是要向一个普通问题低头。`,
     dark: `它没有让危险消失，只是把危险真正照亮。等角色终于意识到自己一直回避的是什么时，故事已经不可能再按原来那种轻松的方式结束。`,
     zhihu: `它没有直接替角色做判断，而是先把局势拆开：谁在自欺，谁在顺水推舟，谁又只是太习惯接受旧结论。故事因此开始出现新的转向。`,
     pain: `它没有挽回所有事情，只是在最容易错过的地方让角色稍微停了一下。于是那种本该直接滑向遗憾的情绪，第一次有了一点可以回头的缝隙。`,
@@ -224,10 +224,10 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
   };
 
   const endingByStyle: Record<StoryStyleKey, string> = {
-    fairy: `最后没有人宣布“结局被改写了”，可所有人都能感觉到，今天的版本已经不再只是旧故事的复述，而更像一段真正属于你的分身冒险。`,
+    fairy: `最后没有人宣布“结局被改写了”，可所有人都能感觉到，今天的版本已经不再只是旧故事的复述，而更像一段真正属于我的冒险。`,
     fable: `到最后，故事没有把道理大声说出口，可每个人都知道，原来那条最顺手的判断并不一定就是最对的答案。`,
-    epic: `结局没有彻底推翻命运，但命运已经不再像一堵密不透风的墙。你的分身只是轻轻碰了一下，它便裂出了一条能让人重新发问的缝。`,
-    dark: `故事并没有因此变得温柔太多，可它至少不再把所有人都困在同一种沉默里。你的分身带来的，不是安慰，而是一种更清醒的出口。`,
+    epic: `结局没有彻底推翻命运，但命运已经不再像一堵密不透风的墙。我只是轻轻碰了一下，它便裂出了一条能让人重新发问的缝。`,
+    dark: `故事并没有因此变得温柔太多，可它至少不再把所有人都困在同一种沉默里。我带来的，不是安慰，而是一种更清醒的出口。`,
     zhihu: `最后真正被改变的，未必只是剧情本身，而是角色看待自己处境的方式。问题一旦被问对，旧故事就很难再原封不动地继续下去。`,
     pain: `最后仍然有一些东西没能挽回，但这一次，故事里终于有人真正看见了那份遗憾。那一点迟来的看见，本身就已经改写了结局的质地。`,
     light_web: `最后大家可能都没空认真总结发生了什么，但谁都知道，今天这版《${book.title}》已经比原版更像一次活生生的相遇。`,
@@ -235,8 +235,8 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
   };
 
   return {
-    title: `如果《${book.title}》里多了你的分身`,
-    excerpt: `${book.title}不再沿着原来的命运继续，而是被${persona.animalName}用${getStyleName(styleKey)}轻轻推开了一道新的缝隙。`,
+    title: `如果《${book.title}》里多了我`,
+    excerpt: `${book.title}不再沿着原来的命运继续，而是被我用${getStyleName(styleKey)}轻轻推开了一道新的缝隙。`,
     content: normalizeStoryContentLength(
       `${openingByStyle[styleKey]}\n\n${middleByStyle[styleKey]}\n\n${endingByStyle[styleKey]}`,
       styleKey
@@ -247,24 +247,24 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
 function buildEpisode(book: StoryBook, persona: AnimalPersona, episodeNo: number, bridge: string, styleKey: StoryStyleKey) {
   const title = `第 ${String(episodeNo).padStart(2, "0")} 章 · ${book.title}里的另一种说法`;
   const excerptByStyle: Record<StoryStyleKey, string> = {
-    fairy: `你的分身带着同一种温柔的视角，继续走进《${book.title}》，让这个故事也开始偏离旧结局。`,
+    fairy: `我带着同一种温柔的视角，继续走进《${book.title}》，让这个故事也开始偏离旧结局。`,
     fable: `从上一个世界带来的问题没有消失，它在《${book.title}》里继续逼近每个角色的判断。`,
-    epic: `命运并没有因为换了故事世界就停下。你的分身把同一条更大的问题线带进了《${book.title}》。`,
+    epic: `命运并没有因为换了故事世界就停下。我把同一条更大的问题线带进了《${book.title}》。`,
     dark: `危险感还在延续，只是这一次，它落进了《${book.title}》更深的一层暗面里。`,
-    zhihu: `同一条观察线继续推进，到了《${book.title}》，你的分身先拆开的是这个世界默认成立的那套逻辑。`,
+    zhihu: `同一条观察线继续推进，到了《${book.title}》，我先拆开的是这个世界默认成立的那套逻辑。`,
     pain: `上一章留下的情绪余波没有退去，它在《${book.title}》里变成了另一种更安静的刺痛。`,
-    light_web: `你的分身延续同一种轻快节奏，一脚踏进《${book.title}》，把旧故事重新带活了。`,
+    light_web: `我延续同一种轻快节奏，一脚踏进《${book.title}》，把旧故事重新带活了。`,
     suspense: `真正的问题没有结束，只是换了一个故事壳。到了《${book.title}》，线索又往前露出了一截。`
   };
   const contentByStyle: Record<StoryStyleKey, string> = {
     fairy: `${bridge}\n\n当故事走到《${book.title}》时，${persona.animalName}没有急着改变谁，而是先让角色意识到，他们其实不一定只能照着原剧情行动。于是新的一章像翻开一页新绘本那样展开了。`,
-    fable: `${bridge}\n\n到了《${book.title}》，你的分身没有先给结论，而是把问题摆得更近了一点。角色越想按老习惯回答，越会暴露出自己真正忽略掉的那一处。`,
+    fable: `${bridge}\n\n到了《${book.title}》，我没有先给结论，而是把问题摆得更近了一点。角色越想按老习惯回答，越会暴露出自己真正忽略掉的那一处。`,
     epic: `${bridge}\n\n《${book.title}》看上去仍被更大的命运推着前行，可${persona.animalName}并没有退开。它把上一章的追问继续往前送，于是这一次，连预言都像要多迟疑一下。`,
-    dark: `${bridge}\n\n《${book.title}》里的危险并没有比上一章更吵，它只是更沉。你的分身先看见了沉默背后的代价，也因此逼着角色把一直不愿面对的真相翻了出来。`,
-    zhihu: `${bridge}\n\n到了《${book.title}》，你的分身还是先看结构：谁掌握话语，谁被推着走，谁其实从一开始就在配合旧秩序。等这些关系被看清，故事才真正开始改写。`,
+    dark: `${bridge}\n\n《${book.title}》里的危险并没有比上一章更吵，它只是更沉。我先看见了沉默背后的代价，也因此逼着角色把一直不愿面对的真相翻了出来。`,
+    zhihu: `${bridge}\n\n到了《${book.title}》，我还是先看结构：谁掌握话语，谁被推着走，谁其实从一开始就在配合旧秩序。等这些关系被看清，故事才真正开始改写。`,
     pain: `${bridge}\n\n《${book.title}》这一章没有急着制造大起大落，它只是把上一章留下的情绪继续往角色心里压了一寸。也正是这多出来的一寸，让所有错过都变得更可见。`,
-    light_web: `${bridge}\n\n《${book.title}》这次没有端着老故事的架子，而是被你的分身拽回了更鲜活的现场。它一句话、一转身，就把本来要直着冲向旧结局的情节拐开了。`,
-    suspense: `${bridge}\n\n《${book.title}》这一章表面上像是新的开始，但你的分身知道，真正重要的仍是上一章留下的那个疑点。它顺着不对劲继续往里摸，新的裂口也就跟着露了出来。`
+    light_web: `${bridge}\n\n《${book.title}》这次没有端着老故事的架子，而是被我拽回了更鲜活的现场。我一句话、一转身，就把本来要直着冲向旧结局的情节拐开了。`,
+    suspense: `${bridge}\n\n《${book.title}》这一章表面上像是新的开始，但我知道，真正重要的仍是上一章留下的那个疑点。我顺着不对劲继续往里摸，新的裂口也就跟着露了出来。`
   };
 
   return {
@@ -276,14 +276,14 @@ function buildEpisode(book: StoryBook, persona: AnimalPersona, episodeNo: number
 
 function buildSerialBridge(previousEpisodeTitle: string | null, book: StoryBook) {
   if (!previousEpisodeTitle) {
-    return `故事还没有被命运完全写死前，你的分身先一步踏进了《${book.title}》。`;
+    return `故事还没有被命运完全写死前，我先一步踏进了《${book.title}》。`;
   }
 
-  return `上一章《${previousEpisodeTitle}》里留下的问题没有消失，它跟着你的分身一起进入《${book.title}》，让新的角色也开始重新看待自己原本以为注定的那条路。`;
+  return `上一章《${previousEpisodeTitle}》里留下的问题没有消失，它跟着我一起进入《${book.title}》，让新的角色也开始重新看待自己原本以为注定的那条路。`;
 }
 
 function buildComment(bookTitle: string, persona: AnimalPersona) {
-  return `来自你的分身：我喜欢这个故事没有急着追着结局跑，而是先把问题留给角色自己。像《${bookTitle}》这样的时刻，最迷人的从来不是答案，而是那一点被重新打开的可能。`;
+  return `我喜欢这个故事没有急着追着结局跑，而是先把问题留给角色自己。像《${bookTitle}》这样的时刻，最迷人的从来不是答案，而是那一点被重新打开的可能。`;
 }
 
 async function createGenerationJob(params: {
@@ -517,12 +517,12 @@ async function ensureSerialDataForContext(context: AppUserContext, seedSource: "
     {
       book: redBook,
       styleId: styleIds.get(threadStyleKey) ?? null,
-      bridge: "你的分身先在森林边停了一下。它没有急着替小红帽做决定，而是先让她意识到，今天并不一定必须照旧走那条路。"
+      bridge: "我先在森林边停了一下。我没有急着替小红帽做决定，而是先让她意识到，今天并不一定必须照旧走那条路。"
     },
     {
       book: prometheusBook,
       styleId: styleIds.get(threadStyleKey) ?? null,
-      bridge: "从童话的森林跨入神话的火光时，你的分身把上一次留下的问题也带了过去：既然命运能被看见，它是否也能被重新回答？"
+      bridge: "从童话的森林跨入神话的火光时，我把上一次留下的问题也带了过去：既然命运能被看见，它是否也能被重新回答？"
     }
   ];
 
@@ -1006,10 +1006,10 @@ export async function createShortStoryForBookSlug(slug: string) {
   const triggerScene =
     book.keyScenes[0] ??
     (book.categoryKey === "fairy_tale"
-      ? "分身在命运转弯前先开口"
+      ? "我在命运转弯前先开口"
       : book.categoryKey === "fable"
-        ? "分身在角色做出惯性反应前提出另一个问题"
-        : "分身在命运看似已定时插入一个新的选择");
+        ? "我在角色做出惯性反应前提出另一个问题"
+        : "我在命运看似已定时插入一个新的选择");
   const jobId = await createGenerationJob({
     jobType: "short_story_generate",
     payload: {

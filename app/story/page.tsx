@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
 import { SubmitButton } from "@/components/submit-button";
 import { getAuthenticatedAppContext, getSerialEpisodes, getSerialMeta, getShortStories } from "@/lib/demo-app";
+import { getStyleBadgeClass } from "@/lib/story-style";
 
 export const dynamic = "force-dynamic";
 
@@ -120,13 +121,14 @@ export default async function StoryPage({
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <h2 className="display-font text-3xl text-[var(--text-primary)]">{episode.title}</h2>
                       {episode.styleName ? (
-                        <span className="rounded-full border border-[var(--border-default)] bg-[rgba(255,255,255,0.82)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+                        <span
+                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(
+                            episode.styleName
+                          )}`}
+                        >
                           {episode.styleName}
                         </span>
                       ) : null}
-                      <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                        {episode.generationLabel}
-                      </span>
                     </div>
                     <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--text-secondary)]">{episode.excerpt}</p>
                     <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">
@@ -166,13 +168,14 @@ export default async function StoryPage({
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <h2 className="display-font text-3xl text-[var(--text-primary)]">{story.title}</h2>
                       {story.styleName ? (
-                        <span className="rounded-full border border-[var(--border-default)] bg-[rgba(255,255,255,0.82)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+                        <span
+                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(
+                            story.styleName
+                          )}`}
+                        >
                           {story.styleName}
                         </span>
                       ) : null}
-                      <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                        {story.generationLabel}
-                      </span>
                     </div>
                     <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">{story.excerpt}</p>
                     <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">

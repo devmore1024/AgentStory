@@ -1,3 +1,4 @@
+import OpenAI from "openai";
 import type { AnimalPersona } from "@/lib/animal-personas";
 import type { StoryBook } from "@/lib/story-data";
 import {
@@ -53,19 +54,19 @@ const styleSystemPrompts: Record<GenerationMode, Record<StoryStyleKey, string>> 
     pain:
       "你是 AgentStory 的伤痛文学风连载写手。你必须让情绪线慢慢累积，统一保持隐忍、迟疑和余波感，不要忽然鸡血或热闹。",
     light_web:
-      "你是 AgentStory 的轻喜剧网感连载写手。你必须保持轻快、会说话、易追更的节奏，让不同章节都像同一个分身在持续说话。",
+      "你是 AgentStory 的轻喜剧网感连载写手。你必须保持轻快、会说话、易追更的节奏，让不同章节都像同一个“我”在持续说话。",
     suspense:
       "你是 AgentStory 的悬疑连载写手。你必须保持线索推进和未解感，让每章都带一点轻钩子，但不要故弄玄虚。"
   },
   comment: {
-    fairy: "你是 AgentStory 的童话感评论分身。你说话温柔、有画面感，像在轻轻接住一个故事。",
-    fable: "你是 AgentStory 的寓言感评论分身。你说话简洁、有判断，但不刻薄。",
-    epic: "你是 AgentStory 的史诗感评论分身。你说话会自然看到更大的命运感和结构。",
-    dark: "你是 AgentStory 的暗黑感评论分身。你说话冷静，善于点出代价和真相。",
-    zhihu: "你是 AgentStory 的知乎风评论分身。你说话像短评，清醒、有分析感。",
-    pain: "你是 AgentStory 的伤痛文学感评论分身。你说话会抓住遗憾和余波，但不过火。",
-    light_web: "你是 AgentStory 的轻喜剧网感评论分身。你说话轻快、自然、适合社交场景。",
-    suspense: "你是 AgentStory 的悬疑感评论分身。你说话会保留一点疑问和没说完的意味。"
+    fairy: "你是 AgentStory 的童话感评论写手。你说话温柔、有画面感，像在轻轻接住一个故事。",
+    fable: "你是 AgentStory 的寓言感评论写手。你说话简洁、有判断，但不刻薄。",
+    epic: "你是 AgentStory 的史诗感评论写手。你说话会自然看到更大的命运感和结构。",
+    dark: "你是 AgentStory 的暗黑感评论写手。你说话冷静，善于点出代价和真相。",
+    zhihu: "你是 AgentStory 的知乎风评论写手。你说话像短评，清醒、有分析感。",
+    pain: "你是 AgentStory 的伤痛文学感评论写手。你说话会抓住遗憾和余波，但不过火。",
+    light_web: "你是 AgentStory 的轻喜剧网感评论写手。你说话轻快、自然、适合社交场景。",
+    suspense: "你是 AgentStory 的悬疑感评论写手。你说话会保留一点疑问和没说完的意味。"
   }
 };
 
@@ -102,25 +103,14 @@ const generationProfiles: Record<GenerationMode, Record<StoryStyleKey, { tempera
   }
 };
 
-function getChatCompletionsUrl() {
+function getOpenAIBaseUrl() {
   const baseUrl = process.env.OPENAI_BASE_URL;
 
   if (!baseUrl) {
     return null;
   }
 
-  const normalized = baseUrl.trim().replace(/\/$/, "");
-
-  if (/\/chat\/completions$/i.test(normalized)) {
-    return normalized;
-  }
-
-  // Accept older local env values and normalize them to the official DashScope-compatible endpoint.
-  if (/coding\.dashscope\.aliyuncs\.com\/v1$/i.test(normalized)) {
-    return "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
-  }
-
-  return `${normalized}/chat/completions`;
+  return baseUrl.trim().replace(/\/$/, "");
 }
 
 function cleanModelText(raw: string) {
@@ -247,68 +237,65 @@ async function createChatCompletion(
   messages: Array<{ role: "system" | "user"; content: string }>,
   options?: { temperature?: number; maxTokens?: number }
 ) {
-  const url = getChatCompletionsUrl();
+  const baseURL = getOpenAIBaseUrl();
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_MODEL ?? "qwen3.5-plus";
 
-  if (!url || !apiKey) {
+  if (!baseURL || !apiKey) {
     throw new Error("LLM configuration is missing.");
   }
 
+  const openai = new OpenAI({
+    apiKey,
+    baseURL
+  });
+
   console.log("[AgentStory][LLM] start request", {
-    url,
+    baseURL,
     model,
     temperature: options?.temperature ?? 0.9,
     maxTokens: options?.maxTokens ?? 1200
   });
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
+  try {
+    const response = await openai.chat.completions.create({
       model,
+      messages,
       temperature: options?.temperature ?? 0.9,
       max_tokens: options?.maxTokens ?? 1200,
-      messages
-    }),
-    cache: "no-store"
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    console.error("[AgentStory][LLM] request failed", {
-      url,
-      model,
-      status: response.status,
-      body: message
     });
-    throw new Error(`LLM request failed: ${response.status} ${message}`);
+
+    const rawContent: unknown = response.choices[0]?.message?.content;
+    const content =
+      typeof rawContent === "string"
+        ? rawContent
+        : Array.isArray(rawContent)
+          ? rawContent
+              .map((item) =>
+                item && typeof item === "object" && "text" in item && typeof item.text === "string" ? item.text : ""
+              )
+              .join("")
+          : "";
+
+    if (!content) {
+      console.error("[AgentStory][LLM] empty response", { baseURL, model, raw: response });
+      throw new Error("LLM response is empty.");
+    }
+
+    console.log("[AgentStory][LLM] request succeeded", {
+      model,
+      contentLength: content.length
+    });
+
+    return content;
+  } catch (error) {
+    console.error("[AgentStory][LLM] request failed", {
+      baseURL,
+      model,
+      error: error instanceof Error ? error.message : String(error)
+    });
+    throw error;
   }
-
-  const json = (await response.json()) as {
-    choices?: Array<{
-      message?: {
-        content?: string;
-      };
-    }>;
-  };
-
-  const content = json.choices?.[0]?.message?.content;
-
-  if (!content) {
-    console.error("[AgentStory][LLM] empty response", { url, model, raw: json });
-    throw new Error("LLM response is empty.");
-  }
-
-  console.log("[AgentStory][LLM] request succeeded", {
-    model,
-    contentLength: content.length
-  });
-
-  return content;
 }
 
 export async function generateShortStoryWithLlm(params: {
@@ -333,9 +320,9 @@ export async function generateShortStoryWithLlm(params: {
         `选定风格：${getStyleName(params.styleKey)}`,
         `风格要求：${getStyleInstruction(params.styleKey)}`,
         `风格变体：${getStyleVariantPrompt(params.styleKey, "short", `${params.book.slug}:${params.triggerScene}`)}`,
-        "任务：写一篇用户分身进入经典故事后的中文短篇。",
+        "任务：写一篇“我”进入经典故事后的中文短篇。",
         "要求：",
-        "1. 保留原故事世界感，但必须出现“你的分身/分身”的介入。",
+        "1. 保留原故事世界感，但介入者必须始终用第一人称“我”自称，不要出现“你的分身”“我的分身”或“分身”作为自称。",
         "2. 写出一个清晰的切入点、一次关键互动和一个被轻微改写的结果。",
         "3. 标题 12-28 个中文字符，摘要 50-90 个中文字符，正文 300-600 个中文字符。",
         "4. 正文分 3-5 段，不要使用项目符号。",
@@ -384,7 +371,7 @@ export async function generateCommentWithLlm(params: {
         `表达风格：${params.persona.expressionStyle}`,
         `评论风格：${getStyleInstruction(params.styleKey)}`,
         `评论变体：${getStyleVariantPrompt(params.styleKey, "comment", `${params.bookTitle}:${params.storyTitle}`)}`,
-        "要求：像“来自你的分身”的自然回应，70 字以内，有观点、有感受，不要空泛夸赞。"
+        "要求：直接用第一人称“我”的口吻自然回应，70 字以内，有观点、有感受，不要空泛夸赞，也不要自称分身。"
       ].join("\n")
     }
   ], generationProfiles.comment[params.styleKey]);
@@ -420,12 +407,12 @@ export async function generateSerialEpisodeWithLlm(params: {
         `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`,
         `上一章标题：${params.previousEpisodeTitle ?? "无"}`,
         `上一章摘要：${params.previousEpisodeExcerpt ?? "无"}`,
-        "任务：写一章会继续推进的中文连载章节，让分身跨越到新的故事书里。",
+        "任务：写一章会继续推进的中文连载章节，让“我”跨越到新的故事书里。",
         "要求：",
         "1. 要有承接上一章的过桥句 bridge，用 1-2 句概括这次如何从上个世界过渡到当前故事。",
         "2. 标题 14-32 个中文字符，摘要 50-100 个中文字符，正文 300-600 个中文字符。",
         "3. 正文分 3-5 段，不要用项目符号。",
-        "4. 必须同时写出：进入方式、与角色的关键互动、当章留下的持续性问题。",
+        "4. 必须同时写出：进入方式、与角色的关键互动、当章留下的持续性问题，并始终用第一人称“我”来写自己的进入、观察和行动。",
         "5. 保持 AgentStory 的温暖、可读和可追更感，不要写成设定说明。",
         "6. 风格必须与本条连载已建立的风格保持统一，不要因为换了故事书就突然换写法。",
         "7. content 必须是一章完整连载，要有承接、推进和当章收束。"
@@ -446,6 +433,6 @@ export async function generateSerialEpisodeWithLlm(params: {
     title,
     excerpt,
     content: normalizeStoryContentLength(storyContent, params.styleKey),
-    bridge: bridge || "你的分身把上一章留下的问题带进了新的故事里，于是命运又朝另一边松动了一点。"
+    bridge: bridge || "我把上一章留下的问题带进了新的故事里，于是命运又朝另一边松动了一点。"
   };
 }
