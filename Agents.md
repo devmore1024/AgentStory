@@ -5,6 +5,23 @@
 - **App Name**: AgentStory
 - **Client ID**: 74dbc0c7-***
 
+# Development Rules
+
+## Workflow
+1. Understand the task
+2. Plan implementation
+3. Implement full feature
+4. Add tests
+5. Update documentation
+
+## Code Style
+- Use TypeScript
+- Avoid any
+- Prefer functional components
+
+## Testing
+Always add tests for new features.
+
 ## API 文档
 
 开发时请参考官方文档（从 `.secondme/state.json` 的 `docs` 字段读取）：
@@ -62,3 +79,5 @@
 - Tailwind CSS
 - Prisma (SQLite)
 - 运行端口: 3000
+
+
