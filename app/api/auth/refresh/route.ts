@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { AUTH_SESSION_COOKIE, serializeAuthSession } from "@/lib/auth";
 import { refreshSecondMeToken } from "@/lib/secondme";
 
+export const dynamic = "force-dynamic";
+
 function readSessionCookie(rawCookie: string | null) {
   if (!rawCookie) {
     return null;
