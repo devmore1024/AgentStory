@@ -36,7 +36,7 @@ export function BookCover({ book, variant = "default" }: BookCoverProps) {
   return (
     <Link href={`/books/${book.slug}`} className={cardClass}>
       <div
-        className={`paper-grain relative mb-3 aspect-[4/5] overflow-hidden rounded-[18px] border p-4 ${
+        className={`paper-grain relative mb-3 aspect-[4/5] overflow-hidden rounded-[18px] border p-0 ${
           isHomeFairy
             ? "border-[rgba(255,245,236,0.75)] shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]"
             : "border-[rgba(255,255,255,0.45)]"
@@ -52,9 +52,6 @@ export function BookCover({ book, variant = "default" }: BookCoverProps) {
           objectPosition={coverAsset.objectPosition}
           isExternal={coverAsset.isExternal}
         />
-        <div className="absolute inset-0" style={{ background: coverAsset.tint.overlay }} />
-        <div className="absolute inset-0 mix-blend-screen" style={{ background: coverAsset.tint.glow }} />
-        <div className="absolute inset-x-0 bottom-0 h-[56%]" style={{ background: coverAsset.tint.shadow }} />
         <div
           className={`absolute inset-0 ${
             isHomeFairy
@@ -62,7 +59,7 @@ export function BookCover({ book, variant = "default" }: BookCoverProps) {
               : "bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(67,47,34,0.16))]"
           }`}
         />
-        <div className="relative z-10 flex h-full flex-col justify-between">
+        <div className="relative z-10 flex h-full flex-col justify-between p-4">
           {isHomeFairy ? <div className="pointer-events-none h-8 w-8 rounded-full bg-[rgba(255,243,228,0.42)]" /> : null}
           {!isHomeFairy ? (
             <span
@@ -71,20 +68,13 @@ export function BookCover({ book, variant = "default" }: BookCoverProps) {
               {book.categoryName}
             </span>
           ) : null}
-          <div
-            className={`rounded-[18px] border p-3 backdrop-blur ${
-              isHomeFairy
-                ? "border-[rgba(255,248,242,0.56)] shadow-[0_10px_24px_rgba(45,26,19,0.18)]"
-                : "border-[rgba(255,255,255,0.46)] shadow-[var(--shadow-small)]"
-            }`}
-            style={{ background: coverAsset.tint.panel }}
-          >
-            <h3 className="display-font text-lg leading-tight text-[var(--text-primary)]">{book.title}</h3>
-          </div>
         </div>
       </div>
 
-      <p className={`text-sm leading-6 text-[var(--text-secondary)] ${isHomeFairy ? "line-clamp-4" : "line-clamp-3"}`}>
+      <div className="mb-2 mt-1 px-1">
+        <h3 className="display-font text-lg font-bold leading-tight text-[var(--text-primary)]">{book.title}</h3>
+      </div>
+      <p className={`px-1 text-sm leading-6 text-[var(--text-secondary)] ${isHomeFairy ? "line-clamp-4" : "line-clamp-3"}`}>
         {book.summary}
       </p>
     </Link>
