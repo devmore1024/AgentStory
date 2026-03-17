@@ -145,7 +145,7 @@ export default async function BookDetailPage({
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">进入前提示</p>
               <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">登录后才会生成你的动物人格</h2>
               <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">
-                未登录时不再展示默认人格。连接 SecondMe 后，系统会根据你的真实资料推荐适合进入这本书的副本风格，并在夜里生成只属于你的回忆。
+                未登录时不再展示默认人格。连接 SecondMe 后，系统会根据你的真实资料推荐适合进入这本书的副本风格，让进入后的冒险更像现在的你。
               </p>
               <Link
                 href="/me?auth=required"

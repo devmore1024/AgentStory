@@ -7,14 +7,12 @@ import {
   StoryExperienceMigrationError,
   continueAdventure,
   createAdventureForBookSlug,
-  ensureTodayBedtimeMemory,
   joinAdventure
 } from "@/lib/story-experience";
 
 function revalidateStoryExperiencePaths() {
   revalidatePath("/");
   revalidatePath("/adventure");
-  revalidatePath("/memory");
   revalidatePath("/me");
   revalidatePath("/story");
   revalidatePath("/discover");
@@ -75,22 +73,6 @@ export async function continueAdventureAction(formData: FormData) {
     await continueAdventure(threadId);
     revalidateStoryExperiencePaths();
     redirect(`/adventure/${threadId}`);
-  } catch (error) {
-    if (error instanceof AuthRequiredError) {
-      redirect("/me?auth=required");
-    }
-    if (error instanceof StoryExperienceMigrationError) {
-      redirect("/me?setup=story_schema_required");
-    }
-    throw error;
-  }
-}
-
-export async function ensureDailyMemoryAction() {
-  try {
-    await ensureTodayBedtimeMemory();
-    revalidateStoryExperiencePaths();
-    redirect("/memory");
   } catch (error) {
     if (error instanceof AuthRequiredError) {
       redirect("/me?auth=required");

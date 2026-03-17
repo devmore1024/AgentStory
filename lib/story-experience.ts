@@ -14,6 +14,9 @@ import { getBookBySlug, type StoryBook } from "@/lib/story-data";
 import {
   getAdventureActionState,
   getCurrentAppDate,
+  isVisibleStoryTimelineSource,
+  type StoryTimelineSourceType,
+  type VisibleStoryTimelineSourceType,
   type AdventureActionState
 } from "@/lib/story-experience-helpers";
 
@@ -69,7 +72,7 @@ export type BedtimeMemoryView = {
 
 export type StoryTimelineItemView = {
   id: string;
-  sourceType: "adventure_episode" | "bedtime_memory" | "episode" | "short_story";
+  sourceType: VisibleStoryTimelineSourceType;
   title: string;
   excerpt: string | null;
   bookTitle: string | null;
@@ -86,7 +89,6 @@ export type AdventurePreviewView = {
 export type MyStoryStatsView = {
   ownedAdventureCount: number;
   joinedAdventureCount: number;
-  memoryCount: number;
 };
 
 type IdRow = {
@@ -152,7 +154,7 @@ type BedtimeMemoryRow = {
 
 type TimelineRow = {
   id: string;
-  source_type: "adventure_episode" | "bedtime_memory" | "episode" | "short_story";
+  source_type: StoryTimelineSourceType;
   title: string;
   excerpt: string | null;
   book_title: string | null;
@@ -1377,7 +1379,7 @@ export async function getDailyMemories(options?: { ensureToday?: boolean }) {
   );
 }
 
-export async function getStoryTimelineItems(options?: { ensureTodayMemory?: boolean }) {
+export async function getStoryTimelineItems() {
   const context = await getAuthenticatedAppContext();
 
   if (!context) {
@@ -1386,10 +1388,6 @@ export async function getStoryTimelineItems(options?: { ensureTodayMemory?: bool
 
   if (!(await isStoryExperienceSchemaReady())) {
     return [];
-  }
-
-  if (options?.ensureTodayMemory) {
-    await ensureTodayBedtimeMemory();
   }
 
   const { rows } = await sql<TimelineRow>(
@@ -1409,7 +1407,12 @@ export async function getStoryTimelineItems(options?: { ensureTodayMemory?: bool
     [context.userId]
   );
 
-  return rows.map(
+  const visibleRows = rows.filter(
+    (row): row is TimelineRow & { source_type: VisibleStoryTimelineSourceType } =>
+      isVisibleStoryTimelineSource(row.source_type)
+  );
+
+  return visibleRows.map(
     (row): StoryTimelineItemView => ({
       id: row.id,
       sourceType: row.source_type,
@@ -1421,66 +1424,47 @@ export async function getStoryTimelineItems(options?: { ensureTodayMemory?: bool
   );
 }
 
-export async function getMyStoryStats(options?: { ensureTodayMemory?: boolean }) {
+export async function getMyStoryStats() {
   const context = await getAuthenticatedAppContext();
 
   if (!context) {
     return {
       ownedAdventureCount: 0,
-      joinedAdventureCount: 0,
-      memoryCount: 0
+      joinedAdventureCount: 0
     } satisfies MyStoryStatsView;
   }
 
   if (!(await isStoryExperienceSchemaReady())) {
     return {
       ownedAdventureCount: 0,
-      joinedAdventureCount: 0,
-      memoryCount: 0
+      joinedAdventureCount: 0
     } satisfies MyStoryStatsView;
   }
-
-  if (options?.ensureTodayMemory) {
-    await ensureTodayBedtimeMemory();
-  }
-
-  const [{ rows: adventureCountRows }, { rows: memoryCountRows }] = await Promise.all([
-    sql<AdventureCountRow>(
-      `
-        SELECT
-          COUNT(*) FILTER (WHERE owner_user_id = $1)::int AS owned_count,
-          COUNT(*) FILTER (
-            WHERE id IN (
-              SELECT thread_id
-              FROM story_thread_participants
-              WHERE user_id = $1
-                AND role = 'participant'
-            )
-          )::int AS joined_count
-        FROM story_threads
-        WHERE owner_user_id = $1
-           OR id IN (
-             SELECT thread_id
-             FROM story_thread_participants
-             WHERE user_id = $1
-           )
-      `,
-      [context.userId]
-    ),
-    sql<{ memory_count: number }>(
-      `
-        SELECT COUNT(*)::int AS memory_count
-        FROM bedtime_memories
-        WHERE user_id = $1
-          AND status = 'published'
-      `,
-      [context.userId]
-    )
-  ]);
+  const { rows: adventureCountRows } = await sql<AdventureCountRow>(
+    `
+      SELECT
+        COUNT(*) FILTER (WHERE owner_user_id = $1)::int AS owned_count,
+        COUNT(*) FILTER (
+          WHERE id IN (
+            SELECT thread_id
+            FROM story_thread_participants
+            WHERE user_id = $1
+              AND role = 'participant'
+          )
+        )::int AS joined_count
+      FROM story_threads
+      WHERE owner_user_id = $1
+         OR id IN (
+           SELECT thread_id
+           FROM story_thread_participants
+           WHERE user_id = $1
+         )
+    `,
+    [context.userId]
+  );
 
   return {
     ownedAdventureCount: adventureCountRows[0]?.owned_count ?? 0,
-    joinedAdventureCount: adventureCountRows[0]?.joined_count ?? 0,
-    memoryCount: memoryCountRows[0]?.memory_count ?? 0
+    joinedAdventureCount: adventureCountRows[0]?.joined_count ?? 0
   } satisfies MyStoryStatsView;
 }

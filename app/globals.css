@@ -31,8 +31,8 @@
   --shadow-medium: 0 8px 24px rgba(69, 10, 10, 0.1);
   --shadow-large: 0 16px 40px rgba(69, 10, 10, 0.12);
   --shadow-shelf: 0 6px 18px rgba(124, 45, 18, 0.15);
-  --display-font: var(--font-merriweather), var(--font-noto-serif-sc), serif;
-  --body-font: var(--font-nunito-sans), sans-serif;
+  --display-font: "Merriweather", "Noto Serif SC", "Iowan Old Style", "Palatino Linotype", serif;
+  --body-font: "Nunito Sans", "Avenir Next", "Helvetica Neue", sans-serif;
   --accent-font: "Caveat", "Bradley Hand", cursive;
 }
 

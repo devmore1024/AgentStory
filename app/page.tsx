@@ -23,7 +23,7 @@ export default async function HomePage() {
     : {
         title: "第一条副本还没被点亮，今晚可以从你选中的书开始。",
         bookTitle: "小红帽",
-        excerpt: "点开一本书，先替自己开出一条新的冒险线。等夜里安静下来，回忆页也会替你收拢今天的睡前故事。",
+        excerpt: "点开一本书，先替自己开出一条新的冒险线，让故事从你进入的那一刻开始偏航。",
         statusLabel: "准备开团"
       };
   const homepageFairyBooks = fairyShelf?.books.slice(0, 100) ?? [];
@@ -74,8 +74,8 @@ export default async function HomePage() {
                   <p>不是变回小孩，而是带着现在的自己，开出一条新的冒险副本。</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-[var(--text-primary)]">夜里收拢回忆</p>
-                  <p>白天的冒险留在公开副本里，夜里的回忆会回到只属于自己的枕边故事。</p>
+                  <p className="font-semibold text-[var(--text-primary)]">多人一起偏航</p>
+                  <p>首篇定下来的风格会被整条副本继承，后来加入的人也会沿着同一种气质继续往前写。</p>
                 </div>
               </div>
             </div>

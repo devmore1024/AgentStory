@@ -40,7 +40,7 @@ export default async function AdventurePage() {
 
         {currentContext ? (
           <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-5 shadow-[var(--shadow-medium)]">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-[22px] bg-[rgba(255,255,255,0.7)] p-4">
                 <p className="text-sm font-semibold text-[var(--text-primary)]">我创建的冒险</p>
                 <p className="mt-2 text-3xl font-semibold text-[var(--accent-moss)]">{stats.ownedAdventureCount}</p>
@@ -48,10 +48,6 @@ export default async function AdventurePage() {
               <div className="rounded-[22px] bg-[rgba(255,255,255,0.7)] p-4">
                 <p className="text-sm font-semibold text-[var(--text-primary)]">我加入的冒险</p>
                 <p className="mt-2 text-3xl font-semibold text-[var(--sky)]">{stats.joinedAdventureCount}</p>
-              </div>
-              <div className="rounded-[22px] bg-[rgba(255,255,255,0.7)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">今夜回忆库存</p>
-                <p className="mt-2 text-3xl font-semibold text-[var(--apricot)]">{stats.memoryCount}</p>
               </div>
             </div>
           </section>

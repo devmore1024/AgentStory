@@ -1,4 +1,6 @@
 export type AdventureActionState = "continue" | "join" | "watch";
+export type StoryTimelineSourceType = "adventure_episode" | "bedtime_memory" | "episode" | "short_story";
+export type VisibleStoryTimelineSourceType = Exclude<StoryTimelineSourceType, "bedtime_memory">;
 
 type AdventureActionParams = {
   isOwner: boolean;
@@ -51,4 +53,10 @@ export function getCurrentAppDate(timeZone = "Asia/Shanghai", now = new Date()) 
   }
 
   return `${year}-${month}-${day}`;
+}
+
+export function isVisibleStoryTimelineSource(
+  sourceType: StoryTimelineSourceType
+): sourceType is VisibleStoryTimelineSourceType {
+  return sourceType !== "bedtime_memory";
 }

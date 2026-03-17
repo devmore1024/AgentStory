@@ -4,14 +4,13 @@ import { getAuthSession, isAuthSessionExpired } from "@/lib/auth";
 import { getCurrentViewerContext } from "@/lib/current-user";
 
 type AppShellProps = {
-  activeTab: "home" | "adventure" | "memory" | "me";
+  activeTab: "home" | "adventure" | "me";
   children: React.ReactNode;
 };
 
 const desktopNavItems = [
   { href: "/", label: "首页" },
   { href: "/adventure", label: "冒险" },
-  { href: "/memory", label: "回忆" },
   { href: "/me", label: "我的" }
 ] as const;
 
@@ -40,7 +39,6 @@ export async function AppShell({ activeTab, children }: AppShellProps) {
                 const isActive =
                   (item.href === "/" && activeTab === "home") ||
                   (item.href === "/adventure" && activeTab === "adventure") ||
-                  (item.href === "/memory" && activeTab === "memory") ||
                   (item.href === "/me" && activeTab === "me");
 
                 return (
@@ -58,7 +56,6 @@ export async function AppShell({ activeTab, children }: AppShellProps) {
                 );
               })}
             </nav>
-
             {viewer ? (
               <div className="flex items-center gap-2 rounded-full border border-[var(--border-light)] bg-[rgba(255,255,255,0.62)] px-3 py-2 shadow-[var(--shadow-small)]">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--apricot-light)] text-sm font-semibold text-[var(--apricot)]">

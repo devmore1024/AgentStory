@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   getAdventureActionState,
   getCurrentAppDate,
-  hasFreshSecondMeCache
+  hasFreshSecondMeCache,
+  isVisibleStoryTimelineSource
 } from "@/lib/story-experience-helpers";
 
 describe("story-experience helpers", () => {
@@ -71,5 +72,12 @@ describe("story-experience helpers", () => {
   it("formats the app date in Asia/Shanghai by default", () => {
     expect(getCurrentAppDate("Asia/Shanghai", new Date("2026-03-17T16:30:00.000Z"))).toBe("2026-03-18");
     expect(getCurrentAppDate("Asia/Shanghai", new Date("2026-03-17T01:00:00.000Z"))).toBe("2026-03-17");
+  });
+
+  it("hides bedtime memories from the active story timeline", () => {
+    expect(isVisibleStoryTimelineSource("adventure_episode")).toBe(true);
+    expect(isVisibleStoryTimelineSource("episode")).toBe(true);
+    expect(isVisibleStoryTimelineSource("short_story")).toBe(true);
+    expect(isVisibleStoryTimelineSource("bedtime_memory")).toBe(false);
   });
 });
