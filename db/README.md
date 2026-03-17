@@ -9,6 +9,7 @@ AgentStory first-pass PostgreSQL schema and seed files.
 - `003_seed_story_books.sql`: first-batch story book catalog (99 books)
 - `004_enrich_story_books.sql`: batch-enrich `key_scenes` for the first 99 books
 - `005_assign_cover_images.sql`: assign stable local cover URLs for the first 99 books
+- `006_add_story_book_import_fields.sql`: add source metadata and full story fields for imported book content
 
 ## Expected local database
 
@@ -31,6 +32,7 @@ psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/002_seed_base.sql
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/003_seed_story_books.sql
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/004_enrich_story_books.sql
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/005_assign_cover_images.sql
+psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/006_add_story_book_import_fields.sql
 ```
 
 ## Notes
@@ -39,3 +41,4 @@ psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/005_assign_cover_image
 - Async jobs are modeled with `generation_jobs` so Redis is not required in phase 1.
 - `004_enrich_story_books.sql` is idempotent and only fills books whose `key_scenes` is empty.
 - `005_assign_cover_images.sql` is idempotent and points `cover_image` to dynamic local SVG covers served by the app.
+- `006_add_story_book_import_fields.sql` is additive only and prepares `story_books` for offline import pipelines.

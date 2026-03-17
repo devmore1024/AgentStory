@@ -1,6 +1,12 @@
 import { cache } from "react";
 import type { AnimalPersona } from "@/lib/animal-personas";
+import { resolveCoverAsset } from "@/lib/cover-assets";
 import { sql } from "@/lib/db";
+import {
+  getImportedFairyPilotBook,
+  sortActiveImportedFairyShelfBooks,
+  type ImportedFairyBook
+} from "@/lib/fairy-import-pilot";
 
 export type StoryBook = {
   id: string;
@@ -12,7 +18,15 @@ export type StoryBook = {
   categoryKey: "fairy_tale" | "fable" | "mythology";
   categoryName: string;
   keyScenes: string[];
+  storyContent: string | null;
+  sourceSite: string | null;
+  sourceTitle: string | null;
+  sourceUrl: string | null;
+  sourceLicense: string | null;
+  popularityRank: number | null;
 };
+
+export type StoryBookDetail = StoryBook;
 
 export type StoryCategory = {
   id: string;
@@ -42,6 +56,65 @@ function normalizeKeyScenes(value: unknown) {
   }
 
   return value.filter((item): item is string => typeof item === "string");
+}
+
+function hydrateBaseBook(row: RawBookRow): StoryBook {
+  return {
+    id: row.id ?? "",
+    title: row.title ?? "",
+    slug: row.slug ?? "",
+    summary: row.summary ?? "",
+    originalSynopsis: row.original_synopsis,
+    coverImage: row.cover_image,
+    categoryKey: row.category_key,
+    categoryName: row.category_name,
+    keyScenes: normalizeKeyScenes(row.key_scenes),
+    storyContent: null,
+    sourceSite: null,
+    sourceTitle: null,
+    sourceUrl: null,
+    sourceLicense: null,
+    popularityRank: null
+  };
+}
+
+function mergeImportedFairyPilot(book: StoryBook): StoryBook {
+  if (book.categoryKey !== "fairy_tale") {
+    return book;
+  }
+
+  const imported = getImportedFairyPilotBook(book.slug);
+
+  if (!imported) {
+    return book;
+  }
+
+  return applyImportedFairyFields(book, imported);
+}
+
+function applyImportedFairyFields(book: StoryBook, imported: ImportedFairyBook): StoryBook {
+  return {
+    ...book,
+    title: imported.displayTitleZh,
+    summary: imported.summary,
+    originalSynopsis: imported.originalSynopsis,
+    coverImage: imported.coverImage,
+    keyScenes: imported.keyScenes,
+    storyContent: imported.storyContent,
+    sourceSite: imported.sourceSite,
+    sourceTitle: imported.sourceTitleEn,
+    sourceUrl: imported.sourceUrl,
+    sourceLicense: imported.sourceLicense,
+    popularityRank: imported.popularityRank
+  };
+}
+
+function sortCategoryBooks(categoryKey: StoryCategory["key"], books: StoryBook[]) {
+  if (categoryKey === "fairy_tale") {
+    return sortActiveImportedFairyShelfBooks(books);
+  }
+
+  return [...books].sort((a, b) => a.title.localeCompare(b.title, "zh-CN"));
 }
 
 function deriveKeyScenes(book: {
@@ -86,8 +159,28 @@ export function getResolvedKeyScenes(book: StoryBook) {
   return book.keyScenes.length > 0 ? book.keyScenes : deriveKeyScenes(book);
 }
 
-export function getResolvedCoverImage(book: Pick<StoryBook, "slug" | "coverImage">) {
-  return `/covers/${book.slug}`;
+export function getResolvedStoryParagraphs(book: StoryBook) {
+  const content = book.storyContent?.trim();
+
+  if (content) {
+    return content
+      .split(/\n{2,}/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [book.originalSynopsis ?? book.summary];
+}
+
+type CoverAssetInput = Pick<StoryBook, "slug" | "coverImage"> &
+  Partial<Pick<StoryBook, "title" | "categoryKey" | "originalSynopsis" | "summary">>;
+
+export function getResolvedCoverImage(book: CoverAssetInput) {
+  return resolveCoverAsset(book).src;
+}
+
+export function getResolvedCoverAsset(book: CoverAssetInput) {
+  return resolveCoverAsset(book);
 }
 
 export const getCategoriesWithBooks = cache(async (): Promise<StoryCategory[]> => {
@@ -127,21 +220,14 @@ export const getCategoriesWithBooks = cache(async (): Promise<StoryCategory[]> =
     }
 
     if (row.id) {
-      categories.get(row.category_id)?.books.push({
-        id: row.id,
-        title: row.title ?? "",
-        slug: row.slug ?? "",
-        summary: row.summary ?? "",
-        originalSynopsis: row.original_synopsis,
-        coverImage: row.cover_image,
-        categoryKey: row.category_key,
-        categoryName: row.category_name,
-        keyScenes: normalizeKeyScenes(row.key_scenes)
-      });
+      categories.get(row.category_id)?.books.push(mergeImportedFairyPilot(hydrateBaseBook(row)));
     }
   }
 
-  return Array.from(categories.values());
+  return Array.from(categories.values()).map((category) => ({
+    ...category,
+    books: sortCategoryBooks(category.key, category.books)
+  }));
 });
 
 export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | null> => {
@@ -174,17 +260,7 @@ export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | nul
     return null;
   }
 
-  return {
-    id: row.id ?? "",
-    title: row.title ?? "",
-    slug: row.slug ?? "",
-    summary: row.summary ?? "",
-    originalSynopsis: row.original_synopsis,
-    coverImage: row.cover_image,
-    categoryKey: row.category_key,
-    categoryName: row.category_name,
-    keyScenes: normalizeKeyScenes(row.key_scenes)
-  };
+  return mergeImportedFairyPilot(hydrateBaseBook(row));
 });
 
 export const getCategoryTotals = cache(async () => {

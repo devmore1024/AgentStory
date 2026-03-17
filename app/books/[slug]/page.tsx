@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { BookCover } from "@/components/book-cover";
 import { SubmitButton } from "@/components/submit-button";
 import { getAuthenticatedAppContext } from "@/lib/demo-app";
-import { getBookBySlug, getResolvedKeyScenes } from "@/lib/story-data";
+import { getBookBySlug, getResolvedKeyScenes, getResolvedStoryParagraphs } from "@/lib/story-data";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +22,7 @@ export default async function BookDetailPage({
   }
 
   const keyScenes = getResolvedKeyScenes(book);
+  const storyParagraphs = getResolvedStoryParagraphs(book);
 
   return (
     <AppShell activeTab="home">
@@ -38,7 +39,13 @@ export default async function BookDetailPage({
             <h1 className="display-font mt-4 text-4xl leading-tight text-[var(--text-primary)] sm:text-5xl">{book.title}</h1>
             <p className="mt-4 text-base leading-8 text-[var(--text-secondary)]">{book.summary}</p>
 
-            <div className="mt-6">
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href={`/books/${book.slug}/read`}
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
+              >
+                先读原故事
+              </Link>
               {currentContext ? (
                 <form action={createShortStoryAction}>
                   <input type="hidden" name="slug" value={book.slug} />
@@ -68,10 +75,36 @@ export default async function BookDetailPage({
             </section>
 
             <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.82)] p-6 shadow-[var(--shadow-medium)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">原故事背景</p>
-              <p className="mt-4 text-base leading-8 text-[var(--text-secondary)]">
-                {book.originalSynopsis ?? book.summary}
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">原故事预览</p>
+              <div className="mt-4 grid gap-4">
+                {storyParagraphs.slice(0, 2).map((paragraph) => (
+                  <p key={paragraph} className="text-base leading-8 text-[var(--text-secondary)]">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                {book.sourceSite ? (
+                  <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+                    来源：{book.sourceSite}
+                  </span>
+                ) : null}
+                {book.sourceLicense ? (
+                  <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+                    {book.sourceLicense}
+                  </span>
+                ) : null}
+                {book.sourceUrl ? (
+                  <a
+                    href={book.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-semibold text-[var(--accent-moss)]"
+                  >
+                    查看原文来源
+                  </a>
+                ) : null}
+              </div>
             </section>
           </div>
 

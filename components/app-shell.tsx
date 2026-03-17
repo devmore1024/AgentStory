@@ -28,9 +28,9 @@ export async function AppShell({ activeTab, children }: AppShellProps) {
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 pb-4 pt-5 sm:px-6 lg:px-8">
         <header className="mb-6 flex items-center justify-between rounded-[28px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.82)] px-4 py-3 shadow-[var(--shadow-small)] backdrop-blur sm:px-5">
           <div>
-            <p className="accent-font text-lg text-[var(--text-secondary)]">A shelf for your story self</p>
+            <p className="accent-font text-lg text-[var(--text-secondary)]">把分身轻轻放进故事里</p>
             <Link href="/" className="display-font text-2xl text-[var(--text-primary)] sm:text-3xl">
-              AgentStory
+              故事书架
             </Link>
           </div>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { CoverArtImage } from "@/components/cover-art-image";
+import { resolveCoverAsset } from "@/lib/cover-assets";
 import type { StoryBook } from "@/lib/story-data";
-import { getResolvedCoverImage } from "@/lib/story-data";
 
 const categoryStyles: Record<StoryBook["categoryKey"], string> = {
   fairy_tale:
@@ -18,7 +19,7 @@ const categoryAccent: Record<StoryBook["categoryKey"], string> = {
 };
 
 export function BookCover({ book }: { book: StoryBook }) {
-  const coverSrc = getResolvedCoverImage(book);
+  const coverAsset = resolveCoverAsset(book);
 
   return (
     <Link
@@ -27,8 +28,19 @@ export function BookCover({ book }: { book: StoryBook }) {
     >
       <div
         className={`paper-grain relative mb-3 aspect-[4/5] overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.45)] bg-gradient-to-br ${categoryStyles[book.categoryKey]} p-4`}
+        data-cover-source={coverAsset.isExternal ? "external" : "local"}
       >
-        <img src={coverSrc} alt={`${book.title} 封面`} className="absolute inset-0 h-full w-full object-cover" />
+        <CoverArtImage
+          src={coverAsset.src}
+          fallbackSrc={coverAsset.fallbackSrc}
+          alt={`${book.title} 封面`}
+          className="absolute inset-0 h-full w-full object-cover"
+          objectPosition={coverAsset.objectPosition}
+          isExternal={coverAsset.isExternal}
+        />
+        <div className="absolute inset-0" style={{ background: coverAsset.tint.overlay }} />
+        <div className="absolute inset-0 mix-blend-screen" style={{ background: coverAsset.tint.glow }} />
+        <div className="absolute inset-x-0 bottom-0 h-[56%]" style={{ background: coverAsset.tint.shadow }} />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(67,47,34,0.16))]" />
         <div className="relative z-10 flex h-full flex-col justify-between">
           <span
@@ -36,9 +48,11 @@ export function BookCover({ book }: { book: StoryBook }) {
           >
             {book.categoryName}
           </span>
-          <div className="rounded-[18px] bg-[rgba(255,250,243,0.72)] p-3 shadow-[var(--shadow-small)] backdrop-blur">
-            <p className="accent-font text-sm text-[var(--text-secondary)]">A story you can step into</p>
-            <h3 className="display-font mt-1 text-lg leading-tight text-[var(--text-primary)]">{book.title}</h3>
+          <div
+            className="rounded-[18px] border border-[rgba(255,255,255,0.46)] p-3 shadow-[var(--shadow-small)] backdrop-blur"
+            style={{ background: coverAsset.tint.panel }}
+          >
+            <h3 className="display-font text-lg leading-tight text-[var(--text-primary)]">{book.title}</h3>
           </div>
         </div>
       </div>

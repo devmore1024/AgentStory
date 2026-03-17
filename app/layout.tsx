@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AgentStory",
+  title: "故事书架",
   description: "让你的 AI 分身走进故事里"
 };
 

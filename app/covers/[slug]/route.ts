@@ -1,4 +1,5 @@
 import { getBookBySlug } from "@/lib/story-data";
+import { hashString, inferCoverMotif, type CoverCategoryKey, type CoverMotifKey } from "@/lib/cover-motifs";
 
 export const dynamic = "force-dynamic";
 
@@ -41,31 +42,8 @@ const palette = {
   }
 } as const;
 
-type CategoryKey = keyof typeof palette;
-type MotifKey =
-  | "forest"
-  | "castle"
-  | "sea"
-  | "moonbird"
-  | "shoe"
-  | "mirror"
-  | "tower"
-  | "swan"
-  | "fox"
-  | "lion"
-  | "hare"
-  | "grapes"
-  | "ant"
-  | "tortoise"
-  | "crow"
-  | "donkey"
-  | "fire"
-  | "lightning"
-  | "maze"
-  | "wings"
-  | "trident"
-  | "owl"
-  | "lyre";
+type CategoryKey = CoverCategoryKey;
+type MotifKey = CoverMotifKey;
 
 function escapeXml(value: string) {
   return value
@@ -74,16 +52,6 @@ function escapeXml(value: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
-}
-
-function hashString(input: string) {
-  let hash = 0;
-
-  for (let index = 0; index < input.length; index += 1) {
-    hash = (hash * 33 + input.charCodeAt(index)) >>> 0;
-  }
-
-  return hash;
 }
 
 function splitTitle(title: string) {
@@ -99,44 +67,6 @@ function splitTitle(title: string) {
   const first = Math.ceil(title.length / 3);
   const second = Math.ceil((title.length - first) / 2);
   return [title.slice(0, first), title.slice(first, first + second), title.slice(first + second)];
-}
-
-function inferMotif(categoryKey: CategoryKey, title: string, slug: string, synopsis: string | null) {
-  const signals = `${title} ${slug} ${synopsis ?? ""}`.toLowerCase();
-
-  if (categoryKey === "fairy_tale") {
-    if (/red|hood|wolf|forest|woods|小红帽|狼|森林/.test(signals)) return "forest";
-    if (/snow|queen|princess|castle|白雪|公主|王子|城堡/.test(signals)) return "castle";
-    if (/mermaid|sea|ocean|海|人鱼|海的女儿/.test(signals)) return "sea";
-    if (/nightingale|rose|moon|bird|夜莺|玫瑰|月/.test(signals)) return "moonbird";
-    if (/cinderella|shoe|灰姑娘|水晶鞋/.test(signals)) return "shoe";
-    if (/mirror|queen|镜|魔镜/.test(signals)) return "mirror";
-    if (/tower|sleeping|thorn|长发|睡美人|塔/.test(signals)) return "tower";
-    if (/swan|goose|天鹅|鹅/.test(signals)) return "swan";
-    return "forest";
-  }
-
-  if (categoryKey === "fable") {
-    if (/fox|狐狸/.test(signals)) return "fox";
-    if (/lion|狮/.test(signals)) return "lion";
-    if (/hare|rabbit|兔/.test(signals)) return "hare";
-    if (/grape|葡萄/.test(signals)) return "grapes";
-    if (/ant|蚂蚁|grasshopper|蝉/.test(signals)) return "ant";
-    if (/tortoise|turtle|龟/.test(signals)) return "tortoise";
-    if (/crow|raven|乌鸦/.test(signals)) return "crow";
-    if (/donkey|驴/.test(signals)) return "donkey";
-    return "fox";
-  }
-
-  if (/prometheus|fire|火|普罗米修斯/.test(signals)) return "fire";
-  if (/zeus|lightning|宙斯|雷/.test(signals)) return "lightning";
-  if (/labyrinth|maze|迷宫/.test(signals)) return "maze";
-  if (/icarus|wings|飞翼|伊卡洛斯/.test(signals)) return "wings";
-  if (/poseidon|trident|海神|三叉戟/.test(signals)) return "trident";
-  if (/athena|owl|雅典娜|猫头鹰/.test(signals)) return "owl";
-  if (/apollo|lyre|阿波罗|琴/.test(signals)) return "lyre";
-
-  return "lightning";
 }
 
 function renderDecorations(colors: (typeof palette)[CategoryKey], seed: number) {
@@ -343,7 +273,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
   }
 
   const colors = palette[book.categoryKey];
-  const motif = inferMotif(book.categoryKey, book.title, book.slug, book.originalSynopsis);
+  const motif = inferCoverMotif({
+    categoryKey: book.categoryKey,
+    title: book.title,
+    slug: book.slug,
+    originalSynopsis: book.originalSynopsis
+  });
   const seed = hashString(book.slug);
   const lines = splitTitle(book.title).map(escapeXml);
   const summary = escapeXml(book.summary);
@@ -407,7 +342,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
       </foreignObject>
 
       <rect x="304" y="906" width="192" height="38" rx="19" fill="#FFFFFF" fill-opacity="0.64"/>
-      <text x="400" y="931" text-anchor="middle" fill="${colors.accentDeep}" font-size="20" font-family="'Noto Sans SC', sans-serif" font-weight="700" letter-spacing="1">AgentStory</text>
+      <text x="400" y="931" text-anchor="middle" fill="${colors.accentDeep}" font-size="20" font-family="'Noto Sans SC', sans-serif" font-weight="700" letter-spacing="1">故事书架</text>
     </svg>
   `.trim();
 
