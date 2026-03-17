@@ -2,6 +2,7 @@ import { cache } from "react";
 import { defaultPersona, type AnimalPersona } from "@/lib/animal-personas";
 import { getCurrentViewerContext, type AppUserContext } from "@/lib/current-user";
 import { sql } from "@/lib/db";
+import { isSourceBackedPrimaryEntryFairySlug } from "@/lib/fairy-source-backed-catalog";
 import { generateCommentWithLlm, generateSerialEpisodeWithLlm, generateShortStoryWithLlm } from "@/lib/llm";
 import { getBookBySlug, getCategoriesWithBooks, type StoryBook } from "@/lib/story-data";
 import {
@@ -21,6 +22,7 @@ export type SerialEpisodeView = {
   excerpt: string;
   content: string;
   bookTitle: string;
+  bookSlug: string | null;
   bookCategoryKey: StoryBook["categoryKey"] | null;
   styleName: string | null;
   generationLabel: string;
@@ -35,6 +37,7 @@ export type ShortStoryView = {
   content: string;
   triggerScene: string;
   bookTitle: string;
+  bookSlug: string | null;
   categoryName: string;
   bookCategoryKey: StoryBook["categoryKey"] | null;
   styleName: string | null;
@@ -57,6 +60,7 @@ export type FeedStoryView = {
   excerpt: string;
   sourceType: "episode" | "short_story";
   bookTitle: string | null;
+  bookSlug: string | null;
   bookCategoryKey: StoryBook["categoryKey"] | null;
   styleName: string | null;
   generationLabel: string;
@@ -87,6 +91,7 @@ type EpisodeRow = {
   content: string | null;
   generated_at: string | null;
   book_title: string | null;
+  book_slug: string | null;
   category_key: StoryBook["categoryKey"] | null;
   style_name: string | null;
   generation_status: "queued" | "running" | "succeeded" | "failed" | null;
@@ -100,6 +105,7 @@ type ShortStoryRow = {
   trigger_scene: string;
   generated_at: string | null;
   book_title: string | null;
+  book_slug: string | null;
   category_name: string | null;
   category_key: StoryBook["categoryKey"] | null;
   style_name: string | null;
@@ -123,6 +129,7 @@ type FeedStoryRow = {
   published_at: string;
   like_count: number;
   book_title: string | null;
+  book_slug: string | null;
   category_key: StoryBook["categoryKey"] | null;
   style_name: string | null;
   generation_status: "queued" | "running" | "succeeded" | "failed" | null;
@@ -206,8 +213,12 @@ function getCommentStyleKey(book: StoryBook): StoryStyleKey {
   return "zhihu";
 }
 
-export function filterPrimaryEntryViewsToFairy<T extends { bookCategoryKey: StoryBook["categoryKey"] | null }>(items: T[]) {
-  return items.filter((item) => item.bookCategoryKey === "fairy_tale");
+export function filterPrimaryEntryViewsToFairy<
+  T extends { bookCategoryKey: StoryBook["categoryKey"] | null; bookSlug: string | null }
+>(items: T[]) {
+  return items.filter(
+    (item) => item.bookCategoryKey === "fairy_tale" && isSourceBackedPrimaryEntryFairySlug(item.bookSlug)
+  );
 }
 
 function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleKey: StoryStyleKey) {
@@ -1200,6 +1211,7 @@ export async function getSerialEpisodes() {
         e.content,
         e.generated_at,
         b.title AS book_title,
+        b.slug AS book_slug,
         c.key AS category_key,
         ss.name AS style_name,
         gj.status AS generation_status
@@ -1222,6 +1234,7 @@ export async function getSerialEpisodes() {
       excerpt: row.excerpt ?? "",
       content: row.content ?? "",
       bookTitle: row.book_title ?? "未知故事",
+      bookSlug: row.book_slug,
       bookCategoryKey: row.category_key,
       styleName: row.style_name,
       generationLabel: getGenerationLabel(row.generation_status),
@@ -1258,6 +1271,7 @@ export async function getShortStories() {
         s.trigger_scene,
         s.generated_at,
         b.title AS book_title,
+        b.slug AS book_slug,
         c.name AS category_name,
         c.key AS category_key,
         ss.name AS style_name,
@@ -1283,6 +1297,7 @@ export async function getShortStories() {
         content: row.content ?? "",
         triggerScene: row.trigger_scene,
         bookTitle: row.book_title ?? "未知故事",
+        bookSlug: row.book_slug,
         categoryName: row.category_name ?? "未分类",
         bookCategoryKey: row.category_key,
         styleName: row.style_name,
@@ -1344,6 +1359,7 @@ export async function getDiscoverStories() {
         f.published_at,
         f.like_count,
         b.title AS book_title,
+        b.slug AS book_slug,
         c.key AS category_key,
         ss.name AS style_name,
         (
@@ -1401,6 +1417,7 @@ export async function getDiscoverStories() {
     filterPrimaryEntryViewsToFairy(
       rows.map((row) => ({
         ...row,
+        bookSlug: row.book_slug,
         bookCategoryKey: row.category_key
       }))
     ).map(async (row): Promise<FeedStoryView> => {
@@ -1422,6 +1439,7 @@ export async function getDiscoverStories() {
         excerpt: row.excerpt ?? "",
         sourceType: row.source_type,
         bookTitle: row.book_title,
+        bookSlug: row.bookSlug,
         bookCategoryKey: row.bookCategoryKey,
         styleName: row.style_name,
         generationLabel: getGenerationLabel(row.generation_status),

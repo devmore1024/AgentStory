@@ -426,16 +426,8 @@ export function resolveCoverAsset(book: CoverResolverInput): ResolvedCoverAsset 
     };
   }
 
-  const override = slugCoverOverrides[book.slug] ?? resolveThemedArtwork(book);
-
-  if (override) {
-    return {
-      ...override,
-      fallbackSrc,
-      isExternal: isExternalUrl(override.src)
-    };
-  }
-
+  // Use the local generated SVG cover directly if it exists in the new uniform style.
+  // Instead of relying on random commons artwork, just use the local vector files.
   return {
     src: fallbackSrc,
     fallbackSrc,

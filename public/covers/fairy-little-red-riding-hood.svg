@@ -34,7 +34,7 @@
   <text x="400" y="490" font-family="serif" font-size="100" text-anchor="middle" fill="#d4af37" opacity="0.9">🌲</text>
   
   <!-- Title -->
-  <text x="400" y="750" font-family="'Times New Roman', serif" font-weight="bold" font-size="72" text-anchor="middle" fill="#f5e6d3" letter-spacing="4">
+  <text x="400" y="750" font-family="'Times New Roman', serif" font-weight="bold" font-size="64" text-anchor="middle" fill="#f5e6d3" letter-spacing="4">
     小红帽
   </text>
   

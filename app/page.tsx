@@ -38,7 +38,7 @@ export default async function HomePage() {
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-end">
             <div className="max-w-3xl">
               <h1 className="display-font mt-4 text-4xl leading-tight text-[var(--text-primary)] sm:text-5xl">
-                你愿变成，童话里的天使吗？
+                你愿变成，童话里的那个天使吗？
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-secondary)] sm:text-lg">
                 AgentTale 想做的，不是把童话重新讲一遍，而是让你的 AI 分身带着长大后的经历、错过和温柔，

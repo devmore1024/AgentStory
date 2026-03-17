@@ -2,11 +2,11 @@ import { cache } from "react";
 import type { AnimalPersona } from "@/lib/animal-personas";
 import { resolveCoverAsset } from "@/lib/cover-assets";
 import { sql } from "@/lib/db";
-import { expandedFairyCatalogBooks, expandedFairyCatalogBySlug } from "@/lib/fairy-catalog-expansion";
+import { expandedFairyCatalogBySlug } from "@/lib/fairy-catalog-expansion";
 import {
-  getImportedFairyPilotBook,
-  type ImportedFairyBook
-} from "@/lib/fairy-import-pilot";
+  getSourceBackedFairyBook,
+  sourceBackedFairyCatalog
+} from "@/lib/fairy-source-backed-catalog";
 
 export type StoryBook = {
   id: string;
@@ -68,6 +68,12 @@ type RawBookRow = {
   original_synopsis: string | null;
   cover_image: string | null;
   key_scenes: unknown;
+  story_content: string | null;
+  source_site: string | null;
+  source_title: string | null;
+  source_url: string | null;
+  source_license: string | null;
+  popularity_rank: number | null;
   category_id: string;
   category_key: StoryCategory["key"];
   category_name: string;
@@ -93,12 +99,12 @@ function hydrateBaseBook(row: RawBookRow): StoryBook {
     categoryKey: row.category_key,
     categoryName: row.category_name,
     keyScenes: normalizeKeyScenes(row.key_scenes),
-    storyContent: null,
-    sourceSite: null,
-    sourceTitle: null,
-    sourceUrl: null,
-    sourceLicense: null,
-    popularityRank: null
+    storyContent: row.story_content,
+    sourceSite: row.source_site,
+    sourceTitle: row.source_title,
+    sourceUrl: row.source_url,
+    sourceLicense: row.source_license,
+    popularityRank: row.popularity_rank
   };
 }
 
@@ -126,40 +132,69 @@ function createExpandedFairyCatalogBook(book: {
   };
 }
 
-function mergeImportedFairyPilot(book: StoryBook): StoryBook {
+function createSourceBackedRuntimeBook(slug: string): StoryBook | null {
+  const sourceBacked = getSourceBackedFairyBook(slug);
+
+  if (!sourceBacked) {
+    return null;
+  }
+
+  return {
+    id: `runtime-${sourceBacked.slug}`,
+    title: sourceBacked.displayTitleZh,
+    slug: sourceBacked.slug,
+    summary: sourceBacked.summary,
+    originalSynopsis: sourceBacked.originalSynopsis,
+    coverImage: null,
+    categoryKey: "fairy_tale",
+    categoryName: "童话",
+    keyScenes: sourceBacked.keyScenes,
+    storyContent: sourceBacked.storyContentZh,
+    sourceSite: sourceBacked.sourceSite,
+    sourceTitle: sourceBacked.sourceTitle,
+    sourceUrl: sourceBacked.sourceUrl,
+    sourceLicense: sourceBacked.sourceLicense,
+    popularityRank: sourceBacked.popularityRank
+  };
+}
+
+function mergeSourceBackedFairyBook(book: StoryBook): StoryBook {
   if (book.categoryKey !== "fairy_tale") {
     return book;
   }
 
-  const imported = getImportedFairyPilotBook(book.slug);
+  const sourceBacked = getSourceBackedFairyBook(book.slug);
 
-  if (!imported) {
+  if (!sourceBacked) {
     return book;
   }
 
-  return applyImportedFairyFields(book, imported);
-}
-
-function applyImportedFairyFields(book: StoryBook, imported: ImportedFairyBook): StoryBook {
   return {
     ...book,
-    title: imported.displayTitleZh,
-    summary: imported.summary,
-    originalSynopsis: imported.originalSynopsis,
-    coverImage: imported.coverImage,
-    keyScenes: imported.keyScenes,
-    storyContent: imported.storyContent,
-    sourceSite: imported.sourceSite,
-    sourceTitle: imported.sourceTitleEn,
-    sourceUrl: imported.sourceUrl,
-    sourceLicense: imported.sourceLicense,
-    popularityRank: imported.popularityRank
+    title: sourceBacked.displayTitleZh,
+    summary: book.summary.trim() ? book.summary : sourceBacked.summary,
+    originalSynopsis: book.originalSynopsis ?? sourceBacked.originalSynopsis,
+    keyScenes: book.keyScenes.length > 0 ? book.keyScenes : sourceBacked.keyScenes,
+    storyContent: book.storyContent ?? sourceBacked.storyContentZh,
+    sourceSite: book.sourceSite ?? sourceBacked.sourceSite,
+    sourceTitle: book.sourceTitle ?? sourceBacked.sourceTitle,
+    sourceUrl: book.sourceUrl ?? sourceBacked.sourceUrl,
+    sourceLicense: book.sourceLicense ?? sourceBacked.sourceLicense,
+    popularityRank: book.popularityRank ?? sourceBacked.popularityRank
   };
 }
 
 function sortCategoryBooks(categoryKey: StoryCategory["key"], books: StoryBook[]) {
   if (categoryKey === "fairy_tale") {
-    return sortVisibleFairyShelfBooks(books);
+    return [...books].sort((a, b) => {
+      const rankDiff = (a.popularityRank ?? Number.MAX_SAFE_INTEGER) - (b.popularityRank ?? Number.MAX_SAFE_INTEGER);
+
+      if (rankDiff !== 0) {
+        return rankDiff;
+      }
+
+      return a.title.localeCompare(b.title, "zh-CN");
+    });
   }
 
   return [...books].sort((a, b) => a.title.localeCompare(b.title, "zh-CN"));
@@ -245,7 +280,13 @@ export const getCategoriesWithBooks = cache(async (): Promise<StoryCategory[]> =
         b.summary,
         b.original_synopsis,
         b.cover_image,
-        b.key_scenes
+        b.key_scenes,
+        b.story_content,
+        b.source_site,
+        b.source_title,
+        b.source_url,
+        b.source_license,
+        b.popularity_rank
       FROM story_categories c
       LEFT JOIN story_books b
         ON b.category_id = c.id
@@ -268,19 +309,21 @@ export const getCategoriesWithBooks = cache(async (): Promise<StoryCategory[]> =
     }
 
     if (row.id) {
-      categories.get(row.category_id)?.books.push(mergeImportedFairyPilot(hydrateBaseBook(row)));
+      categories.get(row.category_id)?.books.push(mergeSourceBackedFairyBook(hydrateBaseBook(row)));
     }
   }
 
   const fairyCategory = Array.from(categories.values()).find((category) => category.key === "fairy_tale");
 
   if (fairyCategory) {
-    const existingSlugs = new Set(fairyCategory.books.map((book) => book.slug));
-    const runtimeBooks = expandedFairyCatalogBooks
-      .filter((book) => !existingSlugs.has(book.slug))
-      .map((book) => createExpandedFairyCatalogBook(book));
+    const fairyBooksBySlug = new Map(
+      fairyCategory.books.map((book) => [book.slug, mergeSourceBackedFairyBook(book)])
+    );
 
-    fairyCategory.books.push(...runtimeBooks);
+    fairyCategory.books = sourceBackedFairyCatalog
+      .filter((book) => book.isVisibleInPrimaryEntry)
+      .map((book) => fairyBooksBySlug.get(book.slug) ?? createSourceBackedRuntimeBook(book.slug))
+      .filter((book): book is StoryBook => book !== null);
   }
 
   return Array.from(categories.values()).map((category) => ({
@@ -308,7 +351,13 @@ export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | nul
         b.summary,
         b.original_synopsis,
         b.cover_image,
-        b.key_scenes
+        b.key_scenes,
+        b.story_content,
+        b.source_site,
+        b.source_title,
+        b.source_url,
+        b.source_license,
+        b.popularity_rank
       FROM story_books b
       JOIN story_categories c ON c.id = b.category_id
       WHERE b.slug = $1
@@ -321,6 +370,12 @@ export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | nul
   const row = rows[0];
 
   if (!row) {
+    const sourceBacked = createSourceBackedRuntimeBook(slug);
+
+    if (sourceBacked) {
+      return sourceBacked;
+    }
+
     const expanded = expandedFairyCatalogBySlug.get(slug);
 
     if (!expanded) {
@@ -330,7 +385,7 @@ export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | nul
     return createExpandedFairyCatalogBook(expanded);
   }
 
-  return mergeImportedFairyPilot(hydrateBaseBook(row));
+  return mergeSourceBackedFairyBook(hydrateBaseBook(row));
 });
 
 export const getCategoryTotals = cache(async () => {

@@ -29,10 +29,15 @@ export default async function BookReadPage({
           <p className="mt-4 text-base leading-8 text-[var(--text-secondary)]">{book.summary}</p>
           {book.sourceSite ? (
             <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-[var(--text-secondary)]">
-              <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 font-semibold">{book.sourceSite}</span>
+              <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 font-semibold">来源：{book.sourceSite}</span>
               {book.sourceTitle ? (
                 <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 font-semibold">
                   {book.sourceTitle}
+                </span>
+              ) : null}
+              {book.sourceLicense ? (
+                <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 font-semibold">
+                  {book.sourceLicense}
                 </span>
               ) : null}
               {book.sourceUrl ? (
