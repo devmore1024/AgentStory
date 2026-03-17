@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { getAuthenticatedAppContext } from "@/lib/demo-app";
+import { getAuthenticatedAppContext } from "@/lib/story-experience";
 import { getBookBySlug, getResolvedStoryParagraphs } from "@/lib/story-data";
 
 export const dynamic = "force-dynamic";
@@ -66,7 +66,7 @@ export default async function BookReadPage({
             <div className="mt-8 rounded-[24px] border border-dashed border-[var(--border-default)] bg-[rgba(255,255,255,0.62)] p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">进入前提示</p>
               <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">
-                登录 SecondMe 后，系统才会生成你的动物人格，并按你的分身视角进入这个故事。
+                登录 SecondMe 后，系统才会生成你的动物人格，并按你的视角打开真正属于你的冒险副本。
               </p>
             </div>
           )}
@@ -82,7 +82,7 @@ export default async function BookReadPage({
               href={`/books/${book.slug}/enter`}
               className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)]"
             >
-              现在进入故事
+              现在进入冒险
             </Link>
           </div>
         </section>

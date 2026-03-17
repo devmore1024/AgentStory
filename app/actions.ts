@@ -2,9 +2,25 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AuthRequiredError, createNextSerialEpisode, createShortStoryForBookSlug, toggleDiscoverLike } from "@/lib/demo-app";
+import {
+  AuthRequiredError,
+  StoryExperienceMigrationError,
+  continueAdventure,
+  createAdventureForBookSlug,
+  ensureTodayBedtimeMemory,
+  joinAdventure
+} from "@/lib/story-experience";
 
-export async function createShortStoryAction(formData: FormData) {
+function revalidateStoryExperiencePaths() {
+  revalidatePath("/");
+  revalidatePath("/adventure");
+  revalidatePath("/memory");
+  revalidatePath("/me");
+  revalidatePath("/story");
+  revalidatePath("/discover");
+}
+
+export async function createAdventureAction(formData: FormData) {
   const slug = formData.get("slug");
 
   if (typeof slug !== "string" || slug.length === 0) {
@@ -12,55 +28,76 @@ export async function createShortStoryAction(formData: FormData) {
   }
 
   try {
-    await createShortStoryForBookSlug(slug);
+    const result = await createAdventureForBookSlug(slug);
+    revalidateStoryExperiencePaths();
+    redirect(`/adventure/${result.threadId}`);
   } catch (error) {
     if (error instanceof AuthRequiredError) {
       redirect("/me?auth=required");
     }
+    if (error instanceof StoryExperienceMigrationError) {
+      redirect("/me?setup=story_schema_required");
+    }
     throw error;
   }
-
-  revalidatePath("/");
-  revalidatePath("/story");
-  revalidatePath("/discover");
-  revalidatePath("/me");
-
-  redirect("/story?tab=short");
 }
 
-export async function toggleDiscoverLikeAction(formData: FormData) {
-  const feedStoryId = formData.get("feedStoryId");
+export async function joinAdventureAction(formData: FormData) {
+  const threadId = formData.get("threadId");
 
-  if (typeof feedStoryId !== "string" || feedStoryId.length === 0) {
-    throw new Error("feedStoryId is required.");
+  if (typeof threadId !== "string" || threadId.length === 0) {
+    throw new Error("threadId is required.");
   }
 
   try {
-    await toggleDiscoverLike(feedStoryId);
+    await joinAdventure(threadId);
+    revalidateStoryExperiencePaths();
+    redirect(`/adventure/${threadId}`);
   } catch (error) {
     if (error instanceof AuthRequiredError) {
       redirect("/me?auth=required");
     }
+    if (error instanceof StoryExperienceMigrationError) {
+      redirect("/me?setup=story_schema_required");
+    }
     throw error;
   }
-
-  revalidatePath("/discover");
 }
 
-export async function createSerialEpisodeAction() {
+export async function continueAdventureAction(formData: FormData) {
+  const threadId = formData.get("threadId");
+
+  if (typeof threadId !== "string" || threadId.length === 0) {
+    throw new Error("threadId is required.");
+  }
+
   try {
-    await createNextSerialEpisode(true);
+    await continueAdventure(threadId);
+    revalidateStoryExperiencePaths();
+    redirect(`/adventure/${threadId}`);
   } catch (error) {
     if (error instanceof AuthRequiredError) {
       redirect("/me?auth=required");
     }
+    if (error instanceof StoryExperienceMigrationError) {
+      redirect("/me?setup=story_schema_required");
+    }
     throw error;
   }
+}
 
-  revalidatePath("/");
-  revalidatePath("/story");
-  revalidatePath("/discover");
-  revalidatePath("/me");
-
-  redirect("/story");
+export async function ensureDailyMemoryAction() {
+  try {
+    await ensureTodayBedtimeMemory();
+    revalidateStoryExperiencePaths();
+    redirect("/memory");
+  } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      redirect("/me?auth=required");
+    }
+    if (error instanceof StoryExperienceMigrationError) {
+      redirect("/me?setup=story_schema_required");
+    }
+    throw error;
+  }
 }

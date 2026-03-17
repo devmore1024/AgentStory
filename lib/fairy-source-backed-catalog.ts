@@ -1,6 +1,6 @@
 import { expandedFairyCatalogBooks } from "@/lib/fairy-catalog-expansion";
 import { activeImportedFairyPilotBooks, top50FairySourceCandidates } from "@/lib/fairy-import-pilot";
-import { curatedFairySourceStorySeeds } from "@/lib/fairy-source-story-seeds";
+import { curatedFairySourceStorySeeds, getCuratedFairyKeyScenes } from "@/lib/fairy-source-story-seeds";
 
 export type SourceBackedFairyBookSeed = {
   slug: string;
@@ -66,34 +66,77 @@ function splitSummaryClauses(summary: string) {
     .filter(Boolean);
 }
 
-function buildGeneratedOriginalSynopsis(title: string, summary: string) {
-  const clauses = splitSummaryClauses(summary);
-  const pivot = clauses[1] ?? clauses[0] ?? `${title}里的命运转折`;
+function inferSynopsisFocus(summary: string) {
+  if (/诅咒|变成|魔法|妖|怪|恶魔/u.test(summary)) {
+    return "解除诅咒、认清真心或穿过代价";
+  }
 
-  return `${normalizeSentence(summary)}一路往后，${pivot}会把主角推向更深的试炼、误解或选择，也让这个故事真正显出它想留下的那层意味。`;
+  if (/王子|公主|身份|婚约|新娘|冒充/u.test(summary)) {
+    return "身份被遮蔽后的试探、错认与重新归位";
+  }
+
+  if (/兄妹|哥哥|妹妹|父亲|母亲|家人/u.test(summary)) {
+    return "亲情在分离、牺牲与守护里的分量";
+  }
+
+  if (/贪心|虚荣|夸口|欲望|谎言/u.test(summary)) {
+    return "欲望、虚荣或谎言一步步推高后的后果";
+  }
+
+  if (/旅途|寻找|追寻|一路|流浪|远方/u.test(summary)) {
+    return "旅途中不断出现的选择、帮助与背叛";
+  }
+
+  return "命运转弯时必须面对的选择与代价";
+}
+
+function buildGeneratedOriginalSynopsis(title: string, summary: string) {
+  const focus = inferSynopsisFocus(summary);
+
+  return `${normalizeSentence(summary)}故事真正往后展开时，它关心的往往不只是哪件事发生了，而是主角怎样在 ${focus} 的过程中，看见自己真正要守住的东西。`;
 }
 
 function buildGeneratedStoryContent(title: string, summary: string, sourceTitle: string) {
   const clauses = splitSummaryClauses(summary);
   const opening = clauses[0] ?? `${title}的命运被轻轻推开`;
-  const middle = clauses[1] ?? "人物必须在误解、诱惑或试炼里继续往前走";
-  const closing = clauses[2] ?? "故事最终会把真相、团圆或成长落回主角身上";
+  const turn = clauses[1] ?? "主角很快发现眼前的问题远没有看上去那么简单";
+  const pressure = clauses[2] ?? "接下来的试炼会把关系、承诺、欲望或身份的代价一层层逼出来";
+  const focus = inferSynopsisFocus(summary);
 
   return [
-    `故事往往就从这样一个开端开始：${normalizeSentence(opening)}`,
-    `随后，${normalizeSentence(middle)}主角会在一步步被推着往前走的过程中，看见自己真正要守住的东西，也把原本平静的处境带向更大的转折。`,
-    `等到结尾，${normalizeSentence(closing)}这个整理版会保留原作最经典的情绪线，并把原文入口统一指向 ${sourceTitle}。`
+    `故事一开始，${normalizeSentence(opening)}`,
+    `很快，${normalizeSentence(turn)}主角不再只是应付一个突如其来的麻烦，而是被推向更深的试炼与转弯。`,
+    `随着情节继续往前，${normalizeSentence(pressure)}《${title}》真正拧紧的，也正是 ${focus} 这一层意味。`,
+    `等走到结尾，故事通常会把真相、团圆、惩罚或成长重新落回人物身上。这里保留的是它最经典的情绪线，并把原文入口统一指向 ${sourceTitle}。`
   ].join("\n\n");
 }
 
 function buildGeneratedKeyScenes(title: string, summary: string) {
   const clauses = splitSummaryClauses(summary);
   const first = clauses[0] ? `${clauses[0]}。` : `《${title}》先把主角推到一个无法回避的开端前。`;
-  const second = clauses[1] ? `${clauses[1]}。` : `接着，主角会在误解、诱惑或试炼里被迫做出关键选择。`;
-  const thirdSource = clauses[2] ?? clauses[clauses.length - 1] ?? "";
-  const third = thirdSource ? `${thirdSource}。` : `最后，故事会把真相、成长或团圆真正落回主角身上。`;
+  const second = clauses[1] ? `${clauses[1]}。` : "局势很快从表面事件，转向更难回避的选择题。";
+  const third = clauses[2]
+    ? `${clauses[2]}。`
+    : "随着试炼加深，主角开始看见关系、身份或欲望背后的真正代价。";
+  const fourth = `走到后段时，《${title}》会把真相、惩罚、成长或重逢真正推到台前。`;
 
-  return [first, second, third].map((item) => item.replace(/。。$/u, "。"));
+  return [first, second, third, fourth].map((item) => item.replace(/。。$/u, "。"));
+}
+
+function resolveFairyNarrativeContent(params: {
+  slug: string;
+  title: string;
+  summary: string;
+  sourceTitle: string;
+}) {
+  const curated = curatedFairySourceStorySeeds.get(params.slug);
+
+  return {
+    originalSynopsis: curated?.originalSynopsis ?? buildGeneratedOriginalSynopsis(params.title, params.summary),
+    storyContentZh:
+      curated?.storyParagraphs.join("\n\n") ?? buildGeneratedStoryContent(params.title, params.summary, params.sourceTitle),
+    keyScenes: getCuratedFairyKeyScenes(params.slug) ?? buildGeneratedKeyScenes(params.title, params.summary)
+  };
 }
 
 const importedBySlug = new Map(
@@ -127,20 +170,22 @@ function buildTop50SourceBackedBook(slug: string) {
   }
 
   const summary = top50SummarySeeds.get(slug) ?? expandedBySlug.get(slug)?.summary;
-  const curated = curatedFairySourceStorySeeds.get(slug);
-
   if (!summary) {
     return null;
   }
+
+  const narrative = resolveFairyNarrativeContent({
+    slug,
+    title: candidate.displayTitleZh,
+    summary,
+    sourceTitle: candidate.sourceTitleEn
+  });
 
   return {
     slug,
     displayTitleZh: candidate.displayTitleZh,
     summary,
-    originalSynopsis: curated?.originalSynopsis ?? buildGeneratedOriginalSynopsis(candidate.displayTitleZh, summary),
-    storyContentZh:
-      curated?.storyParagraphs.join("\n\n") ?? buildGeneratedStoryContent(candidate.displayTitleZh, summary, candidate.sourceTitleEn),
-    keyScenes: curated?.keyScenes ?? buildGeneratedKeyScenes(candidate.displayTitleZh, summary),
+    ...narrative,
     sourceSite: PROJECT_GUTENBERG,
     sourceTitle: candidate.sourceTitleEn,
     sourceUrl: candidate.sourceUrl,
@@ -151,20 +196,27 @@ function buildTop50SourceBackedBook(slug: string) {
 const primaryEntryExpansionOnlyBooks = expandedFairyCatalogBooks
   .filter((book) => !top50FairySourceCandidates.some((candidate) => normalizeSourceBackedFairySlug(candidate.slug) === book.slug))
   .slice(0, PRIMARY_ENTRY_VISIBLE_COUNT - top50FairySourceCandidates.length)
-  .map((book, index) => ({
-    slug: book.slug,
-    displayTitleZh: book.title,
-    summary: book.summary,
-    originalSynopsis: buildGeneratedOriginalSynopsis(book.title, book.summary),
-    storyContentZh: buildGeneratedStoryContent(book.title, book.summary, GRIMM_SOURCE_TITLE),
-    keyScenes: buildGeneratedKeyScenes(book.title, book.summary),
-    sourceSite: PROJECT_GUTENBERG,
-    sourceTitle: GRIMM_SOURCE_TITLE,
-    sourceUrl: GRIMM_SOURCE_URL,
-    sourceLicense: PROJECT_GUTENBERG_LICENSE,
-    popularityRank: top50FairySourceCandidates.length + index + 1,
-    isVisibleInPrimaryEntry: true
-  }));
+  .map((book, index) => {
+    const narrative = resolveFairyNarrativeContent({
+      slug: book.slug,
+      title: book.title,
+      summary: book.summary,
+      sourceTitle: GRIMM_SOURCE_TITLE
+    });
+
+    return {
+      slug: book.slug,
+      displayTitleZh: book.title,
+      summary: book.summary,
+      ...narrative,
+      sourceSite: PROJECT_GUTENBERG,
+      sourceTitle: GRIMM_SOURCE_TITLE,
+      sourceUrl: GRIMM_SOURCE_URL,
+      sourceLicense: PROJECT_GUTENBERG_LICENSE,
+      popularityRank: top50FairySourceCandidates.length + index + 1,
+      isVisibleInPrimaryEntry: true
+    };
+  });
 
 const top50SourceBackedBooks = top50FairySourceCandidates.flatMap((candidate) => {
   const slug = normalizeSourceBackedFairySlug(candidate.slug);

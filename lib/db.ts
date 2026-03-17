@@ -29,3 +29,12 @@ export async function sql<T>(
 ) {
   return pool.query<T>(query, values);
 }
+
+export function isMissingRelationError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as { code?: string };
+  return candidate.code === "42P01" || candidate.code === "42703";
+}

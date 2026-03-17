@@ -45,6 +45,10 @@ type SoftMemoryResponse = {
   };
 };
 
+export type SecondMeUserInfo = UserInfoResponse["data"];
+export type SecondMeShade = NonNullable<ShadesResponse["data"]["shades"]>[number];
+export type SecondMeSoftMemory = NonNullable<SoftMemoryResponse["data"]["list"]>[number];
+
 function getAuthBaseUrl() {
   return process.env.NEXT_PUBLIC_SECONDME_OAUTH_URL || process.env.SECONDME_OAUTH_URL || "https://go.second.me/oauth/";
 }

@@ -1,0 +1,161 @@
+import Link from "next/link";
+import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
+import { AppShell } from "@/components/app-shell";
+import { StateCard } from "@/components/state-card";
+import {
+  getAdventureThreads,
+  getAuthenticatedAppContext,
+  getMyStoryStats,
+  getStoryExperienceSchemaStatus
+} from "@/lib/story-experience";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdventurePage() {
+  const [threads, currentContext, stats, schemaStatus] = await Promise.all([
+    getAdventureThreads(),
+    getAuthenticatedAppContext(),
+    getMyStoryStats(),
+    getStoryExperienceSchemaStatus()
+  ]);
+
+  return (
+    <AppShell activeTab="adventure">
+      <div className="grid gap-6">
+        <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-5 shadow-[var(--shadow-medium)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">共享副本</p>
+          <h1 className="display-font mt-2 text-3xl text-[var(--text-primary)]">公开冒险会在这里继续长大</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
+            每次从书架里点下“进入冒险”，都会新开一条副本。首篇定下来的风格会一路锁住，最多 5 位参与者，最多 10 篇后自动完结。
+          </p>
+        </section>
+
+        {!schemaStatus.ready ? (
+          <StateCard
+            eyebrow="数据库待迁移"
+            title="冒险功能的数据表还没准备好"
+            description="请先执行 db/008_adventure_memory_refactor.sql。迁移完成后，这里会开始展示公开副本和加入状态。"
+          />
+        ) : null}
+
+        {currentContext ? (
+          <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-5 shadow-[var(--shadow-medium)]">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[22px] bg-[rgba(255,255,255,0.7)] p-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">我创建的冒险</p>
+                <p className="mt-2 text-3xl font-semibold text-[var(--accent-moss)]">{stats.ownedAdventureCount}</p>
+              </div>
+              <div className="rounded-[22px] bg-[rgba(255,255,255,0.7)] p-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">我加入的冒险</p>
+                <p className="mt-2 text-3xl font-semibold text-[var(--sky)]">{stats.joinedAdventureCount}</p>
+              </div>
+              <div className="rounded-[22px] bg-[rgba(255,255,255,0.7)] p-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">今夜回忆库存</p>
+                <p className="mt-2 text-3xl font-semibold text-[var(--apricot)]">{stats.memoryCount}</p>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <StateCard
+            eyebrow="连接后可参与"
+            title="登录 SecondMe 后，才能加入或继续冒险"
+            description="未登录时你依然可以围观公开副本，但不能真正进入副本里推进它。"
+            href="/me?auth=required"
+            actionLabel="去连接 SecondMe"
+          />
+        )}
+
+        {threads.length > 0 ? (
+          <div className="grid gap-5 xl:grid-cols-2">
+            {threads.map((thread) => (
+              <article
+                key={thread.id}
+                id={`thread-${thread.id}`}
+                className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
+                    {thread.isCompleted ? "已完结" : "进行中"}
+                  </span>
+                  <span className="rounded-full bg-[var(--sky-light)] px-3 py-1.5 text-xs font-semibold text-[var(--sky)]">
+                    {thread.participantCount}/{thread.participantLimit} 人
+                  </span>
+                  <span className="rounded-full bg-[var(--apricot-light)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
+                    {thread.episodeCount}/{thread.episodeLimit} 篇
+                  </span>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                    {thread.ownerDisplayName} 发起 · 《{thread.sourceBookTitle}》
+                  </p>
+                  <h2 className="display-font mt-2 text-3xl text-[var(--text-primary)]">{thread.title}</h2>
+                  <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
+                    {thread.lockedStyleName ? `已锁定 ${thread.lockedStyleName}` : "等待首篇定调"}，最新一篇会决定这条副本今晚往哪边继续偏航。
+                  </p>
+                </div>
+
+                <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.72)] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                    {thread.latestEpisodeTitle ?? "第一篇即将落下"}
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
+                    {thread.latestEpisodeExcerpt ?? "这条副本还在等第一位进入者点亮。"}
+                  </p>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {currentContext ? (
+                    thread.actionState === "continue" ? (
+                      <form action={continueAdventureAction}>
+                        <input type="hidden" name="threadId" value={thread.id} />
+                        <button
+                          type="submit"
+                          className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                        >
+                          {thread.actionLabel}
+                        </button>
+                      </form>
+                    ) : thread.actionState === "join" ? (
+                      <form action={joinAdventureAction}>
+                        <input type="hidden" name="threadId" value={thread.id} />
+                        <button
+                          type="submit"
+                          className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                        >
+                          {thread.actionLabel}
+                        </button>
+                      </form>
+                    ) : null
+                  ) : (
+                    <Link
+                      href="/me?auth=required"
+                      className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                    >
+                      登录后进入冒险
+                    </Link>
+                  )}
+
+                  <Link
+                    href={`/adventure/${thread.id}`}
+                    className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
+                  >
+                    {thread.actionState === "watch" ? "围观冒险" : "查看详情"}
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <StateCard
+            eyebrow="冒险空态"
+            title="第一条公开副本还没有被点亮"
+            description="先从首页挑一本到想进去的故事，点下“进入冒险”，这里就会开始出现能够被别人围观或加入的副本。"
+            href="/"
+            actionLabel="回到童话书架"
+          />
+        )}
+      </div>
+    </AppShell>
+  );
+}

@@ -3,6 +3,7 @@ import type { AnimalPersona } from "@/lib/animal-personas";
 import { resolveCoverAsset } from "@/lib/cover-assets";
 import { sql } from "@/lib/db";
 import { expandedFairyCatalogBySlug } from "@/lib/fairy-catalog-expansion";
+import { getCuratedFairyKeyScenes } from "@/lib/fairy-source-story-seeds";
 import {
   getSourceBackedFairyBook,
   sourceBackedFairyCatalog
@@ -122,7 +123,7 @@ function createExpandedFairyCatalogBook(book: {
     coverImage: null,
     categoryKey: "fairy_tale",
     categoryName: "童话",
-    keyScenes: [],
+    keyScenes: getCuratedFairyKeyScenes(book.slug) ?? [],
     storyContent: null,
     sourceSite: null,
     sourceTitle: null,

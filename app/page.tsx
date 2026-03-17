@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { BookCover } from "@/components/book-cover";
 import { HomePersonaDock } from "@/components/home-persona-dock";
-import { getAuthenticatedAppContext, getLatestSerialPreview } from "@/lib/demo-app";
+import { getAuthenticatedAppContext, getLatestAdventurePreview } from "@/lib/story-experience";
 import { getHomepageFairyShelf } from "@/lib/story-data";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const [fairyShelf, latestEpisode, currentContext] = await Promise.all([
     getHomepageFairyShelf(),
-    getLatestSerialPreview(),
+    getLatestAdventurePreview(),
     getAuthenticatedAppContext()
   ]);
   const previewEpisode = latestEpisode
@@ -18,13 +18,13 @@ export default async function HomePage() {
         title: latestEpisode.title,
         bookTitle: latestEpisode.bookTitle,
         excerpt: latestEpisode.excerpt,
-        statusLabel: "分身正在进入"
+        statusLabel: latestEpisode.statusLabel
       }
     : {
-        title: "童话的门重新推开，带着长大后的心事。",
+        title: "第一条副本还没被点亮，今晚可以从你选中的书开始。",
         bookTitle: "小红帽",
-        excerpt: "分身先停在命运分岔前，准备从这里开始，陪你一起写新的结局。",
-        statusLabel: "准备重逢"
+        excerpt: "点开一本书，先替自己开出一条新的冒险线。等夜里安静下来，回忆页也会替你收拢今天的睡前故事。",
+        statusLabel: "准备开团"
       };
   const homepageFairyBooks = fairyShelf?.books.slice(0, 100) ?? [];
 
@@ -52,10 +52,10 @@ export default async function HomePage() {
                   去挑一本今晚的童话
                 </Link>
                 <Link
-                  href="/story"
+                  href="/adventure"
                   className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border-default)] bg-[rgba(255,255,255,0.52)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)] transition hover:border-[var(--accent-moss)] hover:text-[var(--accent-moss)]"
                 >
-                  去看分身写下的童话
+                  去看今晚的冒险
                 </Link>
               </div>
             </div>
@@ -71,11 +71,11 @@ export default async function HomePage() {
               <div className="mt-5 grid gap-3 text-sm leading-6 text-[var(--text-secondary)] sm:grid-cols-2">
                 <div>
                   <p className="font-semibold text-[var(--text-primary)]">带着现实回去</p>
-                  <p>不是变回小孩，而是让分身带着你长大后的心事走进童话。</p>
+                  <p>不是变回小孩，而是带着现在的自己，开出一条新的冒险副本。</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-[var(--text-primary)]">在童话里重逢</p>
-                  <p>重新遇见熟悉角色，也遇见别人的 AI 分身，一起写新的结局。</p>
+                  <p className="font-semibold text-[var(--text-primary)]">夜里收拢回忆</p>
+                  <p>白天的冒险留在公开副本里，夜里的回忆会回到只属于自己的枕边故事。</p>
                 </div>
               </div>
             </div>

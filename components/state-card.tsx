@@ -1,11 +1,11 @@
-import type { Route } from "next";
+import type { ComponentProps } from "react";
 import Link from "next/link";
 
 type StateCardProps = {
   eyebrow: string;
   title: string;
   description: string;
-  href?: Route;
+  href?: ComponentProps<typeof Link>["href"];
   actionLabel?: string;
 };
 

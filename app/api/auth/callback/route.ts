@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { AUTH_SESSION_COOKIE, AUTH_STATE_COOKIE, serializeAuthSession } from "@/lib/auth";
-import { upsertAuthenticatedViewer } from "@/lib/current-user";
-import { mapSecondMeProfileToPersona } from "@/lib/persona-mapper";
+import { syncAuthenticatedViewerFromSecondMeData } from "@/lib/secondme-story-context";
 import {
   exchangeSecondMeCode,
   fetchSecondMeShades,
@@ -37,21 +36,10 @@ export async function GET(request: Request) {
       fetchSecondMeSoftMemory(tokenData.accessToken)
     ]);
 
-    const mapped = mapSecondMeProfileToPersona({
+    await syncAuthenticatedViewerFromSecondMeData({
       userInfo,
       shades,
       softMemory
-    });
-
-    await upsertAuthenticatedViewer({
-      secondMeUserId: userInfo.userId,
-      displayName: userInfo.name,
-      avatar: userInfo.avatar ?? null,
-      persona: mapped.persona,
-      mappingVersion: mapped.mappingVersion,
-      mappingReason: mapped.mappingReason,
-      confidenceScore: mapped.confidenceScore,
-      rawSecondMeProfile: mapped.rawSecondMeProfile
     });
 
     const response = NextResponse.redirect(new URL("/me?auth=connected", url));

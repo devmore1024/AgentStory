@@ -46,14 +46,14 @@ export function HomePersonaDock({
 
             <div className="mt-4 rounded-[20px] bg-[rgba(255,255,255,0.72)] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                {statusLabel ?? "正在进入"}
+                {statusLabel ?? "正在冒险"}
               </p>
               <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">《{currentBookTitle ?? "新的故事"}》</p>
               {currentEpisodeExcerpt ? (
                 <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{currentEpisodeExcerpt}</p>
               ) : null}
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-moss)]">
-                分身正在重新经历这个故事
+                你的冒险副本还在继续
               </p>
             </div>
 
@@ -78,7 +78,7 @@ export function HomePersonaDock({
             <PersonaBadge animalType={persona.animalType} size="sm" variant="paper" />
             <div className="text-left">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                {statusLabel ?? "正在进入"}
+                {statusLabel ?? "正在冒险"}
               </p>
               <p className="text-sm font-semibold text-[var(--text-primary)]">《{currentBookTitle ?? "新的故事"}》</p>
             </div>

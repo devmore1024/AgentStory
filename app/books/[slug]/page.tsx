@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createShortStoryAction } from "@/app/actions";
+import { continueAdventureAction, createAdventureAction } from "@/app/actions";
 import { AppShell } from "@/components/app-shell";
 import { BookCover } from "@/components/book-cover";
 import { SubmitButton } from "@/components/submit-button";
-import { getAuthenticatedAppContext } from "@/lib/demo-app";
+import { getAuthenticatedAppContext, getOwnedAdventureForBookSlug } from "@/lib/story-experience";
 import { getBookBySlug, getResolvedKeyScenes, getResolvedStoryParagraphs } from "@/lib/story-data";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,11 @@ export default async function BookDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [book, currentContext] = await Promise.all([getBookBySlug(slug), getAuthenticatedAppContext()]);
+  const [book, currentContext, ownedAdventure] = await Promise.all([
+    getBookBySlug(slug),
+    getAuthenticatedAppContext(),
+    getOwnedAdventureForBookSlug(slug)
+  ]);
 
   if (!book) {
     notFound();
@@ -23,6 +27,12 @@ export default async function BookDetailPage({
 
   const keyScenes = getResolvedKeyScenes(book);
   const storyParagraphs = getResolvedStoryParagraphs(book);
+  const overviewParagraphs = [
+    book.originalSynopsis,
+    ...storyParagraphs.filter((paragraph) => paragraph !== book.originalSynopsis)
+  ]
+    .filter((paragraph): paragraph is string => typeof paragraph === "string" && paragraph.trim().length > 0)
+    .slice(0, 2);
 
   return (
     <AppShell activeTab="home">
@@ -47,16 +57,23 @@ export default async function BookDetailPage({
                 先读原故事
               </Link>
               {currentContext ? (
-                <form action={createShortStoryAction}>
-                  <input type="hidden" name="slug" value={book.slug} />
-                  <SubmitButton idleLabel="进入故事" pendingLabel="正在生成短篇..." />
-                </form>
+                ownedAdventure && !ownedAdventure.isCompleted ? (
+                  <form action={continueAdventureAction}>
+                    <input type="hidden" name="threadId" value={ownedAdventure.id} />
+                    <SubmitButton idleLabel="继续冒险" pendingLabel="正在续写冒险..." />
+                  </form>
+                ) : (
+                  <form action={createAdventureAction}>
+                    <input type="hidden" name="slug" value={book.slug} />
+                    <SubmitButton idleLabel="进入冒险" pendingLabel="正在打开冒险副本..." />
+                  </form>
+                )
               ) : (
                 <Link
                   href="/me?auth=required"
                   className="flex min-h-11 items-center justify-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                 >
-                  登录后进入故事
+                  登录后进入冒险
                 </Link>
               )}
             </div>
@@ -75,9 +92,9 @@ export default async function BookDetailPage({
             </section>
 
             <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-6 shadow-[var(--shadow-medium)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">原故事预览</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">原故事概览</p>
               <div className="mt-4 grid gap-4">
-                {storyParagraphs.slice(0, 2).map((paragraph) => (
+                {overviewParagraphs.map((paragraph) => (
                   <p key={paragraph} className="text-base leading-8 text-[var(--text-secondary)]">
                     {paragraph}
                   </p>
@@ -128,7 +145,7 @@ export default async function BookDetailPage({
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">进入前提示</p>
               <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">登录后才会生成你的动物人格</h2>
               <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">
-                未登录时不再展示默认人格。连接 SecondMe 后，系统会根据你的真实资料推荐适合进入这本书的风格和路径。
+                未登录时不再展示默认人格。连接 SecondMe 后，系统会根据你的真实资料推荐适合进入这本书的副本风格，并在夜里生成只属于你的回忆。
               </p>
               <Link
                 href="/me?auth=required"

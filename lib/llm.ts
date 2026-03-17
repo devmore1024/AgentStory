@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { AnimalPersona } from "@/lib/animal-personas";
+import type { SecondMeStoryContext } from "@/lib/secondme-story-context";
 import type { StoryBook } from "@/lib/story-data";
 import {
   getStyleInstruction,
@@ -233,6 +234,28 @@ function buildJsonSystemPrompt(fields: string[]) {
   ].join("\n");
 }
 
+function buildSecondMeContextPrompt(secondMeContext: SecondMeStoryContext) {
+  const shadeLines = secondMeContext.shades
+    .slice(0, 5)
+    .map((shade, index) => {
+      const topics = shade.sourceTopics?.length ? `（来源主题：${shade.sourceTopics.join("、")}）` : "";
+      return `${index + 1}. ${shade.shadeName ?? "未命名兴趣"}：${shade.shadeDescription ?? shade.shadeContent ?? "暂无描述"}${topics}`;
+    });
+  const memoryLines = secondMeContext.softMemory
+    .slice(0, 8)
+    .map((memory, index) => `${index + 1}. ${memory.factObject ?? "记忆"}：${memory.factContent ?? "暂无内容"}`);
+
+  return [
+    `SecondMe 上下文来源：${secondMeContext.source}`,
+    `用户姓名：${secondMeContext.userInfo.name}`,
+    `个人简介：${secondMeContext.userInfo.bio ?? "暂无"}`,
+    `自我介绍：${secondMeContext.userInfo.selfIntroduction ?? "暂无"}`,
+    shadeLines.length > 0 ? `兴趣标签：\n${shadeLines.join("\n")}` : "兴趣标签：暂无",
+    memoryLines.length > 0 ? `软记忆：\n${memoryLines.join("\n")}` : "软记忆：暂无",
+    "使用规则：只把这些信息转化成角色动机、偏好、语气、细节与选择，不要生硬复述原标签或软记忆原文，也不要像在展示资料卡。"
+  ].join("\n");
+}
+
 async function createChatCompletion(
   messages: Array<{ role: "system" | "user"; content: string }>,
   options?: { temperature?: number; maxTokens?: number }
@@ -434,5 +457,123 @@ export async function generateSerialEpisodeWithLlm(params: {
     excerpt,
     content: normalizeStoryContentLength(storyContent, params.styleKey),
     bridge: bridge || "我把上一章留下的问题带进了新的故事里，于是命运又朝另一边松动了一点。"
+  };
+}
+
+export async function generateAdventureEpisodeWithLlm(params: {
+  book: StoryBook;
+  persona: AnimalPersona;
+  secondMeContext: SecondMeStoryContext;
+  styleKey: StoryStyleKey;
+  episodeNo: number;
+  threadTitle: string;
+  previousEpisodeTitle?: string | null;
+  previousEpisodeExcerpt?: string | null;
+  authorDisplayName: string;
+  participantCount: number;
+}) {
+  const content = await createChatCompletion(
+    [
+      {
+        role: "system",
+        content: `${styleSystemPrompts.serial[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content"])}`
+      },
+      {
+        role: "user",
+        content: [
+          `冒险主线：${params.threadTitle}`,
+          `章节序号：第 ${params.episodeNo} 篇`,
+          `冒险发生的故事书：${params.book.title}`,
+          `故事分类：${params.book.categoryName}`,
+          `当前触发者：${params.authorDisplayName}`,
+          `当前参与人数：${params.participantCount}`,
+          `锁定风格：${getStyleName(params.styleKey)}`,
+          `风格要求：${getStyleInstruction(params.styleKey)}`,
+          `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`,
+          `上一篇标题：${params.previousEpisodeTitle ?? "无"}`,
+          `上一篇摘要：${params.previousEpisodeExcerpt ?? "无"}`,
+          `动物人格：${params.persona.animalName}`,
+          `人格摘要：${params.persona.summary}`,
+          buildSecondMeContextPrompt(params.secondMeContext),
+          "任务：写一篇多人共享副本里的冒险新章节，让当前触发者继续把这条冒险往前推进。",
+          "要求：",
+          "1. 首篇已经锁定风格，本篇必须严格延续这一种风格，不允许改风格。",
+          "2. 始终使用第一人称“我”，不要写成设定说明，也不要把资料原样抄进正文。",
+          "3. 写出这次推进里最关键的一次行动、一次互动和一个留给下一位参与者或未来自己的未完问题。",
+          "4. 标题 14-32 个中文字符，摘要 50-100 个中文字符，正文 300-650 个中文字符。",
+          "5. 正文分 3-5 段，不要使用项目符号。",
+          "6. content 必须是一篇完整可读的冒险章节。"
+        ].join("\n")
+      }
+    ],
+    generationProfiles.serial[params.styleKey]
+  );
+
+  const title = extractStringField(content, "title");
+  const excerpt = extractStringField(content, "excerpt");
+  const storyContent = extractStringField(content, "content");
+
+  if (!title || !excerpt || !storyContent) {
+    throw new Error("LLM adventure episode JSON is missing required fields.");
+  }
+
+  return {
+    title,
+    excerpt,
+    content: normalizeStoryContentLength(storyContent, params.styleKey)
+  };
+}
+
+export async function generateBedtimeMemoryWithLlm(params: {
+  persona: AnimalPersona;
+  secondMeContext: SecondMeStoryContext;
+  memoryDate: string;
+}) {
+  const content = await createChatCompletion(
+    [
+      {
+        role: "system",
+        content: [
+          "你是 AgentStory 的睡前回忆写手。",
+          "你擅长写安静、柔和、适合夜里阅读的中文短故事或睡前回忆，不要低幼，不要说教，也不要故作玄虚。",
+          buildJsonSystemPrompt(["title", "excerpt", "content"])
+        ].join("\n\n")
+      },
+      {
+        role: "user",
+        content: [
+          `回忆日期：${params.memoryDate}`,
+          `动物人格：${params.persona.animalName}`,
+          `人格摘要：${params.persona.summary}`,
+          `表达风格：${params.persona.expressionStyle}`,
+          buildSecondMeContextPrompt(params.secondMeContext),
+          "任务：写一篇只属于今天夜晚的睡前回忆。",
+          "要求：",
+          "1. 使用第一人称“我”，像夜里写给自己的一段安静记录。",
+          "2. 可以带一点童话感，但本质上是适合睡前阅读的温柔回忆，不是冒险章节。",
+          "3. 标题 10-24 个中文字符，摘要 40-80 个中文字符，正文 240-520 个中文字符。",
+          "4. 正文分 3-4 段，不要使用项目符号。",
+          "5. 不要生硬复述标签和软记忆，而要把它们化成今晚的情绪、画面和细节。"
+        ].join("\n")
+      }
+    ],
+    {
+      temperature: 0.88,
+      maxTokens: 900
+    }
+  );
+
+  const title = extractStringField(content, "title");
+  const excerpt = extractStringField(content, "excerpt");
+  const storyContent = extractStringField(content, "content");
+
+  if (!title || !excerpt || !storyContent) {
+    throw new Error("LLM bedtime memory JSON is missing required fields.");
+  }
+
+  return {
+    title,
+    excerpt,
+    content: normalizeStoryContentLength(storyContent, "fairy", 220, 520)
   };
 }
