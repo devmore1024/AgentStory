@@ -3,36 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --background-page: #f7f1e8;
-  --background-warm: #f2e7d8;
-  --background-card: #fffaf3;
-  --background-shelf: #ecd7bd;
-  --background-hover: #f1e7da;
-  --accent-moss: #5f7f62;
-  --accent-moss-hover: #4f6e53;
-  --accent-moss-light: #e7efe6;
-  --wood: #c59b6d;
-  --wood-deep: #a97a4e;
-  --berry: #b85c5c;
-  --berry-light: #f7e3e1;
-  --sky: #86a9c9;
-  --sky-light: #e8f0f7;
-  --apricot: #d9925b;
-  --apricot-light: #f8eadf;
-  --plum-brown: #7a5b55;
-  --text-primary: #2d251d;
-  --text-secondary: #5c5045;
-  --text-muted: #8b7d70;
-  --text-on-accent: #fffdf8;
-  --border-default: #dccbb5;
-  --border-light: #eadfce;
-  --border-strong: #bfa688;
-  --shadow-small: 0 2px 8px rgba(93, 71, 49, 0.08);
-  --shadow-medium: 0 8px 24px rgba(93, 71, 49, 0.12);
-  --shadow-large: 0 16px 40px rgba(93, 71, 49, 0.14);
-  --shadow-shelf: 0 6px 18px rgba(169, 122, 78, 0.18);
-  --display-font: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
-  --body-font: "Nunito Sans", "Avenir Next", "Helvetica Neue", sans-serif;
+  --background-page: #f9f5f0;
+  --background-warm: #f2e9e1;
+  --background-card: #fcfbfa;
+  --background-shelf: #e8dbce;
+  --background-hover: #f0e6dc;
+  --accent-moss: #7c2d12;
+  --accent-moss-hover: #5a1f0a;
+  --accent-moss-light: #f2e2df;
+  --wood: #a97a4e;
+  --wood-deep: #7a5028;
+  --berry: #b91c1c;
+  --berry-light: #fef2f2;
+  --sky: #4b5563;
+  --sky-light: #f3f4f6;
+  --apricot: #ca8a04;
+  --apricot-light: #fefce8;
+  --plum-brown: #450a0a;
+  --text-primary: #2d1a13;
+  --text-secondary: #5c4538;
+  --text-muted: #8c7668;
+  --text-on-accent: #fefbfa;
+  --border-default: #d8cec4;
+  --border-light: #e8e2db;
+  --border-strong: #bcac9f;
+  --shadow-small: 0 2px 8px rgba(69, 10, 10, 0.06);
+  --shadow-medium: 0 8px 24px rgba(69, 10, 10, 0.1);
+  --shadow-large: 0 16px 40px rgba(69, 10, 10, 0.12);
+  --shadow-shelf: 0 6px 18px rgba(124, 45, 18, 0.15);
+  --display-font: var(--font-merriweather), var(--font-noto-serif-sc), serif;
+  --body-font: var(--font-nunito-sans), sans-serif;
   --accent-font: "Caveat", "Bradley Hand", cursive;
 }
 
@@ -44,7 +44,7 @@ html {
   min-height: 100%;
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.7), transparent 35%),
-    linear-gradient(180deg, #f7f1e8 0%, #f4eadc 45%, #fbf6ef 100%);
+    linear-gradient(180deg, #f9f5f0 0%, #f2e9e1 45%, #fbf8f5 100%);
 }
 
 body {
@@ -52,7 +52,7 @@ body {
   min-height: 100vh;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 35%),
-    linear-gradient(180deg, #f7f1e8 0%, #f4eadc 45%, #fbf6ef 100%);
+    linear-gradient(180deg, #f9f5f0 0%, #f2e9e1 45%, #fbf8f5 100%);
   color: var(--text-primary);
   font-family: var(--body-font);
   text-rendering: optimizeLegibility;

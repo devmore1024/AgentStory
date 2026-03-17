@@ -22,15 +22,15 @@ export async function AppShell({ activeTab, children }: AppShellProps) {
   return (
     <div className="relative min-h-screen overflow-x-hidden pb-28">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[26rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.7),transparent_58%)]" />
-      <div className="pointer-events-none absolute left-[-7rem] top-28 h-56 w-56 rounded-full bg-[rgba(217,146,91,0.13)] blur-3xl" />
-      <div className="pointer-events-none absolute right-[-7rem] top-24 h-56 w-56 rounded-full bg-[rgba(134,169,201,0.18)] blur-3xl" />
+      <div className="pointer-events-none absolute left-[-7rem] top-28 h-56 w-56 rounded-full bg-[rgba(124,45,18,0.13)] blur-3xl" />
+      <div className="pointer-events-none absolute right-[-7rem] top-24 h-56 w-56 rounded-full bg-[rgba(75,85,99,0.18)] blur-3xl" />
 
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 pb-4 pt-5 sm:px-6 lg:px-8">
-        <header className="mb-6 flex items-center justify-between rounded-[28px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.82)] px-4 py-3 shadow-[var(--shadow-small)] backdrop-blur sm:px-5">
+        <header className="mb-6 flex items-center justify-between rounded-[28px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] px-4 py-3 shadow-[var(--shadow-small)] backdrop-blur sm:px-5">
           <div>
-            <p className="accent-font text-lg text-[var(--text-secondary)]">把分身轻轻放进故事里</p>
+            <p className="accent-font text-lg text-[var(--text-secondary)]">带着长大后的自己，回到童话里</p>
             <Link href="/" className="display-font text-2xl text-[var(--text-primary)] sm:text-3xl">
-              故事书架
+              AgentStory
             </Link>
           </div>
 

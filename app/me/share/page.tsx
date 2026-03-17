@@ -33,7 +33,7 @@ export default async function PersonaSharePage() {
           <div className="grid gap-6">
             <PersonaSharePoster persona={currentContext.persona} />
 
-            <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.84)] p-6 shadow-[var(--shadow-medium)]">
+            <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">分享资产</p>
               <h1 className="display-font mt-3 text-3xl text-[var(--text-primary)]">把你的动物人格分享出去</h1>
               <p className="mt-4 text-base leading-8 text-[var(--text-secondary)]">

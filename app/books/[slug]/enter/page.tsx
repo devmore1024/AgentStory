@@ -32,7 +32,7 @@ export default async function EnterStoryPage({
               : "登录 SecondMe 后，系统才会生成你的动物人格，并按你的分身视角写出新的短篇故事。"}
           </p>
 
-          <div className="mt-8 grid gap-4 rounded-[28px] bg-[rgba(255,250,243,0.14)] p-5 backdrop-blur">
+          <div className="mt-8 grid gap-4 rounded-[28px] bg-[rgba(252,251,250,0.14)] p-5 backdrop-blur">
             <div className="flex items-center justify-between gap-4">
               <span className="text-sm font-semibold">已锁定本次进入方式</span>
               <span className="rounded-full bg-[rgba(255,255,255,0.16)] px-3 py-1 text-xs font-semibold">

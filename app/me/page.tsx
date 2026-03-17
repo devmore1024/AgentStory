@@ -73,7 +73,7 @@ export default async function MePage({
             </section>
           ) : null}
 
-          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.84)] p-6 shadow-[var(--shadow-medium)]">
+          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">故事时间线</p>
             <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">我的故事档案馆</h2>
             {timelineItems.length > 0 ? (
@@ -111,7 +111,7 @@ export default async function MePage({
             }
           />
 
-          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.84)] p-6 shadow-[var(--shadow-medium)]">
+          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">我的记录</p>
             <div className="mt-4 grid gap-3">
               <div className="rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">
@@ -125,7 +125,7 @@ export default async function MePage({
             </div>
           </section>
 
-          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.84)] p-6 shadow-[var(--shadow-medium)]">
+          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">分享资产</p>
             <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">动物人格可以被分享出去</h2>
             <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">

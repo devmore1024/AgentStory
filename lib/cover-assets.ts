@@ -29,31 +29,31 @@ type CoverResolverInput = {
 };
 
 const defaultTint: CoverTint = {
-  overlay: "linear-gradient(180deg, rgba(252, 244, 230, 0.10), rgba(78, 55, 37, 0.18))",
+  overlay: "linear-gradient(180deg, rgba(252, 244, 230, 0.10), rgba(45, 26, 19, 0.25))",
   glow: "radial-gradient(circle at top, rgba(255, 245, 225, 0.28), transparent 50%)",
-  shadow: "linear-gradient(180deg, rgba(106, 73, 46, 0.02), rgba(55, 37, 25, 0.28))",
-  panel: "rgba(255, 249, 241, 0.78)"
+  shadow: "linear-gradient(180deg, rgba(45, 26, 19, 0.05), rgba(45, 26, 19, 0.45))",
+  panel: "rgba(252, 246, 240, 0.85)"
 };
 
 const fairyTint: CoverTint = {
-  overlay: "linear-gradient(180deg, rgba(255, 242, 227, 0.08), rgba(114, 69, 42, 0.26))",
+  overlay: "linear-gradient(180deg, rgba(255, 242, 227, 0.08), rgba(69, 10, 10, 0.35))",
   glow: "radial-gradient(circle at 20% 18%, rgba(255, 236, 198, 0.34), transparent 42%)",
-  shadow: "linear-gradient(180deg, rgba(115, 73, 44, 0.02), rgba(67, 43, 30, 0.38))",
-  panel: "rgba(255, 248, 239, 0.82)"
+  shadow: "linear-gradient(180deg, rgba(69, 10, 10, 0.05), rgba(45, 26, 19, 0.55))",
+  panel: "rgba(252, 246, 240, 0.85)"
 };
 
 const fableTint: CoverTint = {
-  overlay: "linear-gradient(180deg, rgba(246, 241, 222, 0.08), rgba(70, 65, 43, 0.28))",
+  overlay: "linear-gradient(180deg, rgba(246, 241, 222, 0.08), rgba(124, 45, 18, 0.35))",
   glow: "radial-gradient(circle at 24% 18%, rgba(235, 230, 192, 0.28), transparent 44%)",
-  shadow: "linear-gradient(180deg, rgba(70, 59, 36, 0.03), rgba(43, 38, 24, 0.4))",
-  panel: "rgba(250, 247, 235, 0.8)"
+  shadow: "linear-gradient(180deg, rgba(124, 45, 18, 0.05), rgba(69, 10, 10, 0.55))",
+  panel: "rgba(252, 246, 240, 0.85)"
 };
 
 const mythologyTint: CoverTint = {
-  overlay: "linear-gradient(180deg, rgba(240, 232, 218, 0.06), rgba(51, 42, 35, 0.34))",
+  overlay: "linear-gradient(180deg, rgba(240, 232, 218, 0.06), rgba(31, 41, 55, 0.45))",
   glow: "radial-gradient(circle at 24% 16%, rgba(231, 219, 194, 0.24), transparent 44%)",
-  shadow: "linear-gradient(180deg, rgba(61, 48, 38, 0.02), rgba(32, 24, 18, 0.46))",
-  panel: "rgba(248, 243, 235, 0.8)"
+  shadow: "linear-gradient(180deg, rgba(31, 41, 55, 0.05), rgba(17, 24, 39, 0.65))",
+  panel: "rgba(252, 246, 240, 0.85)"
 };
 
 function createCommonsRedirect(filename: string, width = 1200) {
@@ -91,7 +91,7 @@ function createCommonsArtwork(
 
 function createLocalArtwork(slug: string, tint: CoverTint = fairyTint): CoverOverride {
   return {
-    src: `/covers/${slug}`,
+    src: `/covers/${slug}.svg`,
     sourcePage: null,
     licenseNote: null,
     objectPosition: "center center",
@@ -411,7 +411,7 @@ export const coverSourceRegistry = {
 };
 
 export function resolveCoverAsset(book: CoverResolverInput): ResolvedCoverAsset {
-  const fallbackSrc = `/covers/${book.slug}`;
+  const fallbackSrc = `/covers/${book.slug}.svg`;
   const directCover = book.coverImage?.trim();
 
   if (directCover) {

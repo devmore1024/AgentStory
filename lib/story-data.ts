@@ -2,9 +2,9 @@ import { cache } from "react";
 import type { AnimalPersona } from "@/lib/animal-personas";
 import { resolveCoverAsset } from "@/lib/cover-assets";
 import { sql } from "@/lib/db";
+import { expandedFairyCatalogBooks, expandedFairyCatalogBySlug } from "@/lib/fairy-catalog-expansion";
 import {
   getImportedFairyPilotBook,
-  sortActiveImportedFairyShelfBooks,
   type ImportedFairyBook
 } from "@/lib/fairy-import-pilot";
 
@@ -35,6 +35,30 @@ export type StoryCategory = {
   sortOrder: number;
   books: StoryBook[];
 };
+
+export function getHomepageFairyShelfFromCategories(categories: StoryCategory[]) {
+  return categories.find((category) => category.key === "fairy_tale") ?? null;
+}
+
+export function hasIllustratedCoverForShelf(
+  book: Pick<StoryBook, "slug" | "coverImage" | "title" | "categoryKey" | "summary" | "originalSynopsis">
+) {
+  return resolveCoverAsset(book).src !== `/covers/${book.slug}`;
+}
+
+export function sortVisibleFairyShelfBooks<T extends StoryBook>(books: T[]) {
+  return books
+    .filter((book) => hasIllustratedCoverForShelf(book))
+    .sort((a, b) => {
+      const rankDiff = (a.popularityRank ?? Number.MAX_SAFE_INTEGER) - (b.popularityRank ?? Number.MAX_SAFE_INTEGER);
+
+      if (rankDiff !== 0) {
+        return rankDiff;
+      }
+
+      return a.title.localeCompare(b.title, "zh-CN");
+    });
+}
 
 type RawBookRow = {
   id: string | null;
@@ -78,6 +102,30 @@ function hydrateBaseBook(row: RawBookRow): StoryBook {
   };
 }
 
+function createExpandedFairyCatalogBook(book: {
+  title: string;
+  slug: string;
+  summary: string;
+}): StoryBook {
+  return {
+    id: `runtime-${book.slug}`,
+    title: book.title,
+    slug: book.slug,
+    summary: book.summary,
+    originalSynopsis: book.summary,
+    coverImage: null,
+    categoryKey: "fairy_tale",
+    categoryName: "童话",
+    keyScenes: [],
+    storyContent: null,
+    sourceSite: null,
+    sourceTitle: null,
+    sourceUrl: null,
+    sourceLicense: null,
+    popularityRank: null
+  };
+}
+
 function mergeImportedFairyPilot(book: StoryBook): StoryBook {
   if (book.categoryKey !== "fairy_tale") {
     return book;
@@ -111,7 +159,7 @@ function applyImportedFairyFields(book: StoryBook, imported: ImportedFairyBook):
 
 function sortCategoryBooks(categoryKey: StoryCategory["key"], books: StoryBook[]) {
   if (categoryKey === "fairy_tale") {
-    return sortActiveImportedFairyShelfBooks(books);
+    return sortVisibleFairyShelfBooks(books);
   }
 
   return [...books].sort((a, b) => a.title.localeCompare(b.title, "zh-CN"));
@@ -224,10 +272,26 @@ export const getCategoriesWithBooks = cache(async (): Promise<StoryCategory[]> =
     }
   }
 
+  const fairyCategory = Array.from(categories.values()).find((category) => category.key === "fairy_tale");
+
+  if (fairyCategory) {
+    const existingSlugs = new Set(fairyCategory.books.map((book) => book.slug));
+    const runtimeBooks = expandedFairyCatalogBooks
+      .filter((book) => !existingSlugs.has(book.slug))
+      .map((book) => createExpandedFairyCatalogBook(book));
+
+    fairyCategory.books.push(...runtimeBooks);
+  }
+
   return Array.from(categories.values()).map((category) => ({
     ...category,
     books: sortCategoryBooks(category.key, category.books)
   }));
+});
+
+export const getHomepageFairyShelf = cache(async () => {
+  const categories = await getCategoriesWithBooks();
+  return getHomepageFairyShelfFromCategories(categories);
 });
 
 export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | null> => {
@@ -257,7 +321,13 @@ export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | nul
   const row = rows[0];
 
   if (!row) {
-    return null;
+    const expanded = expandedFairyCatalogBySlug.get(slug);
+
+    if (!expanded) {
+      return null;
+    }
+
+    return createExpandedFairyCatalogBook(expanded);
   }
 
   return mergeImportedFairyPilot(hydrateBaseBook(row));

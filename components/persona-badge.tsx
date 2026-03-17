@@ -94,8 +94,8 @@ export function PersonaBadge({ animalType, size = "md", variant = "soft" }: Pers
       style={{
         background:
           variant === "paper"
-            ? "linear-gradient(180deg, rgba(255,250,243,0.98) 0%, rgba(247,241,232,0.94) 100%)"
-            : "linear-gradient(180deg, rgba(255,250,243,0.92) 0%, rgba(255,245,236,0.8) 100%)"
+            ? "linear-gradient(180deg, rgba(252,251,250,0.98) 0%, rgba(247,241,232,0.94) 100%)"
+            : "linear-gradient(180deg, rgba(252,251,250,0.92) 0%, rgba(255,245,236,0.8) 100%)"
       }}
       aria-hidden="true"
     >

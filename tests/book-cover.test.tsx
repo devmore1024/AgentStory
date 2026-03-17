@@ -52,18 +52,28 @@ describe("BookCover", () => {
     expect(screen.getByText("三只小猪")).toBeInTheDocument();
   });
 
+  it("uses the home fairy variant to hide the category badge and keep the fairy shelf styling focused", () => {
+    render(<BookCover book={createBookFixture()} variant="homeFairy" />);
+
+    const coverFrame = screen.getByAltText("三只小猪 封面").closest("[data-cover-variant]");
+
+    expect(coverFrame).toHaveAttribute("data-cover-variant", "homeFairy");
+    expect(screen.queryByText("童话")).not.toBeInTheDocument();
+    expect(screen.getByText("三只小猪")).toBeInTheDocument();
+  });
+
   it("renders an external themed cover for books outside the exact override list", () => {
     render(
       <BookCover
         book={createBookFixture({
-          title: "蓝胡子",
-          slug: "fairy-bluebeard",
+          title: "青蛙王子",
+          slug: "fairy-the-frog-prince",
           coverImage: null
         })}
       />
     );
 
-    const coverImage = screen.getByAltText("蓝胡子 封面");
+    const coverImage = screen.getByAltText("青蛙王子 封面");
 
     expect(coverImage).toHaveAttribute("src", expect.stringContaining("commons.wikimedia.org"));
   });

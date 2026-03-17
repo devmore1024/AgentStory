@@ -11,7 +11,7 @@ type StateCardProps = {
 
 export function StateCard({ eyebrow, title, description, href, actionLabel }: StateCardProps) {
   const content = (
-    <div className="rounded-[28px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.86)] p-6 shadow-[var(--shadow-medium)]">
+    <div className="rounded-[28px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{eyebrow}</p>
       <h2 className="display-font mt-2 text-3xl text-[var(--text-primary)]">{title}</h2>
       <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--text-secondary)]">{description}</p>

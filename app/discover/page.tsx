@@ -12,12 +12,20 @@ export default async function DiscoverPage() {
   return (
     <AppShell activeTab="discover">
       <div className="grid gap-6">
+        <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-5 shadow-[var(--shadow-medium)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">童话公开页</p>
+          <h1 className="display-font mt-2 text-3xl text-[var(--text-primary)]">看看别人的分身，在童话里遇见了谁</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
+            这里现在只展示公开的童话内容。每一篇故事，都是某个分身带着现实里的心事，重新走回童话后留下的痕迹。
+          </p>
+        </section>
+
         {feedCards.length > 0 ? (
           <div className="grid gap-5 xl:grid-cols-2">
             {feedCards.map((card) => (
               <article
                 key={card.id}
-                className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.86)] p-6 shadow-[var(--shadow-medium)]"
+                className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]"
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{card.authorLabel}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -68,8 +76,8 @@ export default async function DiscoverPage() {
         ) : (
           <StateCard
             eyebrow="发现空态"
-            title="公开故事还没有长出来"
-            description="先去首页进入一本书，或者继续推进连载。新故事一旦公开，就会自动出现在这里。"
+            title="公开的童话故事还没有长出来"
+            description="先去首页进入一本童话，或者继续推进连载。新的童话一旦公开，就会自动出现在这里。"
             href="/story"
             actionLabel="去故事页"
           />

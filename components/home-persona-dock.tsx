@@ -24,7 +24,7 @@ export function HomePersonaDock({
     <div className="pointer-events-none fixed bottom-28 left-4 z-40 sm:left-6 lg:bottom-8 lg:left-8">
       <div className="pointer-events-auto relative">
         {isOpen ? (
-          <div className="absolute bottom-[calc(100%+0.9rem)] left-0 w-[min(20rem,calc(100vw-2rem))] rounded-[28px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.96)] p-4 shadow-[var(--shadow-large)] backdrop-blur">
+          <div className="absolute bottom-[calc(100%+0.9rem)] left-0 w-[min(20rem,calc(100vw-2rem))] rounded-[28px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.96)] p-4 shadow-[var(--shadow-large)] backdrop-blur">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <PersonaBadge animalType={persona.animalType} size="sm" variant="paper" />
@@ -53,7 +53,7 @@ export function HomePersonaDock({
                 <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{currentEpisodeExcerpt}</p>
               ) : null}
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-moss)]">
-                Agent 正在改写这本书
+                分身正在重新经历这个故事
               </p>
             </div>
 
@@ -73,8 +73,8 @@ export function HomePersonaDock({
           aria-expanded={isOpen}
           aria-label={isOpen ? "收起动物人格卡片" : "打开动物人格卡片"}
         >
-          <div className="absolute inset-0 rounded-[24px] bg-[rgba(255,250,243,0.74)] blur-xl transition group-hover:bg-[rgba(255,250,243,0.9)]" />
-          <div className="relative flex items-center gap-3 rounded-[24px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.92)] px-2 py-2 pr-4 shadow-[var(--shadow-medium)] backdrop-blur">
+          <div className="absolute inset-0 rounded-[24px] bg-[rgba(252,251,250,0.74)] blur-xl transition group-hover:bg-[rgba(252,251,250,0.9)]" />
+          <div className="relative flex items-center gap-3 rounded-[24px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.92)] px-2 py-2 pr-4 shadow-[var(--shadow-medium)] backdrop-blur">
             <PersonaBadge animalType={persona.animalType} size="sm" variant="paper" />
             <div className="text-left">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">

@@ -21,6 +21,7 @@ export type SerialEpisodeView = {
   excerpt: string;
   content: string;
   bookTitle: string;
+  bookCategoryKey: StoryBook["categoryKey"] | null;
   styleName: string | null;
   generationLabel: string;
   generatedAt: string;
@@ -35,6 +36,7 @@ export type ShortStoryView = {
   triggerScene: string;
   bookTitle: string;
   categoryName: string;
+  bookCategoryKey: StoryBook["categoryKey"] | null;
   styleName: string | null;
   generationLabel: string;
   generatedAt: string;
@@ -55,6 +57,7 @@ export type FeedStoryView = {
   excerpt: string;
   sourceType: "episode" | "short_story";
   bookTitle: string | null;
+  bookCategoryKey: StoryBook["categoryKey"] | null;
   styleName: string | null;
   generationLabel: string;
   publishedAt: string;
@@ -84,6 +87,7 @@ type EpisodeRow = {
   content: string | null;
   generated_at: string | null;
   book_title: string | null;
+  category_key: StoryBook["categoryKey"] | null;
   style_name: string | null;
   generation_status: "queued" | "running" | "succeeded" | "failed" | null;
 };
@@ -97,6 +101,7 @@ type ShortStoryRow = {
   generated_at: string | null;
   book_title: string | null;
   category_name: string | null;
+  category_key: StoryBook["categoryKey"] | null;
   style_name: string | null;
   generation_status: "queued" | "running" | "succeeded" | "failed" | null;
 };
@@ -118,6 +123,7 @@ type FeedStoryRow = {
   published_at: string;
   like_count: number;
   book_title: string | null;
+  category_key: StoryBook["categoryKey"] | null;
   style_name: string | null;
   generation_status: "queued" | "running" | "succeeded" | "failed" | null;
   liked_by_current_user: boolean;
@@ -198,6 +204,10 @@ function getCommentStyleKey(book: StoryBook): StoryStyleKey {
   }
 
   return "zhihu";
+}
+
+export function filterPrimaryEntryViewsToFairy<T extends { bookCategoryKey: StoryBook["categoryKey"] | null }>(items: T[]) {
+  return items.filter((item) => item.bookCategoryKey === "fairy_tale");
 }
 
 function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleKey: StoryStyleKey) {
@@ -1161,16 +1171,11 @@ export async function getSerialMeta() {
     } satisfies SerialMetaView;
   }
 
-  let currentBookTitle: string | null = null;
-
-  if (thread.current_book_id) {
-    const categories = await getCategoriesWithBooks();
-    const allBooks = categories.flatMap((category) => category.books);
-    currentBookTitle = allBooks.find((book) => book.id === thread.current_book_id)?.title ?? null;
-  }
+  const serialEpisodes = await getSerialEpisodes();
+  const currentBookTitle = serialEpisodes[0]?.bookTitle ?? null;
 
   return {
-    episodeCount: thread.episode_count,
+    episodeCount: serialEpisodes.length,
     canGenerateNow: !thread.next_generate_at || new Date(thread.next_generate_at).getTime() <= Date.now(),
     nextGenerateAt: thread.next_generate_at,
     currentBookTitle
@@ -1195,10 +1200,12 @@ export async function getSerialEpisodes() {
         e.content,
         e.generated_at,
         b.title AS book_title,
+        c.key AS category_key,
         ss.name AS style_name,
         gj.status AS generation_status
       FROM story_episodes e
       LEFT JOIN story_books b ON b.id = e.book_id
+      LEFT JOIN story_categories c ON c.id = b.category_id
       LEFT JOIN story_styles ss ON ss.id = e.style_id
       LEFT JOIN generation_jobs gj ON gj.id = e.job_id
       WHERE e.user_id = $1
@@ -1208,15 +1215,23 @@ export async function getSerialEpisodes() {
     [context.userId]
   );
 
-  return rows.map((row, index): SerialEpisodeView => ({
-    id: row.id,
-    title: sanitizeDisplayTitle(row.title ?? "未命名章节"),
-    excerpt: row.excerpt ?? "",
-    content: row.content ?? "",
-    bookTitle: row.book_title ?? "未知故事",
-    styleName: row.style_name,
-    generationLabel: getGenerationLabel(row.generation_status),
-    generatedAt: row.generated_at ?? "",
+  const serialEpisodes = filterPrimaryEntryViewsToFairy(
+    rows.map((row, index): SerialEpisodeView => ({
+      id: row.id,
+      title: sanitizeDisplayTitle(row.title ?? "未命名章节"),
+      excerpt: row.excerpt ?? "",
+      content: row.content ?? "",
+      bookTitle: row.book_title ?? "未知故事",
+      bookCategoryKey: row.category_key,
+      styleName: row.style_name,
+      generationLabel: getGenerationLabel(row.generation_status),
+      generatedAt: row.generated_at ?? "",
+      statusLabel: index === 0 ? "最新章节" : "历史章节"
+    }))
+  );
+
+  return serialEpisodes.map((episode, index) => ({
+    ...episode,
     statusLabel: index === 0 ? "最新章节" : "历史章节"
   }));
 }
@@ -1244,6 +1259,7 @@ export async function getShortStories() {
         s.generated_at,
         b.title AS book_title,
         c.name AS category_name,
+        c.key AS category_key,
         ss.name AS style_name,
         gj.status AS generation_status
       FROM short_stories s
@@ -1258,19 +1274,22 @@ export async function getShortStories() {
     [context.userId]
   );
 
-  return rows.map(
-    (row): ShortStoryView => ({
-      id: row.id,
-      title: sanitizeDisplayTitle(row.title ?? "未命名短篇"),
-      excerpt: row.excerpt ?? "",
-      content: row.content ?? "",
-      triggerScene: row.trigger_scene,
-      bookTitle: row.book_title ?? "未知故事",
-      categoryName: row.category_name ?? "未分类",
-      styleName: row.style_name,
-      generationLabel: getGenerationLabel(row.generation_status),
-      generatedAt: row.generated_at ?? ""
-    })
+  return filterPrimaryEntryViewsToFairy(
+    rows.map(
+      (row): ShortStoryView => ({
+        id: row.id,
+        title: sanitizeDisplayTitle(row.title ?? "未命名短篇"),
+        excerpt: row.excerpt ?? "",
+        content: row.content ?? "",
+        triggerScene: row.trigger_scene,
+        bookTitle: row.book_title ?? "未知故事",
+        categoryName: row.category_name ?? "未分类",
+        bookCategoryKey: row.category_key,
+        styleName: row.style_name,
+        generationLabel: getGenerationLabel(row.generation_status),
+        generatedAt: row.generated_at ?? ""
+      })
+    )
   );
 }
 
@@ -1325,6 +1344,7 @@ export async function getDiscoverStories() {
         f.published_at,
         f.like_count,
         b.title AS book_title,
+        c.key AS category_key,
         ss.name AS style_name,
         (
           CASE
@@ -1370,6 +1390,7 @@ export async function getDiscoverStories() {
             ELSE NULL
           END
         )
+      LEFT JOIN story_categories c ON c.id = b.category_id
       WHERE f.visibility = 'public'
       ORDER BY f.published_at DESC
     `,
@@ -1377,7 +1398,12 @@ export async function getDiscoverStories() {
   );
 
   const feedStories = await Promise.all(
-    rows.map(async (row): Promise<FeedStoryView> => {
+    filterPrimaryEntryViewsToFairy(
+      rows.map((row) => ({
+        ...row,
+        bookCategoryKey: row.category_key
+      }))
+    ).map(async (row): Promise<FeedStoryView> => {
       const { rows: commentRows } = await sql<CommentRow>(
         `
           SELECT c.id, c.content, ap.animal_name
@@ -1396,6 +1422,7 @@ export async function getDiscoverStories() {
         excerpt: row.excerpt ?? "",
         sourceType: row.source_type,
         bookTitle: row.book_title,
+        bookCategoryKey: row.bookCategoryKey,
         styleName: row.style_name,
         generationLabel: getGenerationLabel(row.generation_status),
         publishedAt: row.published_at,

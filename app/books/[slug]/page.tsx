@@ -32,7 +32,7 @@ export default async function BookDetailPage({
         </div>
 
         <section className="space-y-6">
-          <div className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.82)] p-6 shadow-[var(--shadow-medium)] sm:p-7">
+          <div className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-6 shadow-[var(--shadow-medium)] sm:p-7">
             <span className="inline-flex rounded-full bg-[var(--apricot-light)] px-4 py-2 text-sm font-semibold text-[var(--apricot)]">
               {book.categoryName}
             </span>
@@ -63,7 +63,7 @@ export default async function BookDetailPage({
           </div>
 
           <div className="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
-            <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.82)] p-6 shadow-[var(--shadow-medium)]">
+            <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-6 shadow-[var(--shadow-medium)]">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">关键情节</p>
               <div className="mt-4 grid gap-3">
                 {keyScenes.map((item) => (
@@ -74,7 +74,7 @@ export default async function BookDetailPage({
               </div>
             </section>
 
-            <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.82)] p-6 shadow-[var(--shadow-medium)]">
+            <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-6 shadow-[var(--shadow-medium)]">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">原故事预览</p>
               <div className="mt-4 grid gap-4">
                 {storyParagraphs.slice(0, 2).map((paragraph) => (

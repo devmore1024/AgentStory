@@ -23,7 +23,7 @@ export default async function BookReadPage({
   return (
     <AppShell activeTab="home">
       <div className="mx-auto grid max-w-4xl gap-6">
-        <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.82)] p-6 shadow-[var(--shadow-medium)] sm:p-8">
+        <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-6 shadow-[var(--shadow-medium)] sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{book.categoryName}</p>
           <h1 className="display-font mt-3 text-4xl leading-tight text-[var(--text-primary)] sm:text-5xl">{book.title}</h1>
           <p className="mt-4 text-base leading-8 text-[var(--text-secondary)]">{book.summary}</p>
