@@ -26,14 +26,15 @@ export function MemoryLineCard({
   const notice = getPersonalLineListNotice({
     todayGenerated: line.todayGenerated,
     generationState: line.generationState,
-    generatedTimeLabel
+    generatedTimeLabel,
+    isCompleted: line.isCompleted
   });
 
   return (
     <article className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]">
       <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-          {getPersonalLineDailyStatusLabel(line.todayGenerated)}
+          {getPersonalLineDailyStatusLabel(line.todayGenerated, line.isCompleted)}
         </span>
         {generationBadgeLabel ? (
           <span className="rounded-full bg-[rgba(255,244,214,0.92)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">

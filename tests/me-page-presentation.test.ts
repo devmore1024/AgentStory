@@ -22,7 +22,8 @@ describe("me-page footprint presentation", () => {
           latestEpisodeError: null,
           generationState: "idle",
           episodeCount: 1,
-          todayGenerated: true
+          todayGenerated: true,
+          isCompleted: false
         }
       ],
       adventureThreads: [

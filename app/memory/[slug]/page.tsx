@@ -44,7 +44,8 @@ export default async function MemoryDetailPage({
   const generatedTimeLabel = line.todayGenerated ? formatAppTime(line.latestEpisodeGeneratedAt) : null;
   const dailyRuleNotice = getPersonalLineDetailRuleNotice({
     todayGenerated: line.todayGenerated,
-    generatedTimeLabel
+    generatedTimeLabel,
+    isCompleted: line.isCompleted
   });
   const primaryAction = currentContext
     ? getPersonalLineDetailPrimaryAction({
@@ -52,7 +53,8 @@ export default async function MemoryDetailPage({
         latestEpisodeId: line.latestEpisodeId,
         latestPublishedEpisodeId: latestPublishedEpisode?.id ?? null,
         todayGenerated: line.todayGenerated,
-        generationState: line.generationState
+        generationState: line.generationState,
+        isCompleted: line.isCompleted
       })
     : null;
 

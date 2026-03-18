@@ -22,6 +22,7 @@ type PersonalLineActionInput = {
   latestPublishedEpisodeId?: string | null;
   todayGenerated: boolean;
   generationState: EpisodeGenerationState;
+  isCompleted?: boolean;
 };
 
 export function isPersonalLineGenerating(generationState: EpisodeGenerationState) {
@@ -32,7 +33,11 @@ export function hasPersonalLineFailed(generationState: EpisodeGenerationState) {
   return generationState === "failed";
 }
 
-export function getPersonalLineDailyStatusLabel(todayGenerated: boolean) {
+export function getPersonalLineDailyStatusLabel(todayGenerated: boolean, isCompleted = false) {
+  if (isCompleted) {
+    return "已结束";
+  }
+
   return todayGenerated ? "今日已更新" : "等待今天续写";
 }
 
@@ -52,7 +57,12 @@ export function getPersonalLineListNotice(params: {
   todayGenerated: boolean;
   generationState: EpisodeGenerationState;
   generatedTimeLabel?: string | null;
+  isCompleted?: boolean;
 }) {
+  if (params.isCompleted) {
+    return "这条冒险已经走到结尾了。你可以回看整段故事，但它不会再继续往前长。";
+  }
+
   if (params.todayGenerated) {
     return params.generatedTimeLabel
       ? `今日 ${params.generatedTimeLabel} 已更新，冒险线每天只会继续一章，明天再来看下一章。`
@@ -73,8 +83,9 @@ export function getPersonalLineListNotice(params: {
 export function getPersonalLineDetailRuleNotice(params: {
   todayGenerated: boolean;
   generatedTimeLabel?: string | null;
+  isCompleted?: boolean;
 }) {
-  if (!params.todayGenerated) {
+  if (params.isCompleted || !params.todayGenerated) {
     return null;
   }
 
@@ -88,6 +99,14 @@ function buildEpisodeAnchorHref(sourceBookSlug: string, episodeId: string | null
 }
 
 export function getPersonalLineListPrimaryAction(params: PersonalLineActionInput): PersonalLineActionView {
+  if (params.isCompleted) {
+    return {
+      kind: "link",
+      label: "阅读冒险",
+      href: buildEpisodeAnchorHref(params.sourceBookSlug, params.latestEpisodeId)
+    };
+  }
+
   if (isPersonalLineGenerating(params.generationState)) {
     return {
       kind: "link",
@@ -120,6 +139,14 @@ export function getPersonalLineListPrimaryAction(params: PersonalLineActionInput
 }
 
 export function getPersonalLineDetailPrimaryAction(params: PersonalLineActionInput): PersonalLineActionView {
+  if (params.isCompleted) {
+    return {
+      kind: "link",
+      label: "阅读冒险",
+      href: buildEpisodeAnchorHref(params.sourceBookSlug, params.latestPublishedEpisodeId ?? params.latestEpisodeId)
+    };
+  }
+
   if (isPersonalLineGenerating(params.generationState)) {
     return {
       kind: "pending",

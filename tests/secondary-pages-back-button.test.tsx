@@ -169,6 +169,7 @@ function createMemoryLine() {
     generationState: "idle",
     episodeCount: 1,
     todayGenerated: true,
+    isCompleted: false,
     activeCompanionThreadId: null,
     episodes: [
       {

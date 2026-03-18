@@ -27,6 +27,7 @@ function createLineFixture(overrides: Partial<PersonalLineDetailView> = {}): Per
     generationState: "idle",
     episodeCount: 3,
     todayGenerated: true,
+    isCompleted: false,
     activeCompanionThreadId: null,
     episodes: [],
     ...overrides

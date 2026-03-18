@@ -37,6 +37,22 @@ describe("personal-line presentation helpers", () => {
     });
   });
 
+  it("uses a read-only action for completed adventures", () => {
+    expect(
+      getPersonalLineListPrimaryAction({
+        sourceBookSlug: "little-red-riding-hood",
+        latestEpisodeId: "episode-2",
+        todayGenerated: false,
+        generationState: "idle",
+        isCompleted: true
+      })
+    ).toEqual({
+      kind: "link",
+      label: "阅读冒险",
+      href: "/memory/little-red-riding-hood#episode-episode-2"
+    });
+  });
+
   it("switches detail actions between pending, retry, and view-today states", () => {
     expect(
       getPersonalLineDetailPrimaryAction({
@@ -78,6 +94,21 @@ describe("personal-line presentation helpers", () => {
       label: "今日之章",
       href: "/memory/little-red-riding-hood#episode-episode-1"
     });
+
+    expect(
+      getPersonalLineDetailPrimaryAction({
+        sourceBookSlug: "little-red-riding-hood",
+        latestEpisodeId: "episode-2",
+        latestPublishedEpisodeId: "episode-1",
+        todayGenerated: false,
+        generationState: "idle",
+        isCompleted: true
+      })
+    ).toEqual({
+      kind: "link",
+      label: "阅读冒险",
+      href: "/memory/little-red-riding-hood#episode-episode-1"
+    });
   });
 
   it("formats list and detail notices around the daily-one-chapter rule", () => {
@@ -95,5 +126,21 @@ describe("personal-line presentation helpers", () => {
         generatedTimeLabel: "18:30"
       })
     ).toBe("今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。");
+
+    expect(
+      getPersonalLineListNotice({
+        todayGenerated: false,
+        generationState: "idle",
+        isCompleted: true
+      })
+    ).toBe("这条冒险已经走到结尾了。你可以回看整段故事，但它不会再继续往前长。");
+
+    expect(
+      getPersonalLineDetailRuleNotice({
+        todayGenerated: true,
+        generatedTimeLabel: "18:30",
+        isCompleted: true
+      })
+    ).toBeNull();
   });
 });

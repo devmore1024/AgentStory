@@ -3,6 +3,7 @@ export type StoryFootprintFilter = "owned" | "joined";
 export type EpisodeRecordStatus = "queued" | "generating" | "published" | "failed" | null;
 export type GenerationJobStatus = "queued" | "running" | "succeeded" | "failed" | null;
 export type EpisodeGenerationState = "idle" | "queued" | "running" | "failed";
+export const EPISODE_GENERATION_TIMEOUT_MINUTES = 10;
 export const EPISODE_GENERATION_MODES = [
   "personal_start",
   "personal_continue",
@@ -95,6 +96,20 @@ export function getEpisodeGenerationState(
   }
 
   return "idle";
+}
+
+export function hasEpisodeGenerationTimedOut(startedAt: string | null, now = new Date(), timeoutMinutes = EPISODE_GENERATION_TIMEOUT_MINUTES) {
+  if (!startedAt) {
+    return false;
+  }
+
+  const startedAtTime = new Date(startedAt).getTime();
+
+  if (Number.isNaN(startedAtTime)) {
+    return false;
+  }
+
+  return now.getTime() - startedAtTime >= timeoutMinutes * 60 * 1000;
 }
 
 export function isEpisodeGenerationMode(value: unknown): value is EpisodeGenerationMode {

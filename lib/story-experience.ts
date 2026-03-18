@@ -16,11 +16,13 @@ import {
 } from "@/lib/story-style";
 import { getBookBySlug, type StoryBook } from "@/lib/story-data";
 import {
+  EPISODE_GENERATION_TIMEOUT_MINUTES,
   getAdventureActionState,
   getCompanionActionLabel,
   getCurrentAppDate,
   getEpisodeGenerationState,
   groupCompanionThreadsByBook,
+  hasEpisodeGenerationTimedOut,
   isEpisodeGenerationMode,
   isVisibleStoryTimelineSource,
   planPersonalEpisodeEnqueue,
@@ -103,6 +105,7 @@ export type PersonalLineBookView = {
   generationState: EpisodeGenerationState;
   episodeCount: number;
   todayGenerated: boolean;
+  isCompleted: boolean;
 };
 
 export type PersonalLineDetailView = PersonalLineBookView & {
@@ -522,6 +525,43 @@ function buildAdventureGenerationPlaceholder(episodeNo: number) {
   };
 }
 
+export async function expireStaleEpisodeGenerationJobs(now = new Date()) {
+  const { rows } = await sql<{
+    job_id: string;
+    episode_id: string;
+    started_at: string | null;
+  }>(
+    `
+      SELECT gj.id AS job_id, e.id AS episode_id, gj.started_at
+      FROM generation_jobs gj
+      JOIN story_episodes e ON e.job_id = gj.id
+      WHERE gj.job_type = 'episode_generate'
+        AND gj.status = 'running'
+        AND e.status IN ('queued', 'generating')
+    `
+  );
+
+  let expiredCount = 0;
+
+  for (const row of rows) {
+    if (!hasEpisodeGenerationTimedOut(row.started_at, now, EPISODE_GENERATION_TIMEOUT_MINUTES)) {
+      continue;
+    }
+
+    const failedPlaceholder = buildAdventureGenerationFailure(0);
+
+    await failAdventureEpisode({
+      episodeId: row.episode_id,
+      title: failedPlaceholder.title,
+      excerpt: failedPlaceholder.excerpt
+    });
+    await markGenerationJobFinished(row.job_id, "failed", "Generation timed out after worker interruption.");
+    expiredCount += 1;
+  }
+
+  return expiredCount;
+}
+
 function buildAdventureGenerationFailure(episodeNo: number) {
   return {
     title: `第 ${String(episodeNo).padStart(2, "0")} 章暂时卡住了`,
@@ -685,6 +725,10 @@ function mapAdventureThreadRow(row: AdventureThreadRow): AdventureThreadView {
 
 function mapPersonalLineBookRow(row: AdventureThreadRow, appDate = getCurrentAppDate()): PersonalLineBookView {
   const generationState = getEpisodeGenerationState(row.latest_episode_status, row.latest_episode_job_status);
+  const isCompleted =
+    row.status === "completed" ||
+    Boolean(row.completed_at) ||
+    (row.episode_count ?? 0) >= (row.episode_limit ?? Number.MAX_SAFE_INTEGER);
 
   return {
     threadId: row.id,
@@ -705,7 +749,8 @@ function mapPersonalLineBookRow(row: AdventureThreadRow, appDate = getCurrentApp
     latestEpisodeError: row.latest_episode_job_error,
     generationState,
     episodeCount: row.episode_count ?? 0,
-    todayGenerated: wasGeneratedOnAppDate(row.latest_episode_generated_at, appDate)
+    todayGenerated: wasGeneratedOnAppDate(row.latest_episode_generated_at, appDate),
+    isCompleted
   };
 }
 
@@ -842,8 +887,7 @@ async function getPersonalThreadRowBySlug(slug: string, currentUserId: string | 
       WHERE t.owner_user_id = $1
         AND sb.slug = $2
         AND t.thread_kind = 'personal'
-        AND t.status = 'active'
-        AND t.completed_at IS NULL
+        AND t.status IN ('active', 'completed')
       ORDER BY COALESCE(e.generated_at, e.created_at, t.updated_at, t.created_at) DESC
       LIMIT 1
     `,
@@ -1127,6 +1171,8 @@ export async function processQueuedAdventureGenerationJobs(options?: {
   threadId?: string;
   limit?: number;
 }) {
+  await expireStaleEpisodeGenerationJobs();
+
   const limit = Math.max(1, Math.min(options?.limit ?? 1, 5));
   const processedThreadIds: string[] = [];
   let processed = 0;
@@ -1725,6 +1771,8 @@ export async function getPersonalLineBooks() {
     return [];
   }
 
+  await expireStaleEpisodeGenerationJobs();
+
   const { rows } = await sql<AdventureThreadRow>(
     `
       SELECT
@@ -1778,8 +1826,7 @@ export async function getPersonalLineBooks() {
       ) AS episodes ON TRUE
       WHERE t.owner_user_id = $1
         AND t.thread_kind = 'personal'
-        AND t.status = 'active'
-        AND t.completed_at IS NULL
+        AND t.status IN ('active', 'completed')
       ORDER BY COALESCE(e.generated_at, e.created_at, t.updated_at, t.created_at) DESC
     `,
     [currentContext.userId]
@@ -1883,6 +1930,8 @@ export async function getAdventureThreadDetail(threadId: string) {
     return null;
   }
 
+  await expireStaleEpisodeGenerationJobs();
+
   const row = await getAdventureThreadRow(threadId, currentContext?.userId ?? null);
 
   if (!row) {
@@ -1932,13 +1981,17 @@ export async function getPersonalLineDetail(slug: string, options?: { ensureToda
     return null;
   }
 
+  await expireStaleEpisodeGenerationJobs();
+
   let row = await getPersonalThreadRowBySlug(slug, context.userId);
 
   if (!row) {
     return null;
   }
 
-  if (options?.ensureToday && !wasGeneratedOnAppDate(row.latest_episode_generated_at)) {
+  const lineView = mapPersonalLineBookRow(row);
+
+  if (options?.ensureToday && !lineView.isCompleted && !wasGeneratedOnAppDate(row.latest_episode_generated_at)) {
     await requireSecondMeStoryContext();
     await ensurePersonalThreadEpisode({
       thread: row,
