@@ -61,6 +61,54 @@ export function sortVisibleFairyShelfBooks<T extends StoryBook>(books: T[]) {
     });
 }
 
+type StoryBookOptionalColumnAvailability = {
+  storyContent: boolean;
+  sourceSite: boolean;
+  sourceTitle: boolean;
+  sourceUrl: boolean;
+  sourceLicense: boolean;
+  popularityRank: boolean;
+};
+
+export function getStoryBookOptionalSelectClauses(columns: StoryBookOptionalColumnAvailability) {
+  return {
+    storyContent: columns.storyContent ? "b.story_content" : "NULL::text AS story_content",
+    sourceSite: columns.sourceSite ? "b.source_site" : "NULL::text AS source_site",
+    sourceTitle: columns.sourceTitle ? "b.source_title" : "NULL::text AS source_title",
+    sourceUrl: columns.sourceUrl ? "b.source_url" : "NULL::text AS source_url",
+    sourceLicense: columns.sourceLicense ? "b.source_license" : "NULL::text AS source_license",
+    popularityRank: columns.popularityRank ? "b.popularity_rank" : "NULL::int AS popularity_rank"
+  } as const;
+}
+
+const getStoryBookOptionalColumnAvailability = cache(async () => {
+  const { rows } = await sql<{ column_name: string }>(`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'story_books'
+      AND column_name = ANY(ARRAY[
+        'story_content',
+        'source_site',
+        'source_title',
+        'source_url',
+        'source_license',
+        'popularity_rank'
+      ])
+  `);
+
+  const presentColumns = new Set(rows.map((row) => row.column_name));
+
+  return {
+    storyContent: presentColumns.has("story_content"),
+    sourceSite: presentColumns.has("source_site"),
+    sourceTitle: presentColumns.has("source_title"),
+    sourceUrl: presentColumns.has("source_url"),
+    sourceLicense: presentColumns.has("source_license"),
+    popularityRank: presentColumns.has("popularity_rank")
+  } satisfies StoryBookOptionalColumnAvailability;
+});
+
 type RawBookRow = {
   id: string | null;
   title: string | null;
@@ -268,6 +316,8 @@ export function getResolvedCoverAsset(book: CoverAssetInput) {
 }
 
 export const getCategoriesWithBooks = cache(async (): Promise<StoryCategory[]> => {
+  const selectClauses = getStoryBookOptionalSelectClauses(await getStoryBookOptionalColumnAvailability());
+
   const { rows } = await sql<RawBookRow>(
     `
       SELECT
@@ -282,12 +332,12 @@ export const getCategoriesWithBooks = cache(async (): Promise<StoryCategory[]> =
         b.original_synopsis,
         b.cover_image,
         b.key_scenes,
-        b.story_content,
-        b.source_site,
-        b.source_title,
-        b.source_url,
-        b.source_license,
-        b.popularity_rank
+        ${selectClauses.storyContent},
+        ${selectClauses.sourceSite},
+        ${selectClauses.sourceTitle},
+        ${selectClauses.sourceUrl},
+        ${selectClauses.sourceLicense},
+        ${selectClauses.popularityRank}
       FROM story_categories c
       LEFT JOIN story_books b
         ON b.category_id = c.id
@@ -339,6 +389,8 @@ export const getHomepageFairyShelf = cache(async () => {
 });
 
 export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | null> => {
+  const selectClauses = getStoryBookOptionalSelectClauses(await getStoryBookOptionalColumnAvailability());
+
   const { rows } = await sql<RawBookRow>(
     `
       SELECT
@@ -353,12 +405,12 @@ export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | nul
         b.original_synopsis,
         b.cover_image,
         b.key_scenes,
-        b.story_content,
-        b.source_site,
-        b.source_title,
-        b.source_url,
-        b.source_license,
-        b.popularity_rank
+        ${selectClauses.storyContent},
+        ${selectClauses.sourceSite},
+        ${selectClauses.sourceTitle},
+        ${selectClauses.sourceUrl},
+        ${selectClauses.sourceLicense},
+        ${selectClauses.popularityRank}
       FROM story_books b
       JOIN story_categories c ON c.id = b.category_id
       WHERE b.slug = $1

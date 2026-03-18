@@ -59,7 +59,7 @@ export default async function BookDetailPage({
               {currentContext ? (
                 <form action={startOrOpenPersonalLineAction}>
                   <input type="hidden" name="slug" value={book.slug} />
-                  <SubmitButton idleLabel={personalLine ? "继续回去" : "走进童话"} pendingLabel="正在回到童话里..." />
+                  <SubmitButton idleLabel={personalLine ? "继续冒险" : "走进童话"} pendingLabel="正在回到故事里冒险..." />
                 </form>
               ) : (
                 <Link

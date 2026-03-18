@@ -18,6 +18,7 @@ import {
   groupCompanionThreadsByBook,
   isVisibleStoryTimelineSource,
   sanitizeCompanionThreadTitle,
+  sanitizePersonalAdventureTitle,
   wasGeneratedOnAppDate,
   type StoryTimelineSourceType,
   type VisibleStoryTimelineSourceType,
@@ -266,7 +267,7 @@ function buildAdventureThreadTitle(book: StoryBook, ownerDisplayName: string) {
 }
 
 function buildPersonalThreadTitle(book: StoryBook) {
-  return `我回到《${book.title}》里`;
+  return `我在《${book.title}》里的冒险`;
 }
 
 function buildAdventureFallbackEpisode(params: {
@@ -297,14 +298,14 @@ function buildPersonalFallbackEpisode(params: {
   previousEpisodeTitle?: string | null;
 }) {
   const previousLead = params.previousEpisodeTitle
-    ? `昨天留在《${params.book.title}》里的那一点回声还没有散去，我带着《${params.previousEpisodeTitle}》留下的余韵，又慢慢走回了同一条路。`
-    : `第一次回到《${params.book.title}》里时，我没有急着改写谁的命运，只是想看看长大后的自己，会怎样再次靠近这个故事。`;
+    ? `昨天留在《${params.book.title}》里的那一点回声还没有散去，我带着《${params.previousEpisodeTitle}》留下的余韵，又慢慢回到故事里，沿着同一条路继续冒险。`
+    : `第一次回到《${params.book.title}》里冒险时，我没有急着改写谁的命运，只是想看看长大后的自己，会怎样再次靠近这个故事。`;
   const middle = `我带着${params.persona.animalName}式的直觉和迟疑往前走，让那些小时候读过去的情节，在今天这一次靠近里露出了新的纹理。`;
-  const ending = `于是第 ${params.episodeNo} 次回去没有急着把答案说完，只把一个新的停顿轻轻留在夜里，等明天的我再回来续上。`;
+  const ending = `于是第 ${params.episodeNo} 次冒险没有急着把答案说完，只把一个新的停顿轻轻留在夜里，等明天的我再回来续上。`;
 
   return {
-    title: `第 ${String(params.episodeNo).padStart(2, "0")} 次回去 · 《${params.book.title}》`,
-    excerpt: `我沿着${getStyleName(params.styleKey)}重新回到《${params.book.title}》，让这本童话和现在的自己再靠近一点。`,
+    title: `第 ${String(params.episodeNo).padStart(2, "0")} 次冒险 · 《${params.book.title}》`,
+    excerpt: `我沿着${getStyleName(params.styleKey)}回到《${params.book.title}》里继续冒险，让这本童话和现在的自己再靠近一点。`,
     content: normalizeStoryContentLength(`${previousLead}\n\n${middle}\n\n${ending}`, params.styleKey)
   };
 }
@@ -546,13 +547,15 @@ function mapPersonalLineBookRow(row: AdventureThreadRow, appDate = getCurrentApp
   return {
     threadId: row.id,
     threadKind: "personal",
-    title: row.title,
+    title: sanitizePersonalAdventureTitle(row.title, row.source_book_title),
     sourceBookTitle: row.source_book_title ?? "未知故事",
     sourceBookSlug: row.source_book_slug ?? "",
     sourceBookCategoryKey: row.source_book_category_key,
     lockedStyleName: row.locked_style_name,
     latestEpisodeId: row.latest_episode_id,
-    latestEpisodeTitle: row.latest_episode_title ? sanitizeDisplayTitle(row.latest_episode_title) : null,
+    latestEpisodeTitle: row.latest_episode_title
+      ? sanitizePersonalAdventureTitle(sanitizeDisplayTitle(row.latest_episode_title), row.source_book_title)
+      : null,
     latestEpisodeExcerpt: row.latest_episode_excerpt,
     latestEpisodeGeneratedAt: row.latest_episode_generated_at,
     episodeCount: row.episode_count ?? 0,
@@ -1102,11 +1105,11 @@ export async function getLatestPersonalLinePreview() {
   }
 
   return {
-    title: sanitizeDisplayTitle(row.title ?? "新的回去正在展开"),
+    title: sanitizePersonalAdventureTitle(sanitizeDisplayTitle(row.title ?? "新的回去正在展开"), row.book_title),
     bookTitle: row.book_title ?? "未知故事",
     bookSlug: row.book_slug,
     excerpt: row.excerpt ?? "",
-    statusLabel: "正在回去"
+    statusLabel: "正在冒险"
   } satisfies AdventurePreviewView;
 }
 
@@ -2143,7 +2146,10 @@ export async function getStoryTimelineItems() {
     (row): StoryTimelineItemView => ({
       id: row.id,
       sourceType: row.source_type,
-      title: sanitizeDisplayTitle(row.title),
+      title:
+        row.source_type === "personal_episode" || row.source_type === "episode"
+          ? sanitizePersonalAdventureTitle(sanitizeDisplayTitle(row.title), row.book_title)
+          : sanitizeDisplayTitle(row.title),
       excerpt: row.excerpt,
       bookTitle: row.book_title,
       happenedAt: row.happened_at

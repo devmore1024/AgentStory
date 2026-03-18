@@ -10,7 +10,7 @@ type AppShellProps = {
 
 const desktopNavItems = [
   { href: "/", label: "首页" },
-  { href: "/memory", label: "回去" },
+  { href: "/memory", label: "冒险" },
   { href: "/adventure", label: "同行" },
   { href: "/me", label: "我的" }
 ] as const;

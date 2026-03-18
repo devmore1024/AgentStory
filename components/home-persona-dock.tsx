@@ -12,6 +12,12 @@ type HomePersonaDockProps = {
   statusLabel?: string | null;
 };
 
+const DOCK_COPY = {
+  fallbackStatus: "正在冒险",
+  footer: "你的分身还在童话里继续冒险",
+  actionLabel: "去我的冒险"
+} as const;
+
 export function HomePersonaDock({
   persona,
   currentBookTitle,
@@ -48,14 +54,14 @@ export function HomePersonaDock({
 
             <div className="mt-4 rounded-[20px] bg-[rgba(255,255,255,0.72)] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                {statusLabel ?? "正在回去"}
+                {statusLabel ?? DOCK_COPY.fallbackStatus}
               </p>
               <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">《{currentBookTitle ?? "新的故事"}》</p>
               {currentEpisodeExcerpt ? (
                 <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{currentEpisodeExcerpt}</p>
               ) : null}
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-moss)]">
-                你的分身还在童话里回去
+                {DOCK_COPY.footer}
               </p>
             </div>
 
@@ -63,7 +69,7 @@ export function HomePersonaDock({
               href="/memory"
               className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)] transition hover:bg-[var(--accent-moss-hover)]"
             >
-              去我的回去线
+              {DOCK_COPY.actionLabel}
             </Link>
           </div>
         ) : null}
@@ -80,7 +86,7 @@ export function HomePersonaDock({
             <PersonaBadge animalType={persona.animalType} size="sm" variant="paper" />
             <div className="text-left">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                {statusLabel ?? "正在回去"}
+                {statusLabel ?? DOCK_COPY.fallbackStatus}
               </p>
               <p className="text-sm font-semibold text-[var(--text-primary)]">《{currentBookTitle ?? "新的故事"}》</p>
             </div>

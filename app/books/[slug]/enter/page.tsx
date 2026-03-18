@@ -8,6 +8,13 @@ import { getBookBySlug } from "@/lib/story-data";
 
 export const dynamic = "force-dynamic";
 
+const ENTER_COPY = {
+  headingPrefix: "准备回到",
+  headingSuffix: "里冒险",
+  pendingLabel: "正在回到故事里冒险...",
+  memoryActionLabel: "去冒险列表"
+} as const;
+
 export default async function EnterStoryPage({
   params
 }: {
@@ -29,12 +36,14 @@ export default async function EnterStoryPage({
       <div className="mx-auto grid max-w-4xl gap-6">
         <section className="rounded-[36px] border border-[rgba(255,255,255,0.48)] bg-[linear-gradient(135deg,rgba(95,127,98,0.98),rgba(134,169,201,0.96))] p-7 text-[var(--text-on-accent)] shadow-[var(--shadow-large)] sm:p-9">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(255,253,248,0.72)]">走进童话</p>
-          <h1 className="display-font mt-3 text-4xl leading-tight sm:text-5xl">准备回到《{book.title}》里</h1>
+          <h1 className="display-font mt-3 text-4xl leading-tight sm:text-5xl">
+            {ENTER_COPY.headingPrefix}《{book.title}》{ENTER_COPY.headingSuffix}
+          </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-[rgba(255,253,248,0.9)]">
             {currentContext
               ? personalLine
-                ? `你已经在这本童话里留下一条只属于自己的回去线了。接下来点击后，会直接回到这本书今天的位置。`
-                : `系统会根据你当前的动物人格“${currentContext.persona.animalName}”写下这本童话的第一段 personal 回去线。`
+                ? `你已经在这本童话里留下一条只属于自己的冒险线了。接下来点击后，会直接回到这本书今天的故事位置，继续往前冒险。`
+                : `系统会根据你当前的动物人格“${currentContext.persona.animalName}”写下这本童话的第一段 personal 冒险线。`
               : "登录 SecondMe 后，系统才会生成你的分身，并按你的视角把你带回真正属于你的童话里。"}
           </p>
 
@@ -53,7 +62,10 @@ export default async function EnterStoryPage({
             {currentContext ? (
               <form action={startOrOpenPersonalLineAction} className="pt-2">
                 <input type="hidden" name="slug" value={book.slug} />
-                <SubmitButton idleLabel={personalLine ? "继续回去" : "现在走进童话"} pendingLabel="正在走进童话..." />
+                <SubmitButton
+                  idleLabel={personalLine ? "继续冒险" : "现在走进童话"}
+                  pendingLabel={ENTER_COPY.pendingLabel}
+                />
               </form>
             ) : (
               <Link
@@ -70,7 +82,7 @@ export default async function EnterStoryPage({
               href="/memory"
               className="inline-flex min-h-11 items-center rounded-full bg-[rgba(255,255,255,0.16)] px-5 py-3 text-sm font-semibold"
             >
-              去回去列表
+              {ENTER_COPY.memoryActionLabel}
             </Link>
             <Link
               href={`/books/${book.slug}`}

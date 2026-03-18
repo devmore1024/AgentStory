@@ -115,7 +115,7 @@ export default async function MePage({
               </div>
             ) : (
               <div className="mt-5 rounded-[22px] border border-dashed border-[var(--border-default)] bg-[rgba(255,255,255,0.56)] p-5">
-                <p className="text-sm leading-7 text-[var(--text-secondary)]">你的档案馆还没有记录，先从首页挑一本到想回去的童话，让第一段同行先落下来。</p>
+                <p className="text-sm leading-7 text-[var(--text-secondary)]">你的档案馆还没有记录，先从首页挑一本到想回到故事里继续冒险的童话，让第一段同行先落下来。</p>
               </div>
             )}
           </section>
@@ -127,7 +127,7 @@ export default async function MePage({
             title={currentContext ? "这里会继续长出你的重逢记录" : "连接后这里会变成你的专属童话档案馆"}
             description={
               currentContext
-                ? "现在这页会把你的分身、你回去过的童话，以及你和别人同行过的故事放在同一个档案馆里。"
+                ? "现在这页会把你的分身、你冒险过的童话，以及你和别人同行过的故事放在同一个档案馆里。"
                 : "登录成功后，这里会出现你的动物人格、故事时间线和同行记录。"
             }
           />
@@ -184,7 +184,7 @@ export default async function MePage({
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">分享资产</p>
             <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">动物人格可以被分享出去</h2>
             <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">
-              当前分享页仍然沿用动物人格主视图。后面如果同行体验继续稳定下来，这里还可以再扩展你回去过的童话与同行摘要。
+              当前分享页仍然沿用动物人格主视图。后面如果同行体验继续稳定下来，这里还可以再扩展你冒险过的童话与同行摘要。
             </p>
             <div className="mt-5">
               <Link

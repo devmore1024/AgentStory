@@ -66,6 +66,22 @@ export function sanitizeCompanionThreadTitle(title: string, sourceBookTitle?: st
     .replace(/冒险/g, "同行");
 }
 
+export function sanitizePersonalAdventureTitle(title: string, sourceBookTitle?: string | null) {
+  const trimmed = title.trim();
+
+  if (sourceBookTitle && trimmed === `我回到《${sourceBookTitle}》里`) {
+    return `我在《${sourceBookTitle}》里的冒险`;
+  }
+
+  return trimmed
+    .replace(/新的回去正在展开/g, "新的冒险正在展开")
+    .replace(/准备回去/g, "准备冒险")
+    .replace(/正在回去/g, "正在冒险")
+    .replace(/第\s*(\d+)\s*次回去/g, "第 $1 次冒险")
+    .replace(/我回到《(.+?)》里/g, "我在《$1》里的冒险")
+    .replace(/回去线/g, "冒险线");
+}
+
 export function hasFreshSecondMeCache(expiresAt: string | null, now = new Date()) {
   if (!expiresAt) {
     return false;

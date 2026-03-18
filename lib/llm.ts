@@ -524,6 +524,68 @@ export async function generateAdventureEpisodeWithLlm(params: {
   };
 }
 
+export async function generatePersonalEpisodeWithLlm(params: {
+  book: StoryBook;
+  persona: AnimalPersona;
+  secondMeContext: SecondMeStoryContext;
+  styleKey: StoryStyleKey;
+  episodeNo: number;
+  threadTitle: string;
+  previousEpisodeTitle?: string | null;
+  previousEpisodeExcerpt?: string | null;
+  authorDisplayName: string;
+}) {
+  const content = await createChatCompletion(
+    [
+      {
+        role: "system",
+        content: `${styleSystemPrompts.serial[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content"])}`
+      },
+      {
+        role: "user",
+        content: [
+          `个人主线：${params.threadTitle}`,
+          `章节序号：第 ${params.episodeNo} 次`,
+          `回去的故事书：${params.book.title}`,
+          `故事分类：${params.book.categoryName}`,
+          `当前作者：${params.authorDisplayName}`,
+          `锁定风格：${getStyleName(params.styleKey)}`,
+          `风格要求：${getStyleInstruction(params.styleKey)}`,
+          `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`,
+          `上一段标题：${params.previousEpisodeTitle ?? "无"}`,
+          `上一段摘要：${params.previousEpisodeExcerpt ?? "无"}`,
+          `动物人格：${params.persona.animalName}`,
+          `人格摘要：${params.persona.summary}`,
+          buildSecondMeContextPrompt(params.secondMeContext),
+          "任务：写一段单人 personal 回去线里的新章节，让现在的我继续回到这本童话里。",
+          "要求：",
+          "1. 始终使用第一人称“我”，写成一个人在同一本童话里的持续回归，不要写成多人共享冒险。",
+          "2. 这不是冒险副本，也不是同行广场，重点是“我重新回到故事里”后的观察、行动和余韵。",
+          "3. 写出这次回去里最关键的一次靠近、一次与角色或场景的互动，以及一个留给下一次回来的未完问题。",
+          "4. 标题 14-32 个中文字符，摘要 50-100 个中文字符，正文 300-600 个中文字符。",
+          "5. 正文分 3-5 段，不要使用项目符号。",
+          "6. content 必须是一段完整可读的 personal 主线章节。"
+        ].join("\n")
+      }
+    ],
+    generationProfiles.serial[params.styleKey]
+  );
+
+  const title = extractStringField(content, "title");
+  const excerpt = extractStringField(content, "excerpt");
+  const storyContent = extractStringField(content, "content");
+
+  if (!title || !excerpt || !storyContent) {
+    throw new Error("LLM personal episode JSON is missing required fields.");
+  }
+
+  return {
+    title,
+    excerpt,
+    content: normalizeStoryContentLength(storyContent, params.styleKey)
+  };
+}
+
 export async function generateBedtimeMemoryWithLlm(params: {
   persona: AnimalPersona;
   secondMeContext: SecondMeStoryContext;

@@ -82,7 +82,7 @@ export default async function BookReadPage({
               href={`/books/${book.slug}/enter`}
               className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)]"
             >
-              带着分身回去
+              带着分身去冒险
             </Link>
           </div>
         </section>

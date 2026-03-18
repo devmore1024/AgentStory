@@ -3,6 +3,7 @@ import {
   getHomepageFairyShelfFromCategories,
   getResolvedKeyScenes,
   getResolvedStoryParagraphs,
+  getStoryBookOptionalSelectClauses,
   hasIllustratedCoverForShelf,
   sortVisibleFairyShelfBooks,
   type StoryBook,
@@ -112,5 +113,43 @@ describe("story-data helpers", () => {
     });
 
     expect(getResolvedKeyScenes(book)).toEqual(["真实情节一", "真实情节二"]);
+  });
+
+  it("chooses fallback select clauses for missing story-book import columns", () => {
+    expect(
+      getStoryBookOptionalSelectClauses({
+        storyContent: true,
+        sourceSite: true,
+        sourceTitle: true,
+        sourceUrl: true,
+        sourceLicense: true,
+        popularityRank: true
+      })
+    ).toEqual({
+      storyContent: "b.story_content",
+      sourceSite: "b.source_site",
+      sourceTitle: "b.source_title",
+      sourceUrl: "b.source_url",
+      sourceLicense: "b.source_license",
+      popularityRank: "b.popularity_rank"
+    });
+
+    expect(
+      getStoryBookOptionalSelectClauses({
+        storyContent: false,
+        sourceSite: false,
+        sourceTitle: false,
+        sourceUrl: false,
+        sourceLicense: false,
+        popularityRank: false
+      })
+    ).toEqual({
+      storyContent: "NULL::text AS story_content",
+      sourceSite: "NULL::text AS source_site",
+      sourceTitle: "NULL::text AS source_title",
+      sourceUrl: "NULL::text AS source_url",
+      sourceLicense: "NULL::text AS source_license",
+      popularityRank: "NULL::int AS popularity_rank"
+    });
   });
 });

@@ -7,6 +7,20 @@ import { getHomepageFairyShelf } from "@/lib/story-data";
 
 export const dynamic = "force-dynamic";
 
+const HOME_COPY = {
+  previewFallback: {
+    title: "第一段冒险还没被点亮，今晚可以从你选中的童话开始。",
+    excerpt: "点开一本书，让分身先替你走进森林和月光里。故事会从你回到其中继续冒险的那一刻，慢慢长出新的去向。",
+    statusLabel: "准备冒险"
+  },
+  previewEyebrow: "你的分身正在冒险的童话",
+  reunionTitle: "与熟悉的人重逢",
+  reunionBody: "当你回到故事里继续冒险，童话里那些曾经只存在于书页上的人，会第一次认真看向现在的你。",
+  companionBody: "当这段冒险走到值得邀请别人的地方，你可以把当前节点公开成一条新的同行故事。",
+  previewAction: "去看这段冒险",
+  shelfDescription: "这些故事先替你保留在月光和书页之间。挑一本，让分身带着长大后的你回到故事里继续冒险，看看童话会不会因此变得更真一点。"
+} as const;
+
 export default async function HomePage() {
   const [fairyShelf, latestEpisode, currentContext] = await Promise.all([
     getHomepageFairyShelf(),
@@ -22,11 +36,11 @@ export default async function HomePage() {
         statusLabel: latestEpisode.statusLabel
       }
     : {
-        title: "第一段回去还没被点亮，今晚可以从你选中的童话开始。",
+        title: HOME_COPY.previewFallback.title,
         bookTitle: "小红帽",
         bookSlug: "fairy-little-red-riding-hood",
-        excerpt: "点开一本书，让分身先替你走回森林和月光里。故事会从你重新进入的那一刻，慢慢长出新的去向。",
-        statusLabel: "准备回去"
+        excerpt: HOME_COPY.previewFallback.excerpt,
+        statusLabel: HOME_COPY.previewFallback.statusLabel
       };
   const homepageFairyBooks = fairyShelf?.books.slice(0, 100) ?? [];
 
@@ -64,7 +78,7 @@ export default async function HomePage() {
 
             <div className="rounded-[30px] border border-[rgba(255,247,240,0.72)] bg-[rgba(255,251,247,0.72)] p-5 shadow-[var(--shadow-medium)] backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">
-                你的分身正在回去的童话
+                {HOME_COPY.previewEyebrow}
               </p>
               <h2 className="display-font mt-3 text-2xl leading-tight text-[var(--text-primary)]">
                 《{previewEpisode.bookTitle}》
@@ -72,12 +86,12 @@ export default async function HomePage() {
               <p className="mt-3 text-sm font-semibold text-[var(--accent-moss)]">{previewEpisode.statusLabel}</p>
               <div className="mt-5 grid gap-3 text-sm leading-6 text-[var(--text-secondary)] sm:grid-cols-2">
                 <div>
-                  <p className="font-semibold text-[var(--text-primary)]">与熟悉的人重逢</p>
-                  <p>你回去以后，童话里那些曾经只存在于书页上的人，会第一次认真看向现在的你。</p>
+                  <p className="font-semibold text-[var(--text-primary)]">{HOME_COPY.reunionTitle}</p>
+                  <p>{HOME_COPY.reunionBody}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-[var(--text-primary)]">和别人的分身同行</p>
-                  <p>当这段回去走到值得邀请别人的地方，你可以把当前节点公开成一条新的同行故事。</p>
+                  <p>{HOME_COPY.companionBody}</p>
                 </div>
               </div>
               <div className="mt-5">
@@ -85,7 +99,7 @@ export default async function HomePage() {
                   href={previewEpisode.bookSlug ? `/memory/${previewEpisode.bookSlug}` : "/memory"}
                   className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)] transition hover:border-[var(--accent-moss)] hover:text-[var(--accent-moss)]"
                 >
-                  去看这条回去线
+                  {HOME_COPY.previewAction}
                 </Link>
               </div>
             </div>
@@ -100,7 +114,7 @@ export default async function HomePage() {
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">今晚可以走进去的童话</p>
               <p className="mt-2 max-w-4xl text-sm leading-7 text-[var(--text-secondary)]">
-                这些故事先替你保留在月光和书页之间。挑一本，让分身带着长大后的你回去看看，童话会不会因此变得更真一点。
+                {HOME_COPY.shelfDescription}
               </p>
             </div>
           </div>

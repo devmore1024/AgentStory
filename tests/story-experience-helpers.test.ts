@@ -5,7 +5,8 @@ import {
   getCurrentAppDate,
   hasFreshSecondMeCache,
   isVisibleStoryTimelineSource,
-  sanitizeCompanionThreadTitle
+  sanitizeCompanionThreadTitle,
+  sanitizePersonalAdventureTitle
 } from "@/lib/story-experience-helpers";
 
 describe("story-experience helpers", () => {
@@ -93,5 +94,12 @@ describe("story-experience helpers", () => {
     expect(sanitizeCompanionThreadTitle("阿宁在《小红帽》里开出的一条冒险线", "小红帽")).toBe("在《小红帽》里重新相遇");
     expect(sanitizeCompanionThreadTitle("新的冒险正在展开")).toBe("新的同行正在展开");
     expect(sanitizeCompanionThreadTitle("陌生人之间的冒险")).toBe("陌生人之间的同行");
+  });
+
+  it("rewrites legacy personal titles into adventure wording", () => {
+    expect(sanitizePersonalAdventureTitle("新的回去正在展开")).toBe("新的冒险正在展开");
+    expect(sanitizePersonalAdventureTitle("第 03 次回去 · 《小红帽》")).toBe("第 03 次冒险 · 《小红帽》");
+    expect(sanitizePersonalAdventureTitle("我回到《海的女儿》里", "海的女儿")).toBe("我在《海的女儿》里的冒险");
+    expect(sanitizePersonalAdventureTitle("准备回去")).toBe("准备冒险");
   });
 });

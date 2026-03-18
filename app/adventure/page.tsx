@@ -146,7 +146,7 @@ export default async function AdventurePage() {
           <StateCard
             eyebrow="同行空态"
             title="第一段同行还没有被点亮"
-            description="先从首页挑一本到想回去的童话，点下“走进童话”，这里就会开始出现能被别人阅读或加入的故事。"
+            description="先从首页挑一本到想回到故事里继续冒险的童话，点下“走进童话”，这里就会开始出现能被别人阅读或加入的故事。"
             href="/"
             actionLabel="回到童话书架"
           />
