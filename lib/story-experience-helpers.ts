@@ -3,6 +3,13 @@ export type StoryFootprintFilter = "owned" | "joined";
 export type EpisodeRecordStatus = "queued" | "generating" | "published" | "failed" | null;
 export type GenerationJobStatus = "queued" | "running" | "succeeded" | "failed" | null;
 export type EpisodeGenerationState = "idle" | "queued" | "running" | "failed";
+export const EPISODE_GENERATION_MODES = [
+  "personal_start",
+  "personal_continue",
+  "companion_publish",
+  "adventure_continue"
+] as const;
+export type EpisodeGenerationMode = (typeof EPISODE_GENERATION_MODES)[number];
 export type StoryTimelineSourceType =
   | "adventure_episode"
   | "personal_episode"
@@ -90,6 +97,78 @@ export function getEpisodeGenerationState(
   return "idle";
 }
 
+export function isEpisodeGenerationMode(value: unknown): value is EpisodeGenerationMode {
+  return typeof value === "string" && EPISODE_GENERATION_MODES.some((mode) => mode === value);
+}
+
+type PersonalEpisodeQueuePlanInput = {
+  latestEpisodeId: string | null;
+  latestEpisodeNo: number | null;
+  latestEpisodeGeneratedAt: string | null;
+  latestEpisodeStatus: EpisodeRecordStatus;
+  latestEpisodeJobStatus: GenerationJobStatus;
+  episodeCount: number | null | undefined;
+  appDate?: string;
+};
+
+export type PersonalEpisodeQueuePlan =
+  | {
+      action: "use_existing";
+      episodeId: string;
+      created: false;
+    }
+  | {
+      action: "enqueue";
+      episodeNo: number;
+      mode: Extract<EpisodeGenerationMode, "personal_start" | "personal_continue">;
+      reuseLatestEpisodeId: string | null;
+      created: true;
+    };
+
+export function planPersonalEpisodeEnqueue(params: PersonalEpisodeQueuePlanInput): PersonalEpisodeQueuePlan {
+  const appDate = params.appDate ?? getCurrentAppDate();
+
+  if (wasGeneratedOnAppDate(params.latestEpisodeGeneratedAt, appDate) && params.latestEpisodeId) {
+    return {
+      action: "use_existing",
+      episodeId: params.latestEpisodeId,
+      created: false
+    };
+  }
+
+  const generationState = getEpisodeGenerationState(params.latestEpisodeStatus, params.latestEpisodeJobStatus);
+
+  if ((generationState === "queued" || generationState === "running") && params.latestEpisodeId) {
+    return {
+      action: "use_existing",
+      episodeId: params.latestEpisodeId,
+      created: false
+    };
+  }
+
+  const nextEpisodeNo = (params.episodeCount ?? 0) + 1;
+
+  if (generationState === "failed" && params.latestEpisodeId) {
+    const episodeNo = params.latestEpisodeNo ?? nextEpisodeNo;
+
+    return {
+      action: "enqueue",
+      episodeNo,
+      mode: episodeNo <= 1 ? "personal_start" : "personal_continue",
+      reuseLatestEpisodeId: params.latestEpisodeId,
+      created: true
+    };
+  }
+
+  return {
+    action: "enqueue",
+    episodeNo: nextEpisodeNo,
+    mode: nextEpisodeNo === 1 ? "personal_start" : "personal_continue",
+    reuseLatestEpisodeId: null,
+    created: true
+  };
+}
+
 export function sanitizeCompanionThreadTitle(title: string, sourceBookTitle?: string | null) {
   const trimmed = title.trim();
 
@@ -152,6 +231,25 @@ export function getCurrentAppDate(timeZone = "Asia/Shanghai", now = new Date()) 
   }
 
   return `${year}-${month}-${day}`;
+}
+
+export function formatAppTime(timestamp: string | null, timeZone = "Asia/Shanghai") {
+  if (!timestamp) {
+    return null;
+  }
+
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).format(date);
 }
 
 export function wasGeneratedOnAppDate(

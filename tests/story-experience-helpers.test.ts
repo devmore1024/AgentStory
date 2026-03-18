@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   filterAdventureThreadsByFootprint,
+  formatAppTime,
   getAdventureActionState,
   getCompanionActionLabel,
   getCurrentAppDate,
   getEpisodeGenerationState,
   hasFreshSecondMeCache,
+  isEpisodeGenerationMode,
   isVisibleStoryTimelineSource,
   normalizeStoryFootprintFilter,
+  planPersonalEpisodeEnqueue,
   sanitizeCompanionThreadTitle,
   sanitizePersonalAdventureTitle
 } from "@/lib/story-experience-helpers";
@@ -80,6 +83,50 @@ describe("story-experience helpers", () => {
     expect(getEpisodeGenerationState("published", "succeeded")).toBe("idle");
   });
 
+  it("accepts personal episode generation modes", () => {
+    expect(isEpisodeGenerationMode("personal_start")).toBe(true);
+    expect(isEpisodeGenerationMode("personal_continue")).toBe(true);
+    expect(isEpisodeGenerationMode("companion_publish")).toBe(true);
+    expect(isEpisodeGenerationMode("adventure_continue")).toBe(true);
+    expect(isEpisodeGenerationMode("something_else")).toBe(false);
+  });
+
+  it("reuses the in-flight personal episode instead of enqueuing a duplicate", () => {
+    expect(
+      planPersonalEpisodeEnqueue({
+        latestEpisodeId: "episode-1",
+        latestEpisodeNo: 2,
+        latestEpisodeGeneratedAt: null,
+        latestEpisodeStatus: "queued",
+        latestEpisodeJobStatus: "running",
+        episodeCount: 1
+      })
+    ).toEqual({
+      action: "use_existing",
+      episodeId: "episode-1",
+      created: false
+    });
+  });
+
+  it("reuses the failed placeholder when retrying a personal episode", () => {
+    expect(
+      planPersonalEpisodeEnqueue({
+        latestEpisodeId: "episode-2",
+        latestEpisodeNo: 2,
+        latestEpisodeGeneratedAt: null,
+        latestEpisodeStatus: "failed",
+        latestEpisodeJobStatus: "failed",
+        episodeCount: 1
+      })
+    ).toEqual({
+      action: "enqueue",
+      episodeNo: 2,
+      mode: "personal_continue",
+      reuseLatestEpisodeId: "episode-2",
+      created: true
+    });
+  });
+
   it("normalizes the story footprint filter", () => {
     expect(normalizeStoryFootprintFilter("joined")).toBe("joined");
     expect(normalizeStoryFootprintFilter("owned")).toBe("owned");
@@ -110,6 +157,12 @@ describe("story-experience helpers", () => {
   it("formats the app date in Asia/Shanghai by default", () => {
     expect(getCurrentAppDate("Asia/Shanghai", new Date("2026-03-17T16:30:00.000Z"))).toBe("2026-03-18");
     expect(getCurrentAppDate("Asia/Shanghai", new Date("2026-03-17T01:00:00.000Z"))).toBe("2026-03-17");
+  });
+
+  it("formats app time in Asia/Shanghai as 24-hour HH:mm", () => {
+    expect(formatAppTime("2026-03-18T06:30:00.000Z")).toBe("14:30");
+    expect(formatAppTime(null)).toBeNull();
+    expect(formatAppTime("invalid")).toBeNull();
   });
 
   it("hides bedtime memories from the active story timeline", () => {

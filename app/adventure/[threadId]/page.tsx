@@ -54,7 +54,7 @@ export default async function AdventureThreadPage({
               thread.actionState === "continue" ? (
                 isGenerating ? (
                   <div className="inline-flex min-h-11 items-center rounded-full bg-[rgba(95,127,98,0.14)] px-5 py-3 text-sm font-semibold text-[var(--accent-moss)]">
-                    这一段正在生成中
+                    这一章正在生成中
                   </div>
                 ) : (
                   <form action={continueAdventureAction}>
@@ -124,7 +124,7 @@ export default async function AdventureThreadPage({
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                    第 {episode.episodeNo} 段
+                    第 {episode.episodeNo} 章
                   </span>
                   <span className="rounded-full bg-[rgba(255,255,255,0.75)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
                     由 {episode.authorDisplayName} 继续写下去

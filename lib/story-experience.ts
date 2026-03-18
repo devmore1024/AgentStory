@@ -21,10 +21,13 @@ import {
   getCurrentAppDate,
   getEpisodeGenerationState,
   groupCompanionThreadsByBook,
+  isEpisodeGenerationMode,
   isVisibleStoryTimelineSource,
+  planPersonalEpisodeEnqueue,
   sanitizeCompanionThreadTitle,
   sanitizePersonalAdventureTitle,
   wasGeneratedOnAppDate,
+  type EpisodeGenerationMode,
   type EpisodeGenerationState,
   type EpisodeRecordStatus,
   type GenerationJobStatus,
@@ -211,7 +214,7 @@ type EpisodeGenerationPayload = {
   bookSlug: string;
   bookTitle: string;
   styleKey: StoryStyleKey;
-  mode: "companion_publish" | "adventure_continue";
+  mode: EpisodeGenerationMode;
   triggerUserId: string;
   sourceBookId: string;
 };
@@ -493,7 +496,7 @@ function parseEpisodeGenerationPayload(payload: Record<string, unknown>): Episod
     !bookSlug ||
     !bookTitle ||
     !styleKey ||
-    (mode !== "companion_publish" && mode !== "adventure_continue") ||
+    !isEpisodeGenerationMode(mode) ||
     !triggerUserId ||
     !sourceBookId
   ) {
@@ -514,15 +517,15 @@ function parseEpisodeGenerationPayload(payload: Record<string, unknown>): Episod
 
 function buildAdventureGenerationPlaceholder(episodeNo: number) {
   return {
-    title: `第 ${String(episodeNo).padStart(2, "0")} 段正在生成`,
-    excerpt: "新的冒险已经被触发，故事正在把这一段慢慢写出来。"
+    title: `第 ${String(episodeNo).padStart(2, "0")} 章正在生成`,
+    excerpt: "新的冒险已经被触发，故事正在把这一章慢慢写出来。"
   };
 }
 
 function buildAdventureGenerationFailure(episodeNo: number) {
   return {
-    title: `第 ${String(episodeNo).padStart(2, "0")} 段暂时卡住了`,
-    excerpt: "这一段冒险暂时生成失败了，你可以再试一次，让故事从这里继续往前走。"
+    title: `第 ${String(episodeNo).padStart(2, "0")} 章暂时卡住了`,
+    excerpt: "这一章冒险暂时生成失败了，你可以再试一次，让故事从这里继续往前走。"
   };
 }
 
@@ -1058,7 +1061,7 @@ async function enqueueAdventureEpisodeGeneration(params: {
   styleId: string | null;
   styleKey: StoryStyleKey;
   episodeNo: number;
-  mode: EpisodeGenerationPayload["mode"];
+  mode: EpisodeGenerationMode;
   existingEpisodeId?: string | null;
   existingJobId?: string | null;
 }) {
@@ -1168,64 +1171,113 @@ export async function processQueuedAdventureGenerationJobs(options?: {
     try {
       await markAdventureEpisodeGenerating(episodeRow.id);
 
-      const [book, threadRow, triggerContext] = await Promise.all([
+      const [book, triggerContext] = await Promise.all([
         getBookBySlug(payload.bookSlug),
-        getAdventureThreadRow(payload.threadId, payload.triggerUserId),
         getStoryContextForUserId(payload.triggerUserId)
       ]);
 
       if (!book) {
-        throw new Error("Adventure source book not found.");
+        throw new Error("Episode source book not found.");
       }
 
-      if (!threadRow) {
-        throw new Error("Adventure thread not found.");
+      if (payload.mode === "personal_start" || payload.mode === "personal_continue") {
+        const threadRow = await getPersonalThreadRowById(payload.threadId, payload.triggerUserId);
+
+        if (!threadRow) {
+          throw new Error("Personal thread not found.");
+        }
+
+        const previousEpisode = await getLatestAdventureSeed(payload.threadId);
+        const episode = await generatePersonalEpisodeWithLlm({
+          book,
+          persona: triggerContext.context.persona,
+          secondMeContext: triggerContext.secondMeContext,
+          styleKey: payload.styleKey,
+          episodeNo: payload.episodeNo,
+          threadTitle: threadRow.title,
+          previousEpisodeTitle: previousEpisode?.title ?? null,
+          previousEpisodeExcerpt: previousEpisode?.excerpt ?? null,
+          authorDisplayName: triggerContext.context.displayName
+        });
+
+        await publishQueuedAdventureEpisode({
+          episodeId: episodeRow.id,
+          userId: triggerContext.context.userId,
+          jobId: claimed.id,
+          styleId: threadRow.locked_style_id,
+          title: episode.title,
+          excerpt: episode.excerpt,
+          content: episode.content
+        });
+
+        await updateAdventureThreadAfterEpisode({
+          threadId: payload.threadId,
+          episodeId: episodeRow.id,
+          bookId: payload.sourceBookId,
+          episodeNo: payload.episodeNo,
+          episodeLimit: null
+        });
+
+        await addTimelineItem({
+          userId: triggerContext.context.userId,
+          sourceType: "personal_episode",
+          sourceId: episodeRow.id,
+          title: episode.title,
+          excerpt: episode.excerpt,
+          bookId: payload.sourceBookId
+        });
+      } else {
+        const threadRow = await getAdventureThreadRow(payload.threadId, payload.triggerUserId);
+
+        if (!threadRow) {
+          throw new Error("Adventure thread not found.");
+        }
+
+        const previousEpisode =
+          payload.mode === "companion_publish"
+            ? await getAdventureSeedByEpisodeId(threadRow.origin_episode_id)
+            : await getLatestAdventureSeed(payload.threadId);
+        const participantCount = threadRow.participant_count ?? 1;
+        const episode = await generateAdventureEpisodeWithLlm({
+          book,
+          persona: triggerContext.context.persona,
+          secondMeContext: triggerContext.secondMeContext,
+          styleKey: payload.styleKey,
+          episodeNo: payload.episodeNo,
+          threadTitle: threadRow.title,
+          previousEpisodeTitle: previousEpisode?.title ?? null,
+          previousEpisodeExcerpt: previousEpisode?.excerpt ?? null,
+          authorDisplayName: triggerContext.context.displayName,
+          participantCount
+        });
+
+        await publishQueuedAdventureEpisode({
+          episodeId: episodeRow.id,
+          userId: triggerContext.context.userId,
+          jobId: claimed.id,
+          styleId: threadRow.locked_style_id,
+          title: episode.title,
+          excerpt: episode.excerpt,
+          content: episode.content
+        });
+
+        await updateAdventureThreadAfterEpisode({
+          threadId: payload.threadId,
+          episodeId: episodeRow.id,
+          bookId: payload.sourceBookId,
+          episodeNo: payload.episodeNo,
+          episodeLimit: threadRow.episode_limit
+        });
+
+        await addTimelineItem({
+          userId: triggerContext.context.userId,
+          sourceType: "companion_episode",
+          sourceId: episodeRow.id,
+          title: episode.title,
+          excerpt: episode.excerpt,
+          bookId: payload.sourceBookId
+        });
       }
-
-      const previousEpisode =
-        payload.mode === "companion_publish"
-          ? await getAdventureSeedByEpisodeId(threadRow.origin_episode_id)
-          : await getLatestAdventureSeed(payload.threadId);
-      const participantCount = threadRow.participant_count ?? 1;
-      const episode = await generateAdventureEpisodeWithLlm({
-        book,
-        persona: triggerContext.context.persona,
-        secondMeContext: triggerContext.secondMeContext,
-        styleKey: payload.styleKey,
-        episodeNo: payload.episodeNo,
-        threadTitle: threadRow.title,
-        previousEpisodeTitle: previousEpisode?.title ?? null,
-        previousEpisodeExcerpt: previousEpisode?.excerpt ?? null,
-        authorDisplayName: triggerContext.context.displayName,
-        participantCount
-      });
-
-      await publishQueuedAdventureEpisode({
-        episodeId: episodeRow.id,
-        userId: triggerContext.context.userId,
-        jobId: claimed.id,
-        styleId: threadRow.locked_style_id,
-        title: episode.title,
-        excerpt: episode.excerpt,
-        content: episode.content
-      });
-
-      await updateAdventureThreadAfterEpisode({
-        threadId: payload.threadId,
-        episodeId: episodeRow.id,
-        bookId: payload.sourceBookId,
-        episodeNo: payload.episodeNo,
-        episodeLimit: threadRow.episode_limit
-      });
-
-      await addTimelineItem({
-        userId: triggerContext.context.userId,
-        sourceType: "companion_episode",
-        sourceId: episodeRow.id,
-        title: episode.title,
-        excerpt: episode.excerpt,
-        bookId: payload.sourceBookId
-      });
 
       await markGenerationJobFinished(claimed.id, "succeeded");
       processedThreadIds.push(payload.threadId);
@@ -1265,18 +1317,7 @@ async function ensureThreadOwnerParticipant(threadId: string, userId: string) {
 async function ensurePersonalThreadEpisode(params: {
   thread: AdventureThreadRow;
   context: AppUserContext;
-  secondMeContext: SecondMeStoryContext;
 }) {
-  const today = getCurrentAppDate();
-
-  if (wasGeneratedOnAppDate(params.thread.latest_episode_generated_at, today) && params.thread.latest_episode_id) {
-    return {
-      threadId: params.thread.id,
-      episodeId: params.thread.latest_episode_id,
-      created: false
-    };
-  }
-
   const bookSlug = params.thread.source_book_slug;
 
   if (!params.thread.source_book_id || !bookSlug) {
@@ -1313,74 +1354,34 @@ async function ensurePersonalThreadEpisode(params: {
     );
   }
 
-  const nextEpisodeNo = (params.thread.episode_count ?? 0) + 1;
-  const previousEpisode = await getLatestAdventureSeed(params.thread.id);
-  const jobId = await createGenerationJob({
-    jobType: "episode_generate",
-    payload: {
+  const queuePlan = planPersonalEpisodeEnqueue({
+    latestEpisodeId: params.thread.latest_episode_id,
+    latestEpisodeNo: params.thread.latest_episode_no,
+    latestEpisodeGeneratedAt: params.thread.latest_episode_generated_at,
+    latestEpisodeStatus: params.thread.latest_episode_status,
+    latestEpisodeJobStatus: params.thread.latest_episode_job_status,
+    episodeCount: params.thread.episode_count,
+    appDate: getCurrentAppDate()
+  });
+
+  if (queuePlan.action === "use_existing") {
+    return {
       threadId: params.thread.id,
-      episodeNo: nextEpisodeNo,
-      bookSlug: book.slug,
-      bookTitle: book.title,
-      styleKey: lockedStyleKey,
-      mode: nextEpisodeNo === 1 ? "personal_start" : "personal_continue"
-    }
-  });
-  await markGenerationJobRunning(jobId);
-
-  let episode = buildPersonalFallbackEpisode({
-    book,
-    persona: params.context.persona,
-    styleKey: lockedStyleKey,
-    episodeNo: nextEpisodeNo,
-    previousEpisodeTitle: previousEpisode?.title ?? null
-  });
-
-  try {
-    episode = await generatePersonalEpisodeWithLlm({
-      book,
-      persona: params.context.persona,
-      secondMeContext: params.secondMeContext,
-      styleKey: lockedStyleKey,
-      episodeNo: nextEpisodeNo,
-      threadTitle: params.thread.title,
-      previousEpisodeTitle: previousEpisode?.title ?? null,
-      previousEpisodeExcerpt: previousEpisode?.excerpt ?? null,
-      authorDisplayName: params.context.displayName
-    });
-    await markGenerationJobFinished(jobId, "succeeded");
-  } catch (error) {
-    const generationError = error instanceof Error ? error.message : "Unknown personal generation error";
-    await markGenerationJobFinished(jobId, "failed", generationError);
+      episodeId: queuePlan.episodeId,
+      created: false
+    };
   }
 
-  const episodeId = await insertAdventureEpisode({
+  const { episodeId } = await enqueueAdventureEpisodeGeneration({
     threadId: params.thread.id,
     userId: params.context.userId,
     bookId: params.thread.source_book_id,
-    jobId,
-    episodeNo: nextEpisodeNo,
+    book,
     styleId,
-    title: episode.title,
-    excerpt: episode.excerpt,
-    content: episode.content
-  });
-
-  await updateAdventureThreadAfterEpisode({
-    threadId: params.thread.id,
-    episodeId,
-    bookId: params.thread.source_book_id,
-    episodeNo: nextEpisodeNo,
-    episodeLimit: null
-  });
-
-  await addTimelineItem({
-    userId: params.context.userId,
-    sourceType: "personal_episode",
-    sourceId: episodeId,
-    title: episode.title,
-    excerpt: episode.excerpt,
-    bookId: params.thread.source_book_id
+    styleKey: lockedStyleKey,
+    episodeNo: queuePlan.episodeNo,
+    mode: queuePlan.mode,
+    existingEpisodeId: queuePlan.reuseLatestEpisodeId
   });
 
   return {
@@ -1877,11 +1878,10 @@ export async function getPersonalLineDetail(slug: string, options?: { ensureToda
   }
 
   if (options?.ensureToday && !wasGeneratedOnAppDate(row.latest_episode_generated_at)) {
-    const secondMeContext = await requireSecondMeStoryContext();
+    await requireSecondMeStoryContext();
     await ensurePersonalThreadEpisode({
       thread: row,
-      context,
-      secondMeContext
+      context
     });
     row = await getPersonalThreadRowBySlug(slug, context.userId);
   }
@@ -1905,7 +1905,7 @@ export async function getPersonalLineDetail(slug: string, options?: { ensureToda
 export async function startOrOpenPersonalLine(slug: string) {
   await requireStoryExperienceSchema();
   const context = await requireAuthenticatedStoryContext();
-  const secondMeContext = await requireSecondMeStoryContext();
+  await requireSecondMeStoryContext();
   const book = await getBookBySlug(slug);
 
   if (!book) {
@@ -1988,8 +1988,7 @@ export async function startOrOpenPersonalLine(slug: string) {
 
   const result = await ensurePersonalThreadEpisode({
     thread,
-    context,
-    secondMeContext
+    context
   });
 
   return {

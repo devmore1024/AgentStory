@@ -1,7 +1,12 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { startOrOpenPersonalLineAction } from "@/app/actions";
 import { AppShell } from "@/components/app-shell";
+import { MemoryLineCard } from "@/components/memory-line-card";
 import { StateCard } from "@/components/state-card";
+import { SubmitButton } from "@/components/submit-button";
+import { getPersonalLineListPrimaryAction } from "@/lib/personal-line-presentation";
+import { formatAppTime } from "@/lib/story-experience-helpers";
 import {
   getAuthenticatedAppContext,
   getPersonalLineBooks,
@@ -18,7 +23,6 @@ const MEMORY_COPY = {
   authTitle: "登录 SecondMe 后，分身才会开始替你在童话里冒险",
   authDescription: "连接后，这里会出现你冒险过的童话，以及每本书自己的最新章节。",
   emptyExcerpt: "这本童话还在等你的分身真正走进去，留下第一段只属于你的冒险线。",
-  actionLabel: "继续冒险",
   emptyEyebrow: "冒险空态",
   emptyTitle: "第一条冒险线还没有被点亮",
   emptyDescription: "先从首页挑一本到想回到故事里继续冒险的童话。等你真正走进去以后，这里就会按书保留你的 personal 主线。"
@@ -60,46 +64,51 @@ export default async function MemoryPage() {
           />
         ) : personalLines.length > 0 ? (
           <div className="grid gap-5 xl:grid-cols-2">
-            {personalLines.map((line) => (
-              <article
-                key={line.threadId}
-                className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                    {line.todayGenerated ? "今日已更新" : "等待今天续写"}
-                  </span>
-                  <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
-                    共 {line.episodeCount} 段
-                  </span>
-                </div>
+            {personalLines.map((line) => {
+              const primaryAction = getPersonalLineListPrimaryAction({
+                sourceBookSlug: line.sourceBookSlug,
+                latestEpisodeId: line.latestEpisodeId,
+                todayGenerated: line.todayGenerated,
+                generationState: line.generationState
+              });
+              const generatedTimeLabel = line.todayGenerated ? formatAppTime(line.latestEpisodeGeneratedAt) : null;
 
-                <div className="mt-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">《{line.sourceBookTitle}》</p>
-                  <h2 className="display-font mt-2 text-3xl text-[var(--text-primary)]">
-                    {line.latestEpisodeTitle ?? line.title}
-                  </h2>
-                  <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
-                    {line.latestEpisodeExcerpt ?? MEMORY_COPY.emptyExcerpt}
-                  </p>
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <Link
-                    href={`/memory/${line.sourceBookSlug}` as Route}
-                    className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
-                  >
-                    {MEMORY_COPY.actionLabel}
-                  </Link>
-                  <Link
-                    href={`/books/${line.sourceBookSlug}`}
-                    className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
-                  >
-                    阅读原故事
-                  </Link>
-                </div>
-              </article>
-            ))}
+              return (
+                <MemoryLineCard
+                  key={line.threadId}
+                  line={line}
+                  generatedTimeLabel={generatedTimeLabel}
+                  emptyExcerpt={MEMORY_COPY.emptyExcerpt}
+                  primaryAction={
+                    primaryAction.kind === "form" ? (
+                      <form action={startOrOpenPersonalLineAction}>
+                        <input type="hidden" name="slug" value={line.sourceBookSlug} />
+                        <SubmitButton idleLabel={primaryAction.label} pendingLabel={primaryAction.pendingLabel} />
+                      </form>
+                    ) : primaryAction.kind === "link" ? (
+                      <a
+                        href={primaryAction.href}
+                        className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                      >
+                        {primaryAction.label}
+                      </a>
+                    ) : (
+                      <div className="inline-flex min-h-11 items-center rounded-full bg-[rgba(95,127,98,0.14)] px-5 py-3 text-sm font-semibold text-[var(--accent-moss)]">
+                        {primaryAction.label}
+                      </div>
+                    )
+                  }
+                  secondaryAction={
+                    <Link
+                      href={`/books/${line.sourceBookSlug}` as Route}
+                      className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
+                    >
+                      阅读原故事
+                    </Link>
+                  }
+                />
+              );
+            })}
           </div>
         ) : (
           <StateCard

@@ -46,4 +46,34 @@ describe("MemoryDetailHero", () => {
 
     expect(screen.queryByText("同行已开启")).not.toBeInTheDocument();
   });
+
+  it("shows the generated time and daily rule notice when today's chapter already exists", () => {
+    render(
+      <MemoryDetailHero
+        line={createLineFixture()}
+        generatedTimeLabel="18:30"
+        dailyRuleNotice="今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。"
+        actions={<div>查看今天这章</div>}
+      />
+    );
+
+    expect(screen.getByText("今日 18:30 更新")).toBeInTheDocument();
+    expect(screen.getByText("今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。")).toBeInTheDocument();
+    expect(screen.getByText("查看今天这章")).toBeInTheDocument();
+  });
+
+  it("shows a generating badge for queued personal chapters", () => {
+    render(<MemoryDetailHero line={createLineFixture({ todayGenerated: false, generationState: "queued" })} actions={<div>这一章正在生成中</div>} />);
+
+    expect(screen.getByText("生成中")).toBeInTheDocument();
+    expect(screen.getByText("这一章正在生成中")).toBeInTheDocument();
+    expect(screen.queryByText("继续冒险")).not.toBeInTheDocument();
+  });
+
+  it("shows a failed badge when the latest personal chapter needs a retry", () => {
+    render(<MemoryDetailHero line={createLineFixture({ todayGenerated: false, generationState: "failed" })} actions={<div>重新生成这一章</div>} />);
+
+    expect(screen.getByText("生成失败")).toBeInTheDocument();
+    expect(screen.getByText("重新生成这一章")).toBeInTheDocument();
+  });
 });

@@ -1,13 +1,21 @@
 import React from "react";
 import type { ReactNode } from "react";
 import type { PersonalLineDetailView } from "@/lib/story-experience";
+import {
+  getPersonalLineDailyStatusLabel,
+  getPersonalLineGenerationBadgeLabel
+} from "@/lib/personal-line-presentation";
 
 type MemoryDetailHeroProps = {
   line: PersonalLineDetailView;
   actions?: ReactNode;
+  generatedTimeLabel?: string | null;
+  dailyRuleNotice?: string | null;
 };
 
-export function MemoryDetailHero({ line, actions }: MemoryDetailHeroProps) {
+export function MemoryDetailHero({ line, actions, generatedTimeLabel, dailyRuleNotice }: MemoryDetailHeroProps) {
+  const generationBadgeLabel = getPersonalLineGenerationBadgeLabel(line.generationState);
+
   return (
     <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
       <div className="flex flex-wrap items-center gap-2">
@@ -17,8 +25,18 @@ export function MemoryDetailHero({ line, actions }: MemoryDetailHeroProps) {
           </span>
         ) : null}
         <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-          {line.todayGenerated ? "今日已更新" : "等待今天续写"}
+          {getPersonalLineDailyStatusLabel(line.todayGenerated)}
         </span>
+        {generationBadgeLabel ? (
+          <span className="rounded-full bg-[rgba(255,244,214,0.92)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
+            {generationBadgeLabel}
+          </span>
+        ) : null}
+        {generatedTimeLabel ? (
+          <span className="rounded-full bg-[var(--sky-light)] px-3 py-1.5 text-xs font-semibold text-[var(--sky)]">
+            今日 {generatedTimeLabel} 更新
+          </span>
+        ) : null}
         <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
           共 {line.episodeCount} 章
         </span>
@@ -34,6 +52,11 @@ export function MemoryDetailHero({ line, actions }: MemoryDetailHeroProps) {
       <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--text-secondary)]">
         {line.latestEpisodeExcerpt ?? "你的分身已经走进这本童话，接下来会沿着这条 personal 主线继续冒险。"}
       </p>
+      {dailyRuleNotice ? (
+        <p className="mt-4 max-w-3xl rounded-[20px] bg-[rgba(255,255,255,0.68)] px-4 py-3 text-sm leading-7 text-[var(--text-secondary)]">
+          {dailyRuleNotice}
+        </p>
+      ) : null}
 
       {actions ? <div className="mt-5 flex flex-wrap gap-3">{actions}</div> : null}
     </section>

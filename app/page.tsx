@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 const HOME_COPY = {
   previewFallback: {
-    title: "第一段冒险还没被点亮，今晚可以从你选中的童话开始。",
+    title: "第一章冒险还没被点亮，今晚可以从你选中的童话开始。",
     excerpt: "点开一本书，让分身先替你走进森林和月光里。故事会从你回到其中继续冒险的那一刻，慢慢长出新的去向。",
     statusLabel: "准备冒险"
   },

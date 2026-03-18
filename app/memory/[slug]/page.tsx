@@ -5,7 +5,15 @@ import { publishCompanionFromPersonalAction, startOrOpenPersonalLineAction } fro
 import { AppShell } from "@/components/app-shell";
 import { MemoryDetailHero } from "@/components/memory-detail-hero";
 import { StateCard } from "@/components/state-card";
+import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
 import { SubmitButton } from "@/components/submit-button";
+import {
+  getPersonalLineDetailPrimaryAction,
+  getPersonalLineDetailRuleNotice,
+  hasPersonalLineFailed,
+  isPersonalLineGenerating
+} from "@/lib/personal-line-presentation";
+import { formatAppTime } from "@/lib/story-experience-helpers";
 import { getAuthenticatedAppContext, getPersonalLineDetail } from "@/lib/story-experience";
 
 export const dynamic = "force-dynamic";
@@ -26,26 +34,58 @@ export default async function MemoryDetailPage({
     notFound();
   }
 
-  const latestEpisode = line.episodes.at(-1) ?? null;
-  const canPublishCompanion = Boolean(latestEpisode?.id) && !line.activeCompanionThreadId;
+  const latestPublishedEpisode = line.episodes.at(-1) ?? null;
+  const canPublishCompanion = Boolean(latestPublishedEpisode?.id) && !line.activeCompanionThreadId;
+  const isGenerating = isPersonalLineGenerating(line.generationState);
+  const hasFailedGeneration = hasPersonalLineFailed(line.generationState);
+  const generatedTimeLabel = line.todayGenerated ? formatAppTime(line.latestEpisodeGeneratedAt) : null;
+  const dailyRuleNotice = getPersonalLineDetailRuleNotice({
+    todayGenerated: line.todayGenerated,
+    generatedTimeLabel
+  });
+  const primaryAction = currentContext
+    ? getPersonalLineDetailPrimaryAction({
+        sourceBookSlug: slug,
+        latestEpisodeId: line.latestEpisodeId,
+        latestPublishedEpisodeId: latestPublishedEpisode?.id ?? null,
+        todayGenerated: line.todayGenerated,
+        generationState: line.generationState
+      })
+    : null;
 
   return (
     <AppShell activeTab="memory">
+      <StoryGenerationWatcher threadId={line.threadId} active={isGenerating} />
       <div className="grid gap-6">
         <MemoryDetailHero
           line={line}
+          generatedTimeLabel={generatedTimeLabel}
+          dailyRuleNotice={dailyRuleNotice}
           actions={
             <>
-              {currentContext ? (
-                <form action={startOrOpenPersonalLineAction}>
-                  <input type="hidden" name="slug" value={slug} />
-                  <SubmitButton idleLabel="继续冒险" pendingLabel="正在回到故事里冒险..." />
-                </form>
+              {primaryAction ? (
+                primaryAction.kind === "pending" ? (
+                  <div className="inline-flex min-h-11 items-center rounded-full bg-[rgba(95,127,98,0.14)] px-5 py-3 text-sm font-semibold text-[var(--accent-moss)]">
+                    {primaryAction.label}
+                  </div>
+                ) : primaryAction.kind === "form" ? (
+                  <form action={startOrOpenPersonalLineAction}>
+                    <input type="hidden" name="slug" value={slug} />
+                    <SubmitButton idleLabel={primaryAction.label} pendingLabel={primaryAction.pendingLabel} />
+                  </form>
+                ) : (
+                  <a
+                    href={primaryAction.href}
+                    className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                  >
+                    {primaryAction.label}
+                  </a>
+                )
               ) : null}
 
               {canPublishCompanion ? (
                 <form action={publishCompanionFromPersonalAction}>
-                  <input type="hidden" name="originEpisodeId" value={latestEpisode?.id ?? ""} />
+                  <input type="hidden" name="originEpisodeId" value={latestPublishedEpisode?.id ?? ""} />
                   <SubmitButton idleLabel="公开成同行故事" pendingLabel="正在公开同行入口..." />
                 </form>
               ) : line.activeCompanionThreadId ? (
@@ -67,6 +107,25 @@ export default async function MemoryDetailPage({
           }
         />
 
+        {isGenerating ? (
+          <StateCard
+            eyebrow="生成中"
+            title={line.latestEpisodeTitle ?? "这一章正在生成中"}
+            description={
+              line.latestEpisodeExcerpt ??
+              "新的冒险已经入队，页面会自动刷新。你可以先留在这里等它写完，也可以稍后回来。"
+            }
+          />
+        ) : null}
+
+        {hasFailedGeneration ? (
+          <StateCard
+            eyebrow="生成失败"
+            title={line.latestEpisodeTitle ?? "这一章暂时卡住了"}
+            description={line.latestEpisodeExcerpt ?? "这次生成没有成功落下来，你可以立刻重新试一次。"}
+          />
+        ) : null}
+
         {line.episodes.length > 0 ? (
           <div className="grid gap-4">
             {line.episodes
@@ -75,11 +134,12 @@ export default async function MemoryDetailPage({
               .map((episode) => (
                 <article
                   key={episode.id}
-                  className="rounded-[28px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]"
+                  id={`episode-${episode.id}`}
+                  className="scroll-mt-24 rounded-[28px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                      第 {episode.episodeNo} 段
+                      第 {episode.episodeNo} 章
                     </span>
                     <span className="rounded-full bg-[rgba(255,255,255,0.75)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
                       由 {episode.authorDisplayName} 写下
@@ -100,9 +160,21 @@ export default async function MemoryDetailPage({
           </div>
         ) : (
           <StateCard
-            eyebrow="等待第一段"
-            title="这条冒险线还没有真正落下第一篇"
-            description="分身已经替你进去了，等第一段内容写完后，这里就会开始按顺序保留整条 personal 主线。"
+            eyebrow={isGenerating ? "生成中" : hasFailedGeneration ? "等待重试" : "等待第一段"}
+            title={
+              isGenerating
+                ? "第一章正在路上"
+                : hasFailedGeneration
+                  ? "第一章暂时没有生成成功"
+                  : "这条冒险线还没有真正落下第一篇"
+            }
+            description={
+              isGenerating
+                ? "新的冒险已经被触发，故事正在把这一章慢慢写出来。"
+                : hasFailedGeneration
+                  ? "这一章已经留出了位置，只差重新触发一次，让它从这里继续往前走。"
+                  : "分身已经替你进去了，等第一段内容写完后，这里就会开始按顺序保留整条 personal 主线。"
+            }
           />
         )}
       </div>
