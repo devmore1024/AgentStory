@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
+import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
 import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
 import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
@@ -28,27 +29,15 @@ export default async function AdventureThreadPage({
       <StoryGenerationWatcher threadId={thread.id} active={isGenerating} />
       <div className="grid gap-6">
         <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-              {thread.isCompleted ? "已完结" : "进行中"}
-            </span>
-            {isGenerating ? (
-              <span className="rounded-full bg-[rgba(255,244,214,0.92)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
-                生成中
-              </span>
-            ) : null}
-            {hasFailedGeneration ? (
-              <span className="rounded-full bg-[rgba(255,232,228,0.92)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
-                生成失败
-              </span>
-            ) : null}
-            <span className="rounded-full bg-[var(--sky-light)] px-3 py-1.5 text-xs font-semibold text-[var(--sky)]">
-              {thread.participantCount}/{thread.participantLimit} 人
-            </span>
-            <span className="rounded-full bg-[var(--apricot-light)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
-              {thread.episodeCount}/{thread.episodeLimit} 篇
-            </span>
-          </div>
+          <AdventureThreadBadges
+            isOwner={thread.isOwner}
+            isCompleted={thread.isCompleted}
+            generationState={thread.generationState}
+            participantCount={thread.participantCount}
+            participantLimit={thread.participantLimit}
+            episodeCount={thread.episodeCount}
+            episodeLimit={thread.episodeLimit}
+          />
 
           <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
             《{thread.sourceBookTitle}》里的同行故事

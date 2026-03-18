@@ -1,37 +1,22 @@
-import type { Route } from "next";
 import Link from "next/link";
 import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
+import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
 import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
 import {
-  filterAdventureThreadsByFootprint,
-  normalizeStoryFootprintFilter
-} from "@/lib/story-experience-helpers";
-import {
   getAdventureThreads,
   getAuthenticatedAppContext,
-  getMyStoryStats,
   getStoryExperienceSchemaStatus
 } from "@/lib/story-experience";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdventurePage({
-  searchParams
-}: {
-  searchParams: Promise<{ tab?: string }>;
-}) {
-  const { tab } = await searchParams;
-  const [threads, currentContext, stats, schemaStatus] = await Promise.all([
+export default async function AdventurePage() {
+  const [threads, currentContext, schemaStatus] = await Promise.all([
     getAdventureThreads(),
     getAuthenticatedAppContext(),
-    getMyStoryStats(),
     getStoryExperienceSchemaStatus()
   ]);
-  const activeFootprint = normalizeStoryFootprintFilter(tab);
-  const visibleThreads = currentContext ? filterAdventureThreadsByFootprint(threads, activeFootprint) : threads;
-  const ownedHref = "/adventure?tab=owned" as Route;
-  const joinedHref = "/adventure?tab=joined" as Route;
 
   return (
     <AppShell activeTab="adventure">
@@ -52,37 +37,7 @@ export default async function AdventurePage({
           />
         ) : null}
 
-        {currentContext ? (
-          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">我的足迹</p>
-            <div className="mt-4 border-b border-[var(--border-light)]">
-              <div className="flex items-end gap-8">
-                <Link
-                  href={ownedHref}
-                  className={`inline-flex items-center gap-3 border-b-[3px] px-1 pb-3 text-left transition ${
-                    activeFootprint === "owned"
-                      ? "border-[var(--apricot)] text-[var(--apricot)]"
-                      : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                  }`}
-                >
-                  <span className="text-2xl font-semibold">冒险</span>
-                  <span className="text-sm font-semibold opacity-80">{stats.ownedAdventureCount}</span>
-                </Link>
-                <Link
-                  href={joinedHref}
-                  className={`inline-flex items-center gap-3 border-b-[3px] px-1 pb-3 text-left transition ${
-                    activeFootprint === "joined"
-                      ? "border-[var(--apricot)] text-[var(--apricot)]"
-                      : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                  }`}
-                >
-                  <span className="text-2xl font-semibold">同行</span>
-                  <span className="text-sm font-semibold opacity-80">{stats.joinedAdventureCount}</span>
-                </Link>
-              </div>
-            </div>
-          </section>
-        ) : (
+        {!currentContext ? (
           <StateCard
             eyebrow="连接后可参与"
             title="登录 SecondMe 后，才能加入或继续同行"
@@ -90,37 +45,25 @@ export default async function AdventurePage({
             href="/me?auth=required"
             actionLabel="去连接 SecondMe"
           />
-        )}
+        ) : null}
 
-        {visibleThreads.length > 0 ? (
+        {threads.length > 0 ? (
           <div className="grid gap-5 xl:grid-cols-2">
-            {visibleThreads.map((thread) => (
+            {threads.map((thread) => (
               <article
                 key={thread.id}
                 id={`thread-${thread.id}`}
                 className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]"
               >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                    {thread.isCompleted ? "已完结" : "进行中"}
-                  </span>
-                  {thread.generationState === "queued" || thread.generationState === "running" ? (
-                    <span className="rounded-full bg-[rgba(255,244,214,0.92)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
-                      生成中
-                    </span>
-                  ) : null}
-                  {thread.generationState === "failed" ? (
-                    <span className="rounded-full bg-[rgba(255,232,228,0.92)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
-                      生成失败
-                    </span>
-                  ) : null}
-                  <span className="rounded-full bg-[var(--sky-light)] px-3 py-1.5 text-xs font-semibold text-[var(--sky)]">
-                    {thread.participantCount}/{thread.participantLimit} 人
-                  </span>
-                  <span className="rounded-full bg-[var(--apricot-light)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
-                    {thread.episodeCount}/{thread.episodeLimit} 篇
-                  </span>
-                </div>
+                <AdventureThreadBadges
+                  isOwner={thread.isOwner}
+                  isCompleted={thread.isCompleted}
+                  generationState={thread.generationState}
+                  participantCount={thread.participantCount}
+                  participantLimit={thread.participantLimit}
+                  episodeCount={thread.episodeCount}
+                  episodeLimit={thread.episodeLimit}
+                />
 
                 <div className="mt-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
@@ -194,16 +137,6 @@ export default async function AdventurePage({
               </article>
             ))}
           </div>
-        ) : threads.length > 0 && currentContext ? (
-          <StateCard
-            eyebrow={activeFootprint === "owned" ? "冒险空态" : "同行空态"}
-            title={activeFootprint === "owned" ? "你还没有开启过自己的同行故事" : "你还没有加入过别人的同行故事"}
-            description={
-              activeFootprint === "owned"
-                ? "先把一段 personal 冒险公开成同行故事，这里就会开始保留你先走进去的那些童话。"
-                : "当你加入别人的同行故事后，这里会只显示你真正参与过的那些故事。"
-            }
-          />
         ) : (
           <StateCard
             eyebrow="同行空态"
