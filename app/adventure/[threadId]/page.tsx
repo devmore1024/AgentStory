@@ -36,13 +36,13 @@ export default async function AdventureThreadPage({
           </div>
 
           <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-            {thread.ownerDisplayName} 发起 · 《{thread.sourceBookTitle}》
+            《{thread.sourceBookTitle}》里的同行故事
           </p>
           <h1 className="display-font mt-2 text-4xl text-[var(--text-primary)]">{thread.title}</h1>
           <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--text-secondary)]">
             {thread.lockedStyleName
-              ? `这条副本已经锁定为 ${thread.lockedStyleName}。后续每一篇都会沿着同一种气质继续长，直到第 10 篇自动完结。`
-              : "这条副本还在等待首篇定下它的整体气质。"}
+              ? `这段同行已经定下 ${thread.lockedStyleName} 的气质。后面的人会沿着同一种感觉继续走，直到故事自然走完。`
+              : "这段同行还在等第一篇替它慢慢定下整体气质。"}
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
@@ -54,7 +54,7 @@ export default async function AdventureThreadPage({
                     type="submit"
                     className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                   >
-                    继续冒险
+                    继续同行
                   </button>
                 </form>
               ) : thread.actionState === "join" ? (
@@ -64,7 +64,7 @@ export default async function AdventureThreadPage({
                     type="submit"
                     className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                   >
-                    加入冒险
+                    加入同行
                   </button>
                 </form>
               ) : null
@@ -73,7 +73,7 @@ export default async function AdventureThreadPage({
                 href="/me?auth=required"
                 className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
               >
-                登录后进入冒险
+                登录后加入同行
               </Link>
             )}
 
@@ -81,7 +81,7 @@ export default async function AdventureThreadPage({
               href="/adventure"
               className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
             >
-              返回冒险列表
+              返回同行广场
             </Link>
           </div>
         </section>
@@ -95,10 +95,10 @@ export default async function AdventureThreadPage({
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                    第 {episode.episodeNo} 篇
+                    第 {episode.episodeNo} 段
                   </span>
                   <span className="rounded-full bg-[rgba(255,255,255,0.75)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
-                    由 {episode.authorDisplayName} 推进
+                    由 {episode.authorDisplayName} 继续写下去
                   </span>
                   {episode.styleName ? (
                     <span className="rounded-full bg-[rgba(255,255,255,0.75)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
@@ -116,9 +116,9 @@ export default async function AdventureThreadPage({
           </div>
         ) : (
           <StateCard
-            eyebrow="等待第一篇"
-            title="这条冒险线还没有真正落下第一篇"
-            description="副本已经开好，接下来只差第一位进入者把它推进到能被别人围观的那一步。"
+            eyebrow="等待第一段"
+            title="这段同行还没有真正落下第一篇"
+            description="故事已经留出了入口，接下来只差第一位走进去的人，把它推进到能被别人读见的那一步。"
           />
         )}
       </div>

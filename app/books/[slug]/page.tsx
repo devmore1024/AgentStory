@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { continueAdventureAction, createAdventureAction } from "@/app/actions";
+import { startOrOpenPersonalLineAction } from "@/app/actions";
 import { AppShell } from "@/components/app-shell";
 import { BookCover } from "@/components/book-cover";
 import { SubmitButton } from "@/components/submit-button";
-import { getAuthenticatedAppContext, getOwnedAdventureForBookSlug } from "@/lib/story-experience";
+import { getAuthenticatedAppContext, getPersonalLineForBookSlug } from "@/lib/story-experience";
 import { getBookBySlug, getResolvedKeyScenes, getResolvedStoryParagraphs } from "@/lib/story-data";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +15,10 @@ export default async function BookDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [book, currentContext, ownedAdventure] = await Promise.all([
+  const [book, currentContext, personalLine] = await Promise.all([
     getBookBySlug(slug),
     getAuthenticatedAppContext(),
-    getOwnedAdventureForBookSlug(slug)
+    getPersonalLineForBookSlug(slug)
   ]);
 
   if (!book) {
@@ -54,26 +54,19 @@ export default async function BookDetailPage({
                 href={`/books/${book.slug}/read`}
                 className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
               >
-                先读原故事
+                阅读原故事
               </Link>
               {currentContext ? (
-                ownedAdventure && !ownedAdventure.isCompleted ? (
-                  <form action={continueAdventureAction}>
-                    <input type="hidden" name="threadId" value={ownedAdventure.id} />
-                    <SubmitButton idleLabel="继续冒险" pendingLabel="正在续写冒险..." />
-                  </form>
-                ) : (
-                  <form action={createAdventureAction}>
-                    <input type="hidden" name="slug" value={book.slug} />
-                    <SubmitButton idleLabel="进入冒险" pendingLabel="正在打开冒险副本..." />
-                  </form>
-                )
+                <form action={startOrOpenPersonalLineAction}>
+                  <input type="hidden" name="slug" value={book.slug} />
+                  <SubmitButton idleLabel={personalLine ? "继续回去" : "走进童话"} pendingLabel="正在回到童话里..." />
+                </form>
               ) : (
                 <Link
                   href="/me?auth=required"
                   className="flex min-h-11 items-center justify-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                 >
-                  登录后进入冒险
+                  登录后走进童话
                 </Link>
               )}
             </div>
@@ -127,9 +120,9 @@ export default async function BookDetailPage({
 
           {currentContext ? (
             <section className="rounded-[32px] border border-[var(--border-light)] bg-[linear-gradient(135deg,rgba(255,248,239,0.96),rgba(231,239,230,0.92))] p-6 shadow-[var(--shadow-medium)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">当前分身状态提示</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">走进前的分身提示</p>
               <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">
-                你的动物人格：{currentContext.persona.animalName}
+                你的分身会以{currentContext.persona.animalName}出现
               </h2>
               <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">{currentContext.persona.mappingReason}</p>
               <div className="mt-5 flex flex-wrap gap-2">
@@ -142,10 +135,10 @@ export default async function BookDetailPage({
             </section>
           ) : (
             <section className="rounded-[32px] border border-dashed border-[var(--border-default)] bg-[rgba(255,255,255,0.62)] p-6 shadow-[var(--shadow-medium)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">进入前提示</p>
-              <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">登录后才会生成你的动物人格</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">走进前提示</p>
+              <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">登录后才会生成你的分身</h2>
               <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">
-                未登录时不再展示默认人格。连接 SecondMe 后，系统会根据你的真实资料推荐适合进入这本书的副本风格，让进入后的冒险更像现在的你。
+                未登录时不再展示默认人格。连接 SecondMe 后，系统会根据你的真实资料生成分身，并推荐更适合你走进这本童话的语气与风格。
               </p>
               <Link
                 href="/me?auth=required"

@@ -23,18 +23,18 @@ export default async function AdventurePage() {
     <AppShell activeTab="adventure">
       <div className="grid gap-6">
         <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-5 shadow-[var(--shadow-medium)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">共享副本</p>
-          <h1 className="display-font mt-2 text-3xl text-[var(--text-primary)]">公开冒险会在这里继续长大</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">同行广场</p>
+          <h1 className="display-font mt-2 text-3xl text-[var(--text-primary)]">在童话里，和别人的分身相遇</h1>
           <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
-            每次从书架里点下“进入冒险”，都会新开一条副本。首篇定下来的风格会一路锁住，最多 5 位参与者，最多 10 篇后自动完结。
+            这里收着所有已经被点亮的同行故事。有人刚走进森林，有人已经来到城堡门口；如果这段故事还留着位置，你也可以带着自己的分身进去继续走。
           </p>
         </section>
 
         {!schemaStatus.ready ? (
           <StateCard
             eyebrow="数据库待迁移"
-            title="冒险功能的数据表还没准备好"
-            description="请先执行 db/008_adventure_memory_refactor.sql。迁移完成后，这里会开始展示公开副本和加入状态。"
+            title="同行广场的数据表还没准备好"
+            description="请先执行 db/008_adventure_memory_refactor.sql。迁移完成后，这里会开始展示已经点亮的同行故事。"
           />
         ) : null}
 
@@ -42,11 +42,11 @@ export default async function AdventurePage() {
           <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-5 shadow-[var(--shadow-medium)]">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-[22px] bg-[rgba(255,255,255,0.7)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">我创建的冒险</p>
+                <p className="text-sm font-semibold text-[var(--text-primary)]">我先走进去的童话</p>
                 <p className="mt-2 text-3xl font-semibold text-[var(--accent-moss)]">{stats.ownedAdventureCount}</p>
               </div>
               <div className="rounded-[22px] bg-[rgba(255,255,255,0.7)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">我加入的冒险</p>
+                <p className="text-sm font-semibold text-[var(--text-primary)]">我同行过的童话</p>
                 <p className="mt-2 text-3xl font-semibold text-[var(--sky)]">{stats.joinedAdventureCount}</p>
               </div>
             </div>
@@ -54,8 +54,8 @@ export default async function AdventurePage() {
         ) : (
           <StateCard
             eyebrow="连接后可参与"
-            title="登录 SecondMe 后，才能加入或继续冒险"
-            description="未登录时你依然可以围观公开副本，但不能真正进入副本里推进它。"
+            title="登录 SecondMe 后，才能加入或继续同行"
+            description="未登录时你依然可以阅读别人已经点亮的童话，但不能真正带着分身走进去。"
             href="/me?auth=required"
             actionLabel="去连接 SecondMe"
           />
@@ -83,20 +83,20 @@ export default async function AdventurePage() {
 
                 <div className="mt-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                    {thread.ownerDisplayName} 发起 · 《{thread.sourceBookTitle}》
+                    《{thread.sourceBookTitle}》
                   </p>
                   <h2 className="display-font mt-2 text-3xl text-[var(--text-primary)]">{thread.title}</h2>
                   <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
-                    {thread.lockedStyleName ? `已锁定 ${thread.lockedStyleName}` : "等待首篇定调"}，最新一篇会决定这条副本今晚往哪边继续偏航。
+                    {thread.ownerDisplayName} 先走了进去。{thread.lockedStyleName ? `这段同行已经定下 ${thread.lockedStyleName} 的语气。` : "第一段同行还在等它自己的语气慢慢落下来。"}
                   </p>
                 </div>
 
                 <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.72)] p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                    {thread.latestEpisodeTitle ?? "第一篇即将落下"}
+                    {thread.latestEpisodeTitle ?? "第一段同行即将落下"}
                   </p>
                   <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
-                    {thread.latestEpisodeExcerpt ?? "这条副本还在等第一位进入者点亮。"}
+                    {thread.latestEpisodeExcerpt ?? "这段故事还在等第一位走进去的人，把它真正点亮。"}
                   </p>
                 </div>
 
@@ -128,7 +128,7 @@ export default async function AdventurePage() {
                       href="/me?auth=required"
                       className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                     >
-                      登录后进入冒险
+                      登录后加入同行
                     </Link>
                   )}
 
@@ -136,7 +136,7 @@ export default async function AdventurePage() {
                     href={`/adventure/${thread.id}`}
                     className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
                   >
-                    {thread.actionState === "watch" ? "围观冒险" : "查看详情"}
+                    阅读
                   </Link>
                 </div>
               </article>
@@ -144,9 +144,9 @@ export default async function AdventurePage() {
           </div>
         ) : (
           <StateCard
-            eyebrow="冒险空态"
-            title="第一条公开副本还没有被点亮"
-            description="先从首页挑一本到想进去的故事，点下“进入冒险”，这里就会开始出现能够被别人围观或加入的副本。"
+            eyebrow="同行空态"
+            title="第一段同行还没有被点亮"
+            description="先从首页挑一本到想回去的童话，点下“走进童话”，这里就会开始出现能被别人阅读或加入的故事。"
             href="/"
             actionLabel="回到童话书架"
           />

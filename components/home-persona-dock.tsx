@@ -29,16 +29,18 @@ export function HomePersonaDock({
               <div className="flex items-start gap-3">
                 <PersonaBadge animalType={persona.animalType} size="sm" variant="paper" />
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">动物人格</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">你的分身</p>
                   <h2 className="display-font mt-1 text-2xl text-[var(--text-primary)]">{persona.animalName}</h2>
-                  <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{persona.summary}</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                    你的分身会先以动物人格出现。{persona.summary}
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-default)] bg-[rgba(255,255,255,0.72)] text-sm font-semibold text-[var(--text-secondary)] transition hover:border-[var(--accent-moss)] hover:text-[var(--accent-moss)]"
-                aria-label="关闭动物人格卡片"
+                aria-label="关闭分身卡片"
               >
                 ×
               </button>
@@ -46,22 +48,22 @@ export function HomePersonaDock({
 
             <div className="mt-4 rounded-[20px] bg-[rgba(255,255,255,0.72)] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                {statusLabel ?? "正在冒险"}
+                {statusLabel ?? "正在回去"}
               </p>
               <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">《{currentBookTitle ?? "新的故事"}》</p>
               {currentEpisodeExcerpt ? (
                 <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{currentEpisodeExcerpt}</p>
               ) : null}
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-moss)]">
-                你的冒险副本还在继续
+                你的分身还在童话里回去
               </p>
             </div>
 
             <Link
-              href="/me"
+              href="/memory"
               className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)] transition hover:bg-[var(--accent-moss-hover)]"
             >
-              去我的页查看完整档案
+              去我的回去线
             </Link>
           </div>
         ) : null}
@@ -71,14 +73,14 @@ export function HomePersonaDock({
           onClick={() => setIsOpen((value) => !value)}
           className="group relative rounded-[24px] bg-transparent"
           aria-expanded={isOpen}
-          aria-label={isOpen ? "收起动物人格卡片" : "打开动物人格卡片"}
+          aria-label={isOpen ? "收起分身卡片" : "打开分身卡片"}
         >
           <div className="absolute inset-0 rounded-[24px] bg-[rgba(252,251,250,0.74)] blur-xl transition group-hover:bg-[rgba(252,251,250,0.9)]" />
           <div className="relative flex items-center gap-3 rounded-[24px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.92)] px-2 py-2 pr-4 shadow-[var(--shadow-medium)] backdrop-blur">
             <PersonaBadge animalType={persona.animalType} size="sm" variant="paper" />
             <div className="text-left">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                {statusLabel ?? "正在冒险"}
+                {statusLabel ?? "正在回去"}
               </p>
               <p className="text-sm font-semibold text-[var(--text-primary)]">《{currentBookTitle ?? "新的故事"}》</p>
             </div>

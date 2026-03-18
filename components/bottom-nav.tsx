@@ -3,12 +3,13 @@
 import Link from "next/link";
 
 type BottomNavProps = {
-  activeTab: "home" | "adventure" | "me";
+  activeTab: "home" | "memory" | "adventure" | "me";
 };
 
 const items = [
   { href: "/", label: "首页", tab: "home", icon: "书" },
-  { href: "/adventure", label: "冒险", tab: "adventure", icon: "险" },
+  { href: "/memory", label: "回去", tab: "memory", icon: "回" },
+  { href: "/adventure", label: "同行", tab: "adventure", icon: "同" },
   { href: "/me", label: "我的", tab: "me", icon: "我" }
 ] as const;
 

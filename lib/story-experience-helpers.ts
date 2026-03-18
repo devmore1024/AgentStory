@@ -1,6 +1,25 @@
 export type AdventureActionState = "continue" | "join" | "watch";
-export type StoryTimelineSourceType = "adventure_episode" | "bedtime_memory" | "episode" | "short_story";
+export type StoryTimelineSourceType =
+  | "adventure_episode"
+  | "personal_episode"
+  | "companion_episode"
+  | "bedtime_memory"
+  | "episode"
+  | "short_story";
 export type VisibleStoryTimelineSourceType = Exclude<StoryTimelineSourceType, "bedtime_memory">;
+
+type CompanionThreadGroupInput = {
+  sourceBookSlug: string | null;
+  sourceBookTitle: string;
+  sourceBookCategoryKey: string | null;
+};
+
+export type CompanionThreadGroup<T extends CompanionThreadGroupInput> = {
+  sourceBookSlug: string | null;
+  sourceBookTitle: string;
+  sourceBookCategoryKey: string | null;
+  threads: T[];
+};
 
 type AdventureActionParams = {
   isOwner: boolean;
@@ -19,6 +38,32 @@ export function getAdventureActionState(params: AdventureActionParams): Adventur
   }
 
   return params.isFull ? "watch" : "join";
+}
+
+export function getCompanionActionLabel(actionState: AdventureActionState) {
+  if (actionState === "continue") {
+    return "继续同行";
+  }
+
+  if (actionState === "join") {
+    return "加入同行";
+  }
+
+  return "阅读";
+}
+
+export function sanitizeCompanionThreadTitle(title: string, sourceBookTitle?: string | null) {
+  const trimmed = title.trim();
+
+  if (sourceBookTitle && trimmed.includes("开出的一条冒险线")) {
+    return `在《${sourceBookTitle}》里重新相遇`;
+  }
+
+  return trimmed
+    .replace(/新的冒险正在展开/g, "新的同行正在展开")
+    .replace(/开出的一条冒险线/g, "重新相遇")
+    .replace(/冒险线/g, "同行")
+    .replace(/冒险/g, "同行");
 }
 
 export function hasFreshSecondMeCache(expiresAt: string | null, now = new Date()) {
@@ -53,6 +98,47 @@ export function getCurrentAppDate(timeZone = "Asia/Shanghai", now = new Date()) 
   }
 
   return `${year}-${month}-${day}`;
+}
+
+export function wasGeneratedOnAppDate(
+  generatedAt: string | null,
+  appDate = getCurrentAppDate(),
+  timeZone = "Asia/Shanghai"
+) {
+  if (!generatedAt) {
+    return false;
+  }
+
+  const timestamp = new Date(generatedAt);
+
+  if (Number.isNaN(timestamp.getTime())) {
+    return false;
+  }
+
+  return getCurrentAppDate(timeZone, timestamp) === appDate;
+}
+
+export function groupCompanionThreadsByBook<T extends CompanionThreadGroupInput>(threads: T[]) {
+  const groups = new Map<string, CompanionThreadGroup<T>>();
+
+  for (const thread of threads) {
+    const key = thread.sourceBookSlug ?? `unknown:${thread.sourceBookTitle}`;
+    const existing = groups.get(key);
+
+    if (existing) {
+      existing.threads.push(thread);
+      continue;
+    }
+
+    groups.set(key, {
+      sourceBookSlug: thread.sourceBookSlug,
+      sourceBookTitle: thread.sourceBookTitle,
+      sourceBookCategoryKey: thread.sourceBookCategoryKey,
+      threads: [thread]
+    });
+  }
+
+  return Array.from(groups.values());
 }
 
 export function isVisibleStoryTimelineSource(

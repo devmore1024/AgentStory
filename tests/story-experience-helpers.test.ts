@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   getAdventureActionState,
+  getCompanionActionLabel,
   getCurrentAppDate,
   hasFreshSecondMeCache,
-  isVisibleStoryTimelineSource
+  isVisibleStoryTimelineSource,
+  sanitizeCompanionThreadTitle
 } from "@/lib/story-experience-helpers";
 
 describe("story-experience helpers", () => {
@@ -60,6 +62,12 @@ describe("story-experience helpers", () => {
     ).toBe("watch");
   });
 
+  it("maps story states to companion labels", () => {
+    expect(getCompanionActionLabel("continue")).toBe("继续同行");
+    expect(getCompanionActionLabel("join")).toBe("加入同行");
+    expect(getCompanionActionLabel("watch")).toBe("阅读");
+  });
+
   it("treats only future expiry timestamps as fresh SecondMe cache", () => {
     const now = new Date("2026-03-17T12:00:00.000Z");
 
@@ -79,5 +87,11 @@ describe("story-experience helpers", () => {
     expect(isVisibleStoryTimelineSource("episode")).toBe(true);
     expect(isVisibleStoryTimelineSource("short_story")).toBe(true);
     expect(isVisibleStoryTimelineSource("bedtime_memory")).toBe(false);
+  });
+
+  it("rewrites legacy adventure titles into companion wording", () => {
+    expect(sanitizeCompanionThreadTitle("阿宁在《小红帽》里开出的一条冒险线", "小红帽")).toBe("在《小红帽》里重新相遇");
+    expect(sanitizeCompanionThreadTitle("新的冒险正在展开")).toBe("新的同行正在展开");
+    expect(sanitizeCompanionThreadTitle("陌生人之间的冒险")).toBe("陌生人之间的同行");
   });
 });

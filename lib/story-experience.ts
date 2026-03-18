@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { getCurrentViewerContext, type AppUserContext } from "@/lib/current-user";
 import { isMissingRelationError, sql } from "@/lib/db";
-import { generateAdventureEpisodeWithLlm, generateBedtimeMemoryWithLlm } from "@/lib/llm";
+import { generateAdventureEpisodeWithLlm, generateBedtimeMemoryWithLlm, generatePersonalEpisodeWithLlm } from "@/lib/llm";
 import { getCachedSecondMeStoryContext, type SecondMeStoryContext } from "@/lib/secondme-story-context";
 import {
   getStyleKeyFromId,
@@ -13,15 +13,21 @@ import {
 import { getBookBySlug, type StoryBook } from "@/lib/story-data";
 import {
   getAdventureActionState,
+  getCompanionActionLabel,
   getCurrentAppDate,
+  groupCompanionThreadsByBook,
   isVisibleStoryTimelineSource,
+  sanitizeCompanionThreadTitle,
+  wasGeneratedOnAppDate,
   type StoryTimelineSourceType,
   type VisibleStoryTimelineSourceType,
-  type AdventureActionState
+  type AdventureActionState,
+  type CompanionThreadGroup
 } from "@/lib/story-experience-helpers";
 
 export type AdventureThreadView = {
   id: string;
+  threadKind: "companion";
   title: string;
   sourceBookTitle: string;
   sourceBookSlug: string | null;
@@ -41,8 +47,11 @@ export type AdventureThreadView = {
   isParticipant: boolean;
   isCompleted: boolean;
   isFull: boolean;
+  isJoinable: boolean;
   actionState: AdventureActionState;
   actionLabel: string;
+  originPersonalThreadId: string | null;
+  originEpisodeId: string | null;
 };
 
 export type AdventureEpisodeView = {
@@ -59,6 +68,29 @@ export type AdventureEpisodeView = {
 export type AdventureThreadDetailView = AdventureThreadView & {
   episodes: AdventureEpisodeView[];
 };
+
+export type PersonalLineBookView = {
+  threadId: string;
+  threadKind: "personal";
+  title: string;
+  sourceBookTitle: string;
+  sourceBookSlug: string;
+  sourceBookCategoryKey: StoryBook["categoryKey"] | null;
+  lockedStyleName: string | null;
+  latestEpisodeId: string | null;
+  latestEpisodeTitle: string | null;
+  latestEpisodeExcerpt: string | null;
+  latestEpisodeGeneratedAt: string | null;
+  episodeCount: number;
+  todayGenerated: boolean;
+};
+
+export type PersonalLineDetailView = PersonalLineBookView & {
+  episodes: AdventureEpisodeView[];
+  activeCompanionThreadId: string | null;
+};
+
+export type CompanionSquareGroupView = CompanionThreadGroup<AdventureThreadView>;
 
 export type BedtimeMemoryView = {
   id: string;
@@ -82,13 +114,14 @@ export type StoryTimelineItemView = {
 export type AdventurePreviewView = {
   title: string;
   bookTitle: string;
+  bookSlug: string | null;
   excerpt: string;
   statusLabel: string;
 };
 
 export type MyStoryStatsView = {
-  ownedAdventureCount: number;
-  joinedAdventureCount: number;
+  personalLineCount: number;
+  companionCount: number;
 };
 
 type IdRow = {
@@ -106,6 +139,7 @@ type StyleRow = {
 
 type AdventureThreadRow = {
   id: string;
+  thread_kind: "personal" | "companion";
   title: string;
   status: "active" | "completed" | "paused" | "draft";
   completed_at: string | null;
@@ -129,6 +163,8 @@ type AdventureThreadRow = {
   is_participant: boolean;
   source_book_id: string | null;
   locked_style_id: string | null;
+  origin_personal_thread_id: string | null;
+  origin_episode_id: string | null;
 };
 
 type AdventureEpisodeRow = {
@@ -162,8 +198,8 @@ type TimelineRow = {
 };
 
 type AdventureCountRow = {
-  owned_count: number;
-  joined_count: number;
+  personal_count: number;
+  companion_count: number;
 };
 
 type PreviewRow = {
@@ -171,6 +207,7 @@ type PreviewRow = {
   excerpt: string | null;
   generated_at: string | null;
   book_title: string | null;
+  book_slug: string | null;
 };
 
 export class AuthRequiredError extends Error {
@@ -182,7 +219,7 @@ export class AuthRequiredError extends Error {
 
 export class StoryExperienceMigrationError extends Error {
   constructor() {
-    super("Story experience schema is not ready. Please run db/008_adventure_memory_refactor.sql first.");
+    super("Story experience schema is not ready. Please run db/008_adventure_memory_refactor.sql and db/009_personal_companion_split.sql first.");
     this.name = "StoryExperienceMigrationError";
   }
 }
@@ -224,20 +261,12 @@ function getGenerationLabel(status: "queued" | "running" | "succeeded" | "failed
   return "种子内容";
 }
 
-function getAdventureActionLabel(actionState: AdventureActionState) {
-  if (actionState === "continue") {
-    return "继续冒险";
-  }
-
-  if (actionState === "join") {
-    return "加入冒险";
-  }
-
-  return "围观冒险";
+function buildAdventureThreadTitle(book: StoryBook, ownerDisplayName: string) {
+  return `${ownerDisplayName}在《${book.title}》里重新相遇`;
 }
 
-function buildAdventureThreadTitle(book: StoryBook, ownerDisplayName: string) {
-  return `${ownerDisplayName}在《${book.title}》里开出的一条冒险线`;
+function buildPersonalThreadTitle(book: StoryBook) {
+  return `我回到《${book.title}》里`;
 }
 
 function buildAdventureFallbackEpisode(params: {
@@ -254,8 +283,28 @@ function buildAdventureFallbackEpisode(params: {
   const ending = `于是第 ${params.episodeNo} 篇冒险没有把结局说死，只把一道新的门缝留在月光里，等下一位参与者或者未来的我继续把它推开。`;
 
   return {
-    title: `第 ${String(params.episodeNo).padStart(2, "0")} 篇 · 《${params.book.title}》里的新偏航`,
-    excerpt: `我沿着${getStyleName(params.styleKey)}继续靠近《${params.book.title}》，让这个副本里的故事再一次慢慢偏离原作。`,
+    title: `第 ${String(params.episodeNo).padStart(2, "0")} 篇 · 《${params.book.title}》里的再相遇`,
+    excerpt: `我沿着${getStyleName(params.styleKey)}继续靠近《${params.book.title}》，让这段同行里的故事再一次慢慢偏离原作。`,
+    content: normalizeStoryContentLength(`${previousLead}\n\n${middle}\n\n${ending}`, params.styleKey)
+  };
+}
+
+function buildPersonalFallbackEpisode(params: {
+  book: StoryBook;
+  persona: AppUserContext["persona"];
+  styleKey: StoryStyleKey;
+  episodeNo: number;
+  previousEpisodeTitle?: string | null;
+}) {
+  const previousLead = params.previousEpisodeTitle
+    ? `昨天留在《${params.book.title}》里的那一点回声还没有散去，我带着《${params.previousEpisodeTitle}》留下的余韵，又慢慢走回了同一条路。`
+    : `第一次回到《${params.book.title}》里时，我没有急着改写谁的命运，只是想看看长大后的自己，会怎样再次靠近这个故事。`;
+  const middle = `我带着${params.persona.animalName}式的直觉和迟疑往前走，让那些小时候读过去的情节，在今天这一次靠近里露出了新的纹理。`;
+  const ending = `于是第 ${params.episodeNo} 次回去没有急着把答案说完，只把一个新的停顿轻轻留在夜里，等明天的我再回来续上。`;
+
+  return {
+    title: `第 ${String(params.episodeNo).padStart(2, "0")} 次回去 · 《${params.book.title}》`,
+    excerpt: `我沿着${getStyleName(params.styleKey)}重新回到《${params.book.title}》，让这本童话和现在的自己再靠近一点。`,
     content: normalizeStoryContentLength(`${previousLead}\n\n${middle}\n\n${ending}`, params.styleKey)
   };
 }
@@ -294,7 +343,9 @@ async function createGenerationJob(params: {
 
 async function isStoryExperienceSchemaReady() {
   try {
-    await sql("SELECT owner_user_id, source_book_id, locked_style_id FROM story_threads LIMIT 1");
+    await sql(
+      "SELECT owner_user_id, source_book_id, locked_style_id, thread_kind, origin_personal_thread_id, origin_episode_id FROM story_threads LIMIT 1"
+    );
     await sql("SELECT thread_id, user_id, role FROM story_thread_participants LIMIT 1");
     await sql("SELECT user_id, memory_date, source_secondme_context FROM bedtime_memories LIMIT 1");
     return true;
@@ -422,7 +473,7 @@ async function ensurePersistedStoryBookId(book: StoryBook) {
 
 async function addTimelineItem(params: {
   userId: string;
-  sourceType: "adventure_episode" | "bedtime_memory";
+  sourceType: "adventure_episode" | "personal_episode" | "companion_episode" | "bedtime_memory";
   sourceId: string;
   title: string;
   excerpt: string;
@@ -459,10 +510,12 @@ function mapAdventureThreadRow(row: AdventureThreadRow): AdventureThreadView {
     isCompleted,
     isFull
   });
+  const isJoinable = !row.is_owner && !row.is_participant && !isCompleted && !isFull;
 
   return {
     id: row.id,
-    title: row.title,
+    threadKind: "companion",
+    title: sanitizeCompanionThreadTitle(row.title, row.source_book_title),
     sourceBookTitle: row.source_book_title ?? "未知故事",
     sourceBookSlug: row.source_book_slug,
     sourceBookCategoryKey: row.source_book_category_key,
@@ -481,8 +534,29 @@ function mapAdventureThreadRow(row: AdventureThreadRow): AdventureThreadView {
     isParticipant: row.is_participant,
     isCompleted,
     isFull,
+    isJoinable,
     actionState,
-    actionLabel: getAdventureActionLabel(actionState)
+    actionLabel: getCompanionActionLabel(actionState),
+    originPersonalThreadId: row.origin_personal_thread_id,
+    originEpisodeId: row.origin_episode_id
+  };
+}
+
+function mapPersonalLineBookRow(row: AdventureThreadRow, appDate = getCurrentAppDate()): PersonalLineBookView {
+  return {
+    threadId: row.id,
+    threadKind: "personal",
+    title: row.title,
+    sourceBookTitle: row.source_book_title ?? "未知故事",
+    sourceBookSlug: row.source_book_slug ?? "",
+    sourceBookCategoryKey: row.source_book_category_key,
+    lockedStyleName: row.locked_style_name,
+    latestEpisodeId: row.latest_episode_id,
+    latestEpisodeTitle: row.latest_episode_title ? sanitizeDisplayTitle(row.latest_episode_title) : null,
+    latestEpisodeExcerpt: row.latest_episode_excerpt,
+    latestEpisodeGeneratedAt: row.latest_episode_generated_at,
+    episodeCount: row.episode_count ?? 0,
+    todayGenerated: wasGeneratedOnAppDate(row.latest_episode_generated_at, appDate)
   };
 }
 
@@ -491,6 +565,7 @@ async function getAdventureThreadRow(threadId: string, currentUserId: string | n
     `
       SELECT
         t.id,
+        t.thread_kind,
         t.title,
         t.status,
         t.completed_at,
@@ -524,7 +599,9 @@ async function getAdventureThreadRow(threadId: string, currentUserId: string | n
             AND sp.user_id = $2
         ) AS is_participant,
         t.source_book_id,
-        t.locked_style_id
+        t.locked_style_id,
+        t.origin_personal_thread_id,
+        t.origin_episode_id
       FROM story_threads t
       JOIN users owner ON owner.id = t.owner_user_id
       LEFT JOIN story_books sb ON sb.id = t.source_book_id
@@ -543,6 +620,7 @@ async function getAdventureThreadRow(threadId: string, currentUserId: string | n
           AND se.status = 'published'
       ) AS episodes ON TRUE
       WHERE t.id = $1
+        AND t.thread_kind = 'companion'
         AND t.visibility = 'public'
       LIMIT 1
     `,
@@ -550,6 +628,152 @@ async function getAdventureThreadRow(threadId: string, currentUserId: string | n
   );
 
   return rows[0] ?? null;
+}
+
+async function getPersonalThreadRowBySlug(slug: string, currentUserId: string | null) {
+  if (!currentUserId) {
+    return null;
+  }
+
+  const { rows } = await sql<AdventureThreadRow>(
+    `
+      SELECT
+        t.id,
+        t.thread_kind,
+        t.title,
+        t.status,
+        t.completed_at,
+        t.participant_limit,
+        t.episode_limit,
+        sb.title AS source_book_title,
+        sb.slug AS source_book_slug,
+        c.key AS source_book_category_key,
+        ls.name AS locked_style_name,
+        ls.key AS locked_style_key,
+        owner.display_name AS owner_display_name,
+        t.latest_episode_id,
+        e.title AS latest_episode_title,
+        e.excerpt AS latest_episode_excerpt,
+        e.content AS latest_episode_content,
+        e.generated_at AS latest_episode_generated_at,
+        e.episode_no AS latest_episode_no,
+        participants.participant_count,
+        episodes.episode_count,
+        TRUE AS is_owner,
+        TRUE AS is_participant,
+        t.source_book_id,
+        t.locked_style_id,
+        t.origin_personal_thread_id,
+        t.origin_episode_id
+      FROM story_threads t
+      JOIN users owner ON owner.id = t.owner_user_id
+      JOIN story_books sb ON sb.id = t.source_book_id
+      LEFT JOIN story_categories c ON c.id = sb.category_id
+      LEFT JOIN story_styles ls ON ls.id = t.locked_style_id
+      LEFT JOIN story_episodes e ON e.id = t.latest_episode_id
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS participant_count
+        FROM story_thread_participants sp
+        WHERE sp.thread_id = t.id
+      ) AS participants ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS episode_count
+        FROM story_episodes se
+        WHERE se.thread_id = t.id
+          AND se.status = 'published'
+      ) AS episodes ON TRUE
+      WHERE t.owner_user_id = $1
+        AND sb.slug = $2
+        AND t.thread_kind = 'personal'
+        AND t.status = 'active'
+        AND t.completed_at IS NULL
+      ORDER BY COALESCE(e.generated_at, t.created_at) DESC
+      LIMIT 1
+    `,
+    [currentUserId, slug]
+  );
+
+  return rows[0] ?? null;
+}
+
+async function getPersonalThreadRowById(threadId: string, currentUserId: string | null) {
+  if (!currentUserId) {
+    return null;
+  }
+
+  const { rows } = await sql<AdventureThreadRow>(
+    `
+      SELECT
+        t.id,
+        t.thread_kind,
+        t.title,
+        t.status,
+        t.completed_at,
+        t.participant_limit,
+        t.episode_limit,
+        sb.title AS source_book_title,
+        sb.slug AS source_book_slug,
+        c.key AS source_book_category_key,
+        ls.name AS locked_style_name,
+        ls.key AS locked_style_key,
+        owner.display_name AS owner_display_name,
+        t.latest_episode_id,
+        e.title AS latest_episode_title,
+        e.excerpt AS latest_episode_excerpt,
+        e.content AS latest_episode_content,
+        e.generated_at AS latest_episode_generated_at,
+        e.episode_no AS latest_episode_no,
+        participants.participant_count,
+        episodes.episode_count,
+        TRUE AS is_owner,
+        TRUE AS is_participant,
+        t.source_book_id,
+        t.locked_style_id,
+        t.origin_personal_thread_id,
+        t.origin_episode_id
+      FROM story_threads t
+      JOIN users owner ON owner.id = t.owner_user_id
+      JOIN story_books sb ON sb.id = t.source_book_id
+      LEFT JOIN story_categories c ON c.id = sb.category_id
+      LEFT JOIN story_styles ls ON ls.id = t.locked_style_id
+      LEFT JOIN story_episodes e ON e.id = t.latest_episode_id
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS participant_count
+        FROM story_thread_participants sp
+        WHERE sp.thread_id = t.id
+      ) AS participants ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS episode_count
+        FROM story_episodes se
+        WHERE se.thread_id = t.id
+          AND se.status = 'published'
+      ) AS episodes ON TRUE
+      WHERE t.id = $1
+        AND t.owner_user_id = $2
+        AND t.thread_kind = 'personal'
+      LIMIT 1
+    `,
+    [threadId, currentUserId]
+  );
+
+  return rows[0] ?? null;
+}
+
+async function getActiveCompanionThreadIdByOriginEpisode(originEpisodeId: string) {
+  const { rows } = await sql<IdRow>(
+    `
+      SELECT id
+      FROM story_threads
+      WHERE origin_episode_id = $1
+        AND thread_kind = 'companion'
+        AND status = 'active'
+        AND completed_at IS NULL
+      LIMIT 1
+    `,
+    [originEpisodeId]
+  );
+
+  return rows[0]?.id ?? null;
 }
 
 async function getThreadEpisodes(threadId: string) {
@@ -627,6 +851,145 @@ async function getLatestAdventureSeed(threadId: string) {
   return rows[0] ?? null;
 }
 
+async function ensureThreadOwnerParticipant(threadId: string, userId: string) {
+  await sql(
+    `
+      INSERT INTO story_thread_participants (thread_id, user_id, role)
+      VALUES ($1, $2, 'owner')
+      ON CONFLICT (thread_id, user_id) DO NOTHING
+    `,
+    [threadId, userId]
+  );
+}
+
+async function ensurePersonalThreadEpisode(params: {
+  thread: AdventureThreadRow;
+  context: AppUserContext;
+  secondMeContext: SecondMeStoryContext;
+}) {
+  const today = getCurrentAppDate();
+
+  if (wasGeneratedOnAppDate(params.thread.latest_episode_generated_at, today) && params.thread.latest_episode_id) {
+    return {
+      threadId: params.thread.id,
+      episodeId: params.thread.latest_episode_id,
+      created: false
+    };
+  }
+
+  const bookSlug = params.thread.source_book_slug;
+
+  if (!params.thread.source_book_id || !bookSlug) {
+    throw new Error("Personal thread is missing its source book.");
+  }
+
+  const book = await getBookBySlug(bookSlug);
+
+  if (!book) {
+    throw new Error("Personal source book not found.");
+  }
+
+  const styleIds = await getStyleIds();
+  const lockedStyleKey =
+    params.thread.locked_style_key ??
+    getStyleKeyFromId(styleIds, params.thread.locked_style_id) ??
+    pickThreadPrimaryStyleKey({
+      userId: params.context.userId,
+      persona: params.context.persona,
+      seedBook: book
+    });
+  const styleId = styleIds.get(lockedStyleKey) ?? params.thread.locked_style_id;
+
+  if (!params.thread.locked_style_id && styleId) {
+    await sql(
+      `
+        UPDATE story_threads
+        SET locked_style_id = $2,
+            primary_style_id = COALESCE(primary_style_id, $2),
+            updated_at = NOW()
+        WHERE id = $1
+      `,
+      [params.thread.id, styleId]
+    );
+  }
+
+  const nextEpisodeNo = (params.thread.episode_count ?? 0) + 1;
+  const previousEpisode = await getLatestAdventureSeed(params.thread.id);
+  const jobId = await createGenerationJob({
+    jobType: "episode_generate",
+    payload: {
+      threadId: params.thread.id,
+      episodeNo: nextEpisodeNo,
+      bookSlug: book.slug,
+      bookTitle: book.title,
+      styleKey: lockedStyleKey,
+      mode: nextEpisodeNo === 1 ? "personal_start" : "personal_continue"
+    }
+  });
+  await markGenerationJobRunning(jobId);
+
+  let episode = buildPersonalFallbackEpisode({
+    book,
+    persona: params.context.persona,
+    styleKey: lockedStyleKey,
+    episodeNo: nextEpisodeNo,
+    previousEpisodeTitle: previousEpisode?.title ?? null
+  });
+
+  try {
+    episode = await generatePersonalEpisodeWithLlm({
+      book,
+      persona: params.context.persona,
+      secondMeContext: params.secondMeContext,
+      styleKey: lockedStyleKey,
+      episodeNo: nextEpisodeNo,
+      threadTitle: params.thread.title,
+      previousEpisodeTitle: previousEpisode?.title ?? null,
+      previousEpisodeExcerpt: previousEpisode?.excerpt ?? null,
+      authorDisplayName: params.context.displayName
+    });
+    await markGenerationJobFinished(jobId, "succeeded");
+  } catch (error) {
+    const generationError = error instanceof Error ? error.message : "Unknown personal generation error";
+    await markGenerationJobFinished(jobId, "failed", generationError);
+  }
+
+  const episodeId = await insertAdventureEpisode({
+    threadId: params.thread.id,
+    userId: params.context.userId,
+    bookId: params.thread.source_book_id,
+    jobId,
+    episodeNo: nextEpisodeNo,
+    styleId,
+    title: episode.title,
+    excerpt: episode.excerpt,
+    content: episode.content
+  });
+
+  await updateAdventureThreadAfterEpisode({
+    threadId: params.thread.id,
+    episodeId,
+    bookId: params.thread.source_book_id,
+    episodeNo: nextEpisodeNo,
+    episodeLimit: null
+  });
+
+  await addTimelineItem({
+    userId: params.context.userId,
+    sourceType: "personal_episode",
+    sourceId: episodeId,
+    title: episode.title,
+    excerpt: episode.excerpt,
+    bookId: params.thread.source_book_id
+  });
+
+  return {
+    threadId: params.thread.id,
+    episodeId,
+    created: true
+  };
+}
+
 async function insertAdventureEpisode(params: {
   threadId: string;
   userId: string;
@@ -677,9 +1040,9 @@ async function updateAdventureThreadAfterEpisode(params: {
   episodeId: string;
   bookId: string;
   episodeNo: number;
-  episodeLimit: number;
+  episodeLimit?: number | null;
 }) {
-  const isCompleted = params.episodeNo >= params.episodeLimit;
+  const isCompleted = typeof params.episodeLimit === "number" && params.episodeNo >= params.episodeLimit;
 
   await sql(
     `
@@ -700,7 +1063,7 @@ export const getAuthenticatedAppContext = cache(async () => {
   return getCurrentViewerContext();
 });
 
-export async function getLatestAdventurePreview() {
+export async function getLatestPersonalLinePreview() {
   const context = await getAuthenticatedAppContext();
 
   if (!context) {
@@ -717,12 +1080,14 @@ export async function getLatestAdventurePreview() {
         e.title,
         e.excerpt,
         e.generated_at,
-        b.title AS book_title
+        b.title AS book_title,
+        b.slug AS book_slug
       FROM story_episodes e
       JOIN story_threads t ON t.id = e.thread_id
       JOIN story_thread_participants p ON p.thread_id = t.id
       LEFT JOIN story_books b ON b.id = e.book_id
       WHERE p.user_id = $1
+        AND t.thread_kind = 'personal'
         AND e.status = 'published'
       ORDER BY e.generated_at DESC NULLS LAST, e.created_at DESC
       LIMIT 1
@@ -737,11 +1102,86 @@ export async function getLatestAdventurePreview() {
   }
 
   return {
-    title: sanitizeDisplayTitle(row.title ?? "新的冒险正在展开"),
+    title: sanitizeDisplayTitle(row.title ?? "新的回去正在展开"),
     bookTitle: row.book_title ?? "未知故事",
+    bookSlug: row.book_slug,
     excerpt: row.excerpt ?? "",
-    statusLabel: "正在冒险"
+    statusLabel: "正在回去"
   } satisfies AdventurePreviewView;
+}
+
+export async function getLatestAdventurePreview() {
+  return getLatestPersonalLinePreview();
+}
+
+export async function getPersonalLineBooks() {
+  const currentContext = await getAuthenticatedAppContext();
+
+  if (!currentContext) {
+    return [];
+  }
+
+  if (!(await isStoryExperienceSchemaReady())) {
+    return [];
+  }
+
+  const { rows } = await sql<AdventureThreadRow>(
+    `
+      SELECT
+        t.id,
+        t.thread_kind,
+        t.title,
+        t.status,
+        t.completed_at,
+        t.participant_limit,
+        t.episode_limit,
+        sb.title AS source_book_title,
+        sb.slug AS source_book_slug,
+        c.key AS source_book_category_key,
+        ls.name AS locked_style_name,
+        ls.key AS locked_style_key,
+        owner.display_name AS owner_display_name,
+        t.latest_episode_id,
+        e.title AS latest_episode_title,
+        e.excerpt AS latest_episode_excerpt,
+        e.content AS latest_episode_content,
+        e.generated_at AS latest_episode_generated_at,
+        e.episode_no AS latest_episode_no,
+        participants.participant_count,
+        episodes.episode_count,
+        TRUE AS is_owner,
+        TRUE AS is_participant,
+        t.source_book_id,
+        t.locked_style_id,
+        t.origin_personal_thread_id,
+        t.origin_episode_id
+      FROM story_threads t
+      JOIN users owner ON owner.id = t.owner_user_id
+      JOIN story_books sb ON sb.id = t.source_book_id
+      LEFT JOIN story_categories c ON c.id = sb.category_id
+      LEFT JOIN story_styles ls ON ls.id = t.locked_style_id
+      LEFT JOIN story_episodes e ON e.id = t.latest_episode_id
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS participant_count
+        FROM story_thread_participants sp
+        WHERE sp.thread_id = t.id
+      ) AS participants ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS episode_count
+        FROM story_episodes se
+        WHERE se.thread_id = t.id
+          AND se.status = 'published'
+      ) AS episodes ON TRUE
+      WHERE t.owner_user_id = $1
+        AND t.thread_kind = 'personal'
+        AND t.status = 'active'
+        AND t.completed_at IS NULL
+      ORDER BY COALESCE(e.generated_at, t.created_at) DESC
+    `,
+    [currentContext.userId]
+  );
+
+  return rows.map((row) => mapPersonalLineBookRow(row));
 }
 
 export async function getAdventureThreads() {
@@ -755,6 +1195,7 @@ export async function getAdventureThreads() {
     `
       SELECT
         t.id,
+        t.thread_kind,
         t.title,
         t.status,
         t.completed_at,
@@ -788,7 +1229,9 @@ export async function getAdventureThreads() {
             AND sp.user_id = $1
         ) AS is_participant,
         t.source_book_id,
-        t.locked_style_id
+        t.locked_style_id,
+        t.origin_personal_thread_id,
+        t.origin_episode_id
       FROM story_threads t
       JOIN users owner ON owner.id = t.owner_user_id
       LEFT JOIN story_books sb ON sb.id = t.source_book_id
@@ -806,13 +1249,23 @@ export async function getAdventureThreads() {
         WHERE se.thread_id = t.id
           AND se.status = 'published'
       ) AS episodes ON TRUE
-      WHERE t.visibility = 'public'
+      WHERE t.thread_kind = 'companion'
+        AND t.visibility = 'public'
+        AND t.status = 'active'
+        AND t.completed_at IS NULL
       ORDER BY COALESCE(e.generated_at, t.created_at) DESC
     `,
     [currentContext?.userId ?? null]
   );
 
-  return rows.map((row) => mapAdventureThreadRow(row));
+  return rows
+    .map((row) => mapAdventureThreadRow(row))
+    .filter((thread) => !thread.isCompleted && (thread.isJoinable || thread.isOwner || thread.isParticipant));
+}
+
+export async function getCompanionSquareGroups() {
+  const threads = await getAdventureThreads();
+  return groupCompanionThreadsByBook(threads) satisfies CompanionSquareGroupView[];
 }
 
 export async function getAdventureThreadDetail(threadId: string) {
@@ -836,7 +1289,7 @@ export async function getAdventureThreadDetail(threadId: string) {
   } satisfies AdventureThreadDetailView;
 }
 
-export async function getOwnedAdventureForBookSlug(slug: string) {
+export async function getPersonalLineForBookSlug(slug: string) {
   const currentContext = await getAuthenticatedAppContext();
 
   if (!currentContext) {
@@ -847,29 +1300,63 @@ export async function getOwnedAdventureForBookSlug(slug: string) {
     return null;
   }
 
-  const { rows } = await sql<{ id: string }>(
-    `
-      SELECT t.id
-      FROM story_threads t
-      JOIN story_books b ON b.id = t.source_book_id
-      WHERE t.owner_user_id = $1
-        AND b.slug = $2
-        AND t.status = 'active'
-        AND t.completed_at IS NULL
-      ORDER BY t.created_at DESC
-      LIMIT 1
-    `,
-    [currentContext.userId, slug]
-  );
+  const row = await getPersonalThreadRowBySlug(slug, currentContext.userId);
 
-  if (!rows[0]) {
+  if (!row) {
     return null;
   }
 
-  return getAdventureThreadDetail(rows[0].id);
+  return mapPersonalLineBookRow(row);
 }
 
-export async function createAdventureForBookSlug(slug: string) {
+export async function getOwnedAdventureForBookSlug(slug: string) {
+  return getPersonalLineForBookSlug(slug);
+}
+
+export async function getPersonalLineDetail(slug: string, options?: { ensureToday?: boolean }) {
+  const context = await getAuthenticatedAppContext();
+
+  if (!context) {
+    return null;
+  }
+
+  if (!(await isStoryExperienceSchemaReady())) {
+    return null;
+  }
+
+  let row = await getPersonalThreadRowBySlug(slug, context.userId);
+
+  if (!row) {
+    return null;
+  }
+
+  if (options?.ensureToday && !wasGeneratedOnAppDate(row.latest_episode_generated_at)) {
+    const secondMeContext = await requireSecondMeStoryContext();
+    await ensurePersonalThreadEpisode({
+      thread: row,
+      context,
+      secondMeContext
+    });
+    row = await getPersonalThreadRowBySlug(slug, context.userId);
+  }
+
+  if (!row) {
+    return null;
+  }
+
+  const [episodes, activeCompanionThreadId] = await Promise.all([
+    getThreadEpisodes(row.id),
+    row.latest_episode_id ? getActiveCompanionThreadIdByOriginEpisode(row.latest_episode_id) : Promise.resolve(null)
+  ]);
+
+  return {
+    ...mapPersonalLineBookRow(row),
+    episodes,
+    activeCompanionThreadId
+  } satisfies PersonalLineDetailView;
+}
+
+export async function startOrOpenPersonalLine(slug: string) {
   await requireStoryExperienceSchema();
   const context = await requireAuthenticatedStoryContext();
   const secondMeContext = await requireSecondMeStoryContext();
@@ -880,15 +1367,171 @@ export async function createAdventureForBookSlug(slug: string) {
   }
 
   const sourceBookId = await ensurePersistedStoryBookId(book);
+  let thread = await getPersonalThreadRowBySlug(slug, context.userId);
+
+  if (!thread) {
+    const styleIds = await getStyleIds();
+    const styleKey = pickThreadPrimaryStyleKey({
+      userId: context.userId,
+      persona: context.persona,
+      seedBook: book
+    });
+    const styleId = styleIds.get(styleKey) ?? null;
+    const { rows: threadRows } = await sql<IdRow>(
+      `
+        INSERT INTO story_threads (
+          user_id,
+          owner_user_id,
+          title,
+          status,
+          current_book_id,
+          source_book_id,
+          latest_episode_id,
+          primary_style_id,
+          locked_style_id,
+          next_generate_at,
+          last_generated_at,
+          participant_limit,
+          joiner_limit,
+          episode_limit,
+          visibility,
+          thread_kind,
+          meta
+        )
+        VALUES (
+          $1,
+          $2,
+          $3,
+          'active',
+          $4,
+          $4,
+          NULL,
+          $5,
+          $5,
+          NULL,
+          NULL,
+          1,
+          0,
+          999999,
+          'private',
+          'personal',
+          $6::jsonb
+        )
+        RETURNING id
+      `,
+      [
+        context.userId,
+        context.userId,
+        buildPersonalThreadTitle(book),
+        sourceBookId,
+        styleId,
+        toJson({
+          source: "personal-line-v1",
+          sourceBookSlug: book.slug
+        })
+      ]
+    );
+
+    await ensureThreadOwnerParticipant(threadRows[0].id, context.userId);
+    thread = await getPersonalThreadRowById(threadRows[0].id, context.userId);
+  }
+
+  if (!thread) {
+    throw new Error("Personal thread could not be created.");
+  }
+
+  const result = await ensurePersonalThreadEpisode({
+    thread,
+    context,
+    secondMeContext
+  });
+
+  return {
+    threadId: result.threadId,
+    episodeId: result.episodeId,
+    slug
+  };
+}
+
+export async function createAdventureForBookSlug(slug: string) {
+  return startOrOpenPersonalLine(slug);
+}
+
+export async function publishCompanionFromPersonal(originEpisodeId: string) {
+  await requireStoryExperienceSchema();
+  const context = await requireAuthenticatedStoryContext();
+  const secondMeContext = await requireSecondMeStoryContext();
+
+  const existingThreadId = await getActiveCompanionThreadIdByOriginEpisode(originEpisodeId);
+
+  if (existingThreadId) {
+    return {
+      threadId: existingThreadId,
+      episodeId: null as string | null
+    };
+  }
+
+  const { rows } = await sql<{
+    personal_thread_id: string;
+    personal_thread_title: string;
+    source_book_id: string;
+    source_book_slug: string;
+    source_book_title: string;
+    locked_style_id: string | null;
+    locked_style_key: StoryStyleKey | null;
+    origin_episode_id: string;
+    origin_episode_title: string | null;
+    origin_episode_excerpt: string | null;
+  }>(
+    `
+      SELECT
+        t.id AS personal_thread_id,
+        t.title AS personal_thread_title,
+        t.source_book_id,
+        sb.slug AS source_book_slug,
+        sb.title AS source_book_title,
+        t.locked_style_id,
+        ls.key AS locked_style_key,
+        e.id AS origin_episode_id,
+        e.title AS origin_episode_title,
+        e.excerpt AS origin_episode_excerpt
+      FROM story_episodes e
+      JOIN story_threads t ON t.id = e.thread_id
+      JOIN story_books sb ON sb.id = t.source_book_id
+      LEFT JOIN story_styles ls ON ls.id = t.locked_style_id
+      WHERE e.id = $1
+        AND e.status = 'published'
+        AND t.owner_user_id = $2
+        AND t.thread_kind = 'personal'
+        AND t.status = 'active'
+      LIMIT 1
+    `,
+    [originEpisodeId, context.userId]
+  );
+
+  const origin = rows[0];
+
+  if (!origin) {
+    throw new Error("Personal origin episode not found.");
+  }
+
+  const book = await getBookBySlug(origin.source_book_slug);
+
+  if (!book) {
+    throw new Error("Companion source book not found.");
+  }
 
   const styleIds = await getStyleIds();
-  const styleKey = pickThreadPrimaryStyleKey({
-    userId: context.userId,
-    persona: context.persona,
-    seedBook: book
-  });
-  const styleId = styleIds.get(styleKey) ?? null;
-
+  const lockedStyleKey =
+    origin.locked_style_key ??
+    getStyleKeyFromId(styleIds, origin.locked_style_id) ??
+    pickThreadPrimaryStyleKey({
+      userId: context.userId,
+      persona: context.persona,
+      seedBook: book
+    });
+  const styleId = styleIds.get(lockedStyleKey) ?? origin.locked_style_id;
+  const threadTitle = buildAdventureThreadTitle(book, context.displayName);
   const { rows: threadRows } = await sql<IdRow>(
     `
       INSERT INTO story_threads (
@@ -907,6 +1550,9 @@ export async function createAdventureForBookSlug(slug: string) {
         joiner_limit,
         episode_limit,
         visibility,
+        thread_kind,
+        origin_personal_thread_id,
+        origin_episode_id,
         meta
       )
       VALUES (
@@ -925,33 +1571,30 @@ export async function createAdventureForBookSlug(slug: string) {
         4,
         10,
         'public',
-        $6::jsonb
+        'companion',
+        $6,
+        $7,
+        $8::jsonb
       )
       RETURNING id
     `,
     [
       context.userId,
       context.userId,
-      buildAdventureThreadTitle(book, context.displayName),
-      sourceBookId,
+      threadTitle,
+      origin.source_book_id,
       styleId,
+      origin.personal_thread_id,
+      origin.origin_episode_id,
       toJson({
-        source: "adventure-v1",
+        source: "companion-from-personal-v1",
         sourceBookSlug: book.slug
       })
     ]
   );
 
   const threadId = threadRows[0].id;
-
-  await sql(
-    `
-      INSERT INTO story_thread_participants (thread_id, user_id, role)
-      VALUES ($1, $2, 'owner')
-      ON CONFLICT (thread_id, user_id) DO NOTHING
-    `,
-    [threadId, context.userId]
-  );
+  await ensureThreadOwnerParticipant(threadId, context.userId);
 
   const jobId = await createGenerationJob({
     jobType: "episode_generate",
@@ -960,8 +1603,8 @@ export async function createAdventureForBookSlug(slug: string) {
       episodeNo: 1,
       bookSlug: book.slug,
       bookTitle: book.title,
-      styleKey,
-      mode: "adventure_create"
+      styleKey: lockedStyleKey,
+      mode: "companion_publish"
     }
   });
   await markGenerationJobRunning(jobId);
@@ -969,9 +1612,9 @@ export async function createAdventureForBookSlug(slug: string) {
   let episode = buildAdventureFallbackEpisode({
     book,
     persona: context.persona,
-    styleKey,
+    styleKey: lockedStyleKey,
     episodeNo: 1,
-    previousEpisodeTitle: null
+    previousEpisodeTitle: origin.origin_episode_title
   });
 
   try {
@@ -979,24 +1622,24 @@ export async function createAdventureForBookSlug(slug: string) {
       book,
       persona: context.persona,
       secondMeContext,
-      styleKey,
+      styleKey: lockedStyleKey,
       episodeNo: 1,
-      threadTitle: buildAdventureThreadTitle(book, context.displayName),
-      previousEpisodeTitle: null,
-      previousEpisodeExcerpt: null,
+      threadTitle,
+      previousEpisodeTitle: origin.origin_episode_title,
+      previousEpisodeExcerpt: origin.origin_episode_excerpt,
       authorDisplayName: context.displayName,
       participantCount: 1
     });
     await markGenerationJobFinished(jobId, "succeeded");
   } catch (error) {
-    const generationError = error instanceof Error ? error.message : "Unknown adventure generation error";
+    const generationError = error instanceof Error ? error.message : "Unknown companion publish error";
     await markGenerationJobFinished(jobId, "failed", generationError);
   }
 
   const episodeId = await insertAdventureEpisode({
     threadId,
     userId: context.userId,
-    bookId: sourceBookId,
+    bookId: origin.source_book_id,
     jobId,
     episodeNo: 1,
     styleId,
@@ -1008,18 +1651,18 @@ export async function createAdventureForBookSlug(slug: string) {
   await updateAdventureThreadAfterEpisode({
     threadId,
     episodeId,
-    bookId: sourceBookId,
+    bookId: origin.source_book_id,
     episodeNo: 1,
     episodeLimit: 10
   });
 
   await addTimelineItem({
     userId: context.userId,
-    sourceType: "adventure_episode",
+    sourceType: "companion_episode",
     sourceId: episodeId,
     title: episode.title,
     excerpt: episode.excerpt,
-    bookId: sourceBookId
+    bookId: origin.source_book_id
   });
 
   return {
@@ -1201,7 +1844,7 @@ export async function continueAdventure(threadId: string) {
 
   await addTimelineItem({
     userId: context.userId,
-    sourceType: "adventure_episode",
+    sourceType: "companion_episode",
     sourceId: episodeId,
     title: episode.title,
     excerpt: episode.excerpt,
@@ -1213,6 +1856,90 @@ export async function continueAdventure(threadId: string) {
     created: true,
     episodeId
   };
+}
+
+export async function getMyCompanionThreads() {
+  const context = await getAuthenticatedAppContext();
+
+  if (!context) {
+    return [];
+  }
+
+  if (!(await isStoryExperienceSchemaReady())) {
+    return [];
+  }
+
+  const { rows } = await sql<AdventureThreadRow>(
+    `
+      SELECT
+        t.id,
+        t.thread_kind,
+        t.title,
+        t.status,
+        t.completed_at,
+        t.participant_limit,
+        t.episode_limit,
+        sb.title AS source_book_title,
+        sb.slug AS source_book_slug,
+        c.key AS source_book_category_key,
+        ls.name AS locked_style_name,
+        ls.key AS locked_style_key,
+        owner.display_name AS owner_display_name,
+        t.latest_episode_id,
+        e.title AS latest_episode_title,
+        e.excerpt AS latest_episode_excerpt,
+        e.content AS latest_episode_content,
+        e.generated_at AS latest_episode_generated_at,
+        e.episode_no AS latest_episode_no,
+        participants.participant_count,
+        episodes.episode_count,
+        EXISTS (
+          SELECT 1
+          FROM story_thread_participants sp
+          WHERE sp.thread_id = t.id
+            AND sp.user_id = $1
+            AND sp.role = 'owner'
+        ) AS is_owner,
+        EXISTS (
+          SELECT 1
+          FROM story_thread_participants sp
+          WHERE sp.thread_id = t.id
+            AND sp.user_id = $1
+        ) AS is_participant,
+        t.source_book_id,
+        t.locked_style_id,
+        t.origin_personal_thread_id,
+        t.origin_episode_id
+      FROM story_threads t
+      JOIN users owner ON owner.id = t.owner_user_id
+      LEFT JOIN story_books sb ON sb.id = t.source_book_id
+      LEFT JOIN story_categories c ON c.id = sb.category_id
+      LEFT JOIN story_styles ls ON ls.id = t.locked_style_id
+      LEFT JOIN story_episodes e ON e.id = t.latest_episode_id
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS participant_count
+        FROM story_thread_participants sp
+        WHERE sp.thread_id = t.id
+      ) AS participants ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS episode_count
+        FROM story_episodes se
+        WHERE se.thread_id = t.id
+          AND se.status = 'published'
+      ) AS episodes ON TRUE
+      WHERE t.thread_kind = 'companion'
+        AND (t.owner_user_id = $1 OR EXISTS (
+          SELECT 1
+          FROM story_thread_participants sp
+          WHERE sp.thread_id = t.id
+            AND sp.user_id = $1
+        ))
+      ORDER BY COALESCE(e.generated_at, t.created_at) DESC
+    `,
+    [context.userId]
+  );
+
+  return rows.map((row) => mapAdventureThreadRow(row));
 }
 
 export async function ensureTodayBedtimeMemory() {
@@ -1429,42 +2156,44 @@ export async function getMyStoryStats() {
 
   if (!context) {
     return {
-      ownedAdventureCount: 0,
-      joinedAdventureCount: 0
+      personalLineCount: 0,
+      companionCount: 0
     } satisfies MyStoryStatsView;
   }
 
   if (!(await isStoryExperienceSchemaReady())) {
     return {
-      ownedAdventureCount: 0,
-      joinedAdventureCount: 0
+      personalLineCount: 0,
+      companionCount: 0
     } satisfies MyStoryStatsView;
   }
   const { rows: adventureCountRows } = await sql<AdventureCountRow>(
     `
       SELECT
-        COUNT(*) FILTER (WHERE owner_user_id = $1)::int AS owned_count,
         COUNT(*) FILTER (
-          WHERE id IN (
-            SELECT thread_id
-            FROM story_thread_participants
-            WHERE user_id = $1
-              AND role = 'participant'
-          )
-        )::int AS joined_count
+          WHERE owner_user_id = $1
+            AND thread_kind = 'personal'
+            AND status = 'active'
+            AND completed_at IS NULL
+        )::int AS personal_count,
+        COUNT(*) FILTER (
+          WHERE thread_kind = 'companion'
+            AND (
+              owner_user_id = $1
+              OR id IN (
+                SELECT thread_id
+                FROM story_thread_participants
+                WHERE user_id = $1
+              )
+            )
+        )::int AS companion_count
       FROM story_threads
-      WHERE owner_user_id = $1
-         OR id IN (
-           SELECT thread_id
-           FROM story_thread_participants
-           WHERE user_id = $1
-         )
     `,
     [context.userId]
   );
 
   return {
-    ownedAdventureCount: adventureCountRows[0]?.owned_count ?? 0,
-    joinedAdventureCount: adventureCountRows[0]?.joined_count ?? 0
+    personalLineCount: adventureCountRows[0]?.personal_count ?? 0,
+    companionCount: adventureCountRows[0]?.companion_count ?? 0
   } satisfies MyStoryStatsView;
 }
