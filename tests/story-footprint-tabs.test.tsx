@@ -25,10 +25,10 @@ describe("StoryFootprintTabs", () => {
       <StoryFootprintTabs
         ownedCount={1}
         joinedCount={2}
-        ownedItems={[{ id: "owned-1", title: "我在《小红帽》里的冒险" }]}
+        ownedItems={[{ id: "owned-1", title: "我在《小红帽》里的冒险", href: "/memory/little-red-riding-hood" }]}
         joinedItems={[
-          { id: "joined-1", title: "在《海的女儿》里重新相遇" },
-          { id: "joined-2", title: "在《青蛙王子》里重新相遇" }
+          { id: "joined-1", title: "在《海的女儿》里重新相遇", href: "/adventure/joined-1" },
+          { id: "joined-2", title: "在《青蛙王子》里重新相遇", href: "/adventure/joined-2" }
         ]}
       />
     );
@@ -41,5 +41,28 @@ describe("StoryFootprintTabs", () => {
     expect(screen.getByText("在《海的女儿》里重新相遇")).toBeInTheDocument();
     expect(screen.getByText("在《青蛙王子》里重新相遇")).toBeInTheDocument();
     expect(screen.queryByText("我在《小红帽》里的冒险")).not.toBeInTheDocument();
+  });
+
+  it("uses per-item links for personal adventures and companion threads", () => {
+    render(
+      <StoryFootprintTabs
+        ownedCount={1}
+        joinedCount={1}
+        ownedItems={[{ id: "owned-1", title: "我在《小红帽》里的冒险", href: "/memory/little-red-riding-hood" }]}
+        joinedItems={[{ id: "joined-1", title: "在《海的女儿》里重新相遇", href: "/adventure/joined-1" }]}
+      />
+    );
+
+    expect(screen.getByRole("link", { name: "我在《小红帽》里的冒险" })).toHaveAttribute(
+      "href",
+      "/memory/little-red-riding-hood"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /同行 1/i }));
+
+    expect(screen.getAllByRole("link", { name: "在《海的女儿》里重新相遇" }).at(-1)).toHaveAttribute(
+      "href",
+      "/adventure/joined-1"
+    );
   });
 });

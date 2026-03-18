@@ -49,12 +49,28 @@ export type SecondMeUserInfo = UserInfoResponse["data"];
 export type SecondMeShade = NonNullable<ShadesResponse["data"]["shades"]>[number];
 export type SecondMeSoftMemory = NonNullable<SoftMemoryResponse["data"]["list"]>[number];
 
+function readNonEmptyEnv(...values: Array<string | undefined>) {
+  for (const value of values) {
+    if (!value) {
+      continue;
+    }
+
+    const trimmed = value.trim();
+
+    if (trimmed.length > 0 && trimmed !== "undefined" && trimmed !== "null") {
+      return trimmed;
+    }
+  }
+
+  return null;
+}
+
 function getAuthBaseUrl() {
-  return process.env.NEXT_PUBLIC_SECONDME_OAUTH_URL || process.env.SECONDME_OAUTH_URL || "https://go.second.me/oauth/";
+  return readNonEmptyEnv(process.env.NEXT_PUBLIC_SECONDME_OAUTH_URL, process.env.SECONDME_OAUTH_URL) ?? "https://go.second.me/oauth/";
 }
 
 function getApiBaseUrl() {
-  return process.env.SECONDME_API_BASE_URL || "https://app.mindos.com/gate/lab";
+  return readNonEmptyEnv(process.env.SECONDME_API_BASE_URL) ?? "https://app.mindos.com/gate/lab";
 }
 
 function getTokenEndpoint() {
@@ -65,20 +81,28 @@ function getRefreshEndpoint() {
   return process.env.SECONDME_REFRESH_ENDPOINT || `${getApiBaseUrl()}/api/oauth/token/refresh`;
 }
 
-export function buildSecondMeAuthorizeUrl(state: string) {
+export function getSecondMeRedirectUri(requestOrigin?: string) {
+  if (requestOrigin) {
+    return new URL("/api/auth/callback", requestOrigin).toString();
+  }
+
+  return readNonEmptyEnv(process.env.SECONDME_REDIRECT_URI) ?? "";
+}
+
+export function buildSecondMeAuthorizeUrl(state: string, requestOrigin?: string) {
   const authUrl = new URL(getAuthBaseUrl());
   authUrl.searchParams.set("client_id", process.env.SECONDME_CLIENT_ID ?? "");
-  authUrl.searchParams.set("redirect_uri", process.env.SECONDME_REDIRECT_URI ?? "");
+  authUrl.searchParams.set("redirect_uri", getSecondMeRedirectUri(requestOrigin));
   authUrl.searchParams.set("response_type", "code");
   authUrl.searchParams.set("state", state);
   return authUrl.toString();
 }
 
-export async function exchangeSecondMeCode(code: string) {
+export async function exchangeSecondMeCode(code: string, requestOrigin?: string) {
   const formData = new URLSearchParams();
   formData.set("grant_type", "authorization_code");
   formData.set("code", code);
-  formData.set("redirect_uri", process.env.SECONDME_REDIRECT_URI ?? "");
+  formData.set("redirect_uri", getSecondMeRedirectUri(requestOrigin));
   formData.set("client_id", process.env.SECONDME_CLIENT_ID ?? "");
   formData.set("client_secret", process.env.SECONDME_CLIENT_SECRET ?? "");
 

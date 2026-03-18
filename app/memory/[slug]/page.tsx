@@ -1,9 +1,11 @@
+import React from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { publishCompanionFromPersonalAction, startOrOpenPersonalLineAction } from "@/app/actions";
 import { AppShell } from "@/components/app-shell";
 import { MemoryDetailHero } from "@/components/memory-detail-hero";
+import { PageBackButton } from "@/components/page-back-button";
 import { StateCard } from "@/components/state-card";
 import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
 import { SubmitButton } from "@/components/submit-button";
@@ -38,6 +40,7 @@ export default async function MemoryDetailPage({
   const canPublishCompanion = Boolean(latestPublishedEpisode?.id) && !line.activeCompanionThreadId;
   const isGenerating = isPersonalLineGenerating(line.generationState);
   const hasFailedGeneration = hasPersonalLineFailed(line.generationState);
+  const shouldShowWaitingState = line.episodes.length === 0 && !isGenerating && !hasFailedGeneration;
   const generatedTimeLabel = line.todayGenerated ? formatAppTime(line.latestEpisodeGeneratedAt) : null;
   const dailyRuleNotice = getPersonalLineDetailRuleNotice({
     todayGenerated: line.todayGenerated,
@@ -57,6 +60,8 @@ export default async function MemoryDetailPage({
     <AppShell activeTab="memory">
       <StoryGenerationWatcher threadId={line.threadId} active={isGenerating} />
       <div className="grid gap-6">
+        <PageBackButton fallbackHref="/memory" title="冒险故事" />
+
         <MemoryDetailHero
           line={line}
           generatedTimeLabel={generatedTimeLabel}
@@ -86,7 +91,7 @@ export default async function MemoryDetailPage({
               {canPublishCompanion ? (
                 <form action={publishCompanionFromPersonalAction}>
                   <input type="hidden" name="originEpisodeId" value={latestPublishedEpisode?.id ?? ""} />
-                  <SubmitButton idleLabel="公开成同行故事" pendingLabel="正在公开同行入口..." />
+                  <SubmitButton idleLabel="开始同行" pendingLabel="正在公开..." kind="secondary" />
                 </form>
               ) : line.activeCompanionThreadId ? (
                 <Link
@@ -97,12 +102,7 @@ export default async function MemoryDetailPage({
                 </Link>
               ) : null}
 
-              <Link
-                href={`/books/${slug}` as Route}
-                className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
-              >
-                返回这本童话
-              </Link>
+              
             </>
           }
         />
@@ -158,25 +158,13 @@ export default async function MemoryDetailPage({
                 </article>
               ))}
           </div>
-        ) : (
+        ) : shouldShowWaitingState ? (
           <StateCard
-            eyebrow={isGenerating ? "生成中" : hasFailedGeneration ? "等待重试" : "等待第一段"}
-            title={
-              isGenerating
-                ? "第一章正在路上"
-                : hasFailedGeneration
-                  ? "第一章暂时没有生成成功"
-                  : "这条冒险线还没有真正落下第一篇"
-            }
-            description={
-              isGenerating
-                ? "新的冒险已经被触发，故事正在把这一章慢慢写出来。"
-                : hasFailedGeneration
-                  ? "这一章已经留出了位置，只差重新触发一次，让它从这里继续往前走。"
-                  : "分身已经替你进去了，等第一段内容写完后，这里就会开始按顺序保留整条 personal 主线。"
-            }
+            eyebrow="等待第一段"
+            title="这条冒险线还没有真正落下第一篇"
+            description="分身已经替你进去了，等第一段内容写完后，这里就会开始按顺序保留整条主线。"
           />
-        )}
+        ) : null}
       </div>
     </AppShell>
   );

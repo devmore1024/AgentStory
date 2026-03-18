@@ -6,6 +6,7 @@ import {
   getCompanionActionLabel,
   getCurrentAppDate,
   getEpisodeGenerationState,
+  getStoryTimelineSourceLabel,
   hasFreshSecondMeCache,
   isEpisodeGenerationMode,
   isVisibleStoryTimelineSource,
@@ -170,6 +171,13 @@ describe("story-experience helpers", () => {
     expect(isVisibleStoryTimelineSource("episode")).toBe(true);
     expect(isVisibleStoryTimelineSource("short_story")).toBe(true);
     expect(isVisibleStoryTimelineSource("bedtime_memory")).toBe(false);
+  });
+
+  it("maps timeline source types into adventure or companion labels", () => {
+    expect(getStoryTimelineSourceLabel("personal_episode")).toBe("冒险");
+    expect(getStoryTimelineSourceLabel("episode")).toBe("冒险");
+    expect(getStoryTimelineSourceLabel("companion_episode")).toBe("同行");
+    expect(getStoryTimelineSourceLabel("adventure_episode")).toBe("同行");
   });
 
   it("rewrites legacy adventure titles into companion wording", () => {

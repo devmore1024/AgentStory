@@ -22,6 +22,11 @@
 ## Testing
 Always add tests for new features.
 
+## Interaction
+
+- 页面设计中，进入次级页面时应提供统一入口返回。
+- 具体交互规则、默认父页面映射、实现约束见 [`docs/AgentStory 页面交互规范.md`](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E9%A1%B5%E9%9D%A2%E4%BA%A4%E4%BA%92%E8%A7%84%E8%8C%83.md)。
+
 ## API 文档
 
 开发时请参考官方文档（从 `.secondme/state.json` 的 `docs` 字段读取）：
@@ -79,5 +84,3 @@ Always add tests for new features.
 - Tailwind CSS
 - Prisma (SQLite)
 - 运行端口: 3000
-
-

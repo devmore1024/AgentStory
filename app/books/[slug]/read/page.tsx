@@ -1,6 +1,8 @@
+import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { PageBackButton } from "@/components/page-back-button";
 import { getAuthenticatedAppContext } from "@/lib/story-experience";
 import { getBookBySlug, getResolvedStoryParagraphs } from "@/lib/story-data";
 
@@ -23,30 +25,12 @@ export default async function BookReadPage({
   return (
     <AppShell activeTab="home">
       <div className="mx-auto grid max-w-4xl gap-6">
+        <PageBackButton fallbackHref={`/books/${book.slug}`} title="原故事" />
+
         <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-6 shadow-[var(--shadow-medium)] sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{book.categoryName}</p>
           <h1 className="display-font mt-3 text-4xl leading-tight text-[var(--text-primary)] sm:text-5xl">{book.title}</h1>
           <p className="mt-4 text-base leading-8 text-[var(--text-secondary)]">{book.summary}</p>
-          {book.sourceSite ? (
-            <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-[var(--text-secondary)]">
-              <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 font-semibold">来源：{book.sourceSite}</span>
-              {book.sourceTitle ? (
-                <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 font-semibold">
-                  {book.sourceTitle}
-                </span>
-              ) : null}
-              {book.sourceLicense ? (
-                <span className="rounded-full bg-[rgba(255,255,255,0.68)] px-3 py-1.5 font-semibold">
-                  {book.sourceLicense}
-                </span>
-              ) : null}
-              {book.sourceUrl ? (
-                <a href={book.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-[var(--accent-moss)]">
-                  查看英文原文
-                </a>
-              ) : null}
-            </div>
-          ) : null}
 
           <div className="mt-8 grid gap-5">
             {storyParagraphs.map((paragraph) => (

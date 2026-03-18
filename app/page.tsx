@@ -19,7 +19,7 @@ const HOME_COPY = {
   previewEyebrow: "你的分身正在冒险的童话",
   reunionTitle: "与熟悉的人重逢",
   reunionBody: "当你回到故事里继续冒险，童话里那些曾经只存在于书页上的人，会第一次认真看向现在的你。",
-  companionBody: "当这段冒险走到值得邀请别人的地方，你可以把当前节点公开成一条新的同行故事。",
+  companionBody: "当这段冒险走到值得邀请别人的地方，你可以把当前这一章公开成同行故事，让别人从这里接着加入。",
   previewAction: "去看这段冒险",
   previewFallbackAction: "去开启这段冒险",
   shelfDescription: "这些故事先替你保留在月光和书页之间。挑一本，让分身带着长大后的你回到故事里继续冒险，看看童话会不会因此变得更真一点。"

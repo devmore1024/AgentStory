@@ -2,12 +2,14 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import type { Route } from "next";
 
 type StoryFootprintTab = "owned" | "joined";
 
 type StoryFootprintItem = {
   id: string;
   title: string;
+  href: string;
 };
 
 type StoryFootprintTabsProps = {
@@ -81,7 +83,7 @@ export function StoryFootprintTabs({
             {activeItems.map((item) => (
               <Link
                 key={item.id}
-                href={`/adventure/${item.id}`}
+                href={item.href as Route}
                 className="block rounded-[16px] px-1 py-1 text-sm leading-6 text-[var(--text-secondary)] transition hover:text-[var(--accent-moss)]"
               >
                 {item.title}

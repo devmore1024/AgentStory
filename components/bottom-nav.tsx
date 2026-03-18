@@ -8,8 +8,8 @@ type BottomNavProps = {
 
 const items = [
   { href: "/", label: "首页", tab: "home", icon: "书" },
-  { href: "/memory", label: "冒险", tab: "memory", icon: "冒" },
-  { href: "/adventure", label: "同行", tab: "adventure", icon: "同" },
+  { href: "/memory", label: "冒险", tab: "memory", icon: "探" },
+  { href: "/adventure", label: "同行", tab: "adventure", icon: "伴" },
   { href: "/me", label: "我的", tab: "me", icon: "我" }
 ] as const;
 

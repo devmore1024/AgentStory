@@ -1,7 +1,9 @@
+import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { startOrOpenPersonalLineAction } from "@/app/actions";
 import { AppShell } from "@/components/app-shell";
+import { PageBackButton } from "@/components/page-back-button";
 import { SubmitButton } from "@/components/submit-button";
 import { getAuthenticatedAppContext, getPersonalLineForBookSlug } from "@/lib/story-experience";
 import { getBookBySlug } from "@/lib/story-data";
@@ -34,6 +36,8 @@ export default async function EnterStoryPage({
   return (
     <AppShell activeTab="home">
       <div className="mx-auto grid max-w-4xl gap-6">
+        <PageBackButton fallbackHref={`/books/${book.slug}`} title="走进童话" />
+
         <section className="rounded-[36px] border border-[rgba(255,255,255,0.48)] bg-[linear-gradient(135deg,rgba(95,127,98,0.98),rgba(134,169,201,0.96))] p-7 text-[var(--text-on-accent)] shadow-[var(--shadow-large)] sm:p-9">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(255,253,248,0.72)]">走进童话</p>
           <h1 className="display-font mt-3 text-4xl leading-tight sm:text-5xl">

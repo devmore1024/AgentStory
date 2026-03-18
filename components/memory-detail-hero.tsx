@@ -50,7 +50,7 @@ export function MemoryDetailHero({ line, actions, generatedTimeLabel, dailyRuleN
       <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">《{line.sourceBookTitle}》</p>
       <h1 className="display-font mt-2 text-4xl text-[var(--text-primary)]">{line.latestEpisodeTitle ?? line.title}</h1>
       <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--text-secondary)]">
-        {line.latestEpisodeExcerpt ?? "你的分身已经走进这本童话，接下来会沿着这条 personal 主线继续冒险。"}
+        {line.latestEpisodeExcerpt ?? "你的分身已经走进这本童话，接下来会沿着这条主线继续冒险。"}
       </p>
       {dailyRuleNotice ? (
         <p className="mt-4 max-w-3xl rounded-[20px] bg-[rgba(255,255,255,0.68)] px-4 py-3 text-sm leading-7 text-[var(--text-secondary)]">

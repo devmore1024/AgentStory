@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { AUTH_STATE_COOKIE } from "@/lib/auth";
 import { buildSecondMeAuthorizeUrl } from "@/lib/secondme";
 
-export async function GET() {
+export async function GET(request: Request) {
   const state = crypto.randomUUID();
-  const response = NextResponse.redirect(buildSecondMeAuthorizeUrl(state));
+  const requestUrl = new URL(request.url);
+  const response = NextResponse.redirect(buildSecondMeAuthorizeUrl(state, requestUrl.origin));
 
   response.cookies.set(AUTH_STATE_COOKIE, state, {
     httpOnly: true,

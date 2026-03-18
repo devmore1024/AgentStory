@@ -53,13 +53,13 @@ describe("MemoryDetailHero", () => {
         line={createLineFixture()}
         generatedTimeLabel="18:30"
         dailyRuleNotice="今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。"
-        actions={<div>查看今天这章</div>}
+        actions={<div>今日之章</div>}
       />
     );
 
     expect(screen.getByText("今日 18:30 更新")).toBeInTheDocument();
     expect(screen.getByText("今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。")).toBeInTheDocument();
-    expect(screen.getByText("查看今天这章")).toBeInTheDocument();
+    expect(screen.getByText("今日之章")).toBeInTheDocument();
   });
 
   it("shows a generating badge for queued personal chapters", () => {

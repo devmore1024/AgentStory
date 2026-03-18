@@ -199,6 +199,14 @@ export function sanitizePersonalAdventureTitle(title: string, sourceBookTitle?: 
     .replace(/回去线/g, "冒险线");
 }
 
+export function getStoryTimelineSourceLabel(sourceType: StoryTimelineSourceType) {
+  if (sourceType === "personal_episode" || sourceType === "episode") {
+    return "冒险";
+  }
+
+  return "同行";
+}
+
 export function hasFreshSecondMeCache(expiresAt: string | null, now = new Date()) {
   if (!expiresAt) {
     return false;

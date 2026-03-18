@@ -1395,12 +1395,13 @@ async function insertAdventureEpisode(params: {
   threadId: string;
   userId: string;
   bookId: string;
-  jobId: string;
+  jobId?: string | null;
   episodeNo: number;
   styleId: string | null;
   title: string;
   excerpt: string;
   content: string;
+  generatedAt?: string | null;
 }) {
   const { rows } = await sql<IdRow>(
     `
@@ -1417,23 +1418,83 @@ async function insertAdventureEpisode(params: {
         generated_at,
         status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), 'published')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10::timestamptz, NOW()), 'published')
       RETURNING id
     `,
     [
       params.threadId,
       params.userId,
       params.bookId,
-      params.jobId,
+      params.jobId ?? null,
       params.episodeNo,
       params.styleId,
       params.title,
       params.excerpt,
-      params.content
+      params.content,
+      params.generatedAt ?? null
     ]
   );
 
   return rows[0].id;
+}
+
+async function clonePublishedEpisodeIntoThread(params: {
+  threadId: string;
+  originEpisodeId: string;
+  sourceBookId: string;
+  fallbackStyleId: string | null;
+  episodeNo: number;
+}) {
+  const { rows } = await sql<{
+    id: string;
+    generated_at: string | null;
+  }>(
+    `
+      INSERT INTO story_episodes (
+        thread_id,
+        user_id,
+        book_id,
+        job_id,
+        episode_no,
+        style_id,
+        title,
+        excerpt,
+        content,
+        bridge_from_previous,
+        generated_at,
+        status
+      )
+      SELECT
+        $1,
+        e.user_id,
+        COALESCE(e.book_id, $2),
+        NULL,
+        $3,
+        COALESCE(e.style_id, $4),
+        e.title,
+        e.excerpt,
+        e.content,
+        e.bridge_from_previous,
+        COALESCE(e.generated_at, NOW()),
+        'published'
+      FROM story_episodes e
+      WHERE e.id = $5
+        AND e.status = 'published'
+      RETURNING id, generated_at
+    `,
+    [params.threadId, params.sourceBookId, params.episodeNo, params.fallbackStyleId, params.originEpisodeId]
+  );
+
+  const row = rows[0];
+
+  if (!row) {
+    throw new Error("Published origin episode could not be copied into companion thread.");
+  }
+
+  return {
+    episodeId: row.id,
+    generatedAt: row.generated_at
+  };
 }
 
 async function insertQueuedAdventureEpisode(params: {
@@ -2026,6 +2087,7 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
     origin_episode_id: string;
     origin_episode_title: string | null;
     origin_episode_excerpt: string | null;
+    origin_episode_generated_at: string | null;
   }>(
     `
       SELECT
@@ -2038,7 +2100,8 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
         ls.key AS locked_style_key,
         e.id AS origin_episode_id,
         e.title AS origin_episode_title,
-        e.excerpt AS origin_episode_excerpt
+        e.excerpt AS origin_episode_excerpt,
+        e.generated_at AS origin_episode_generated_at
       FROM story_episodes e
       JOIN story_threads t ON t.id = e.thread_id
       JOIN story_books sb ON sb.id = t.source_book_id
@@ -2140,15 +2203,35 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
   const threadId = threadRows[0].id;
   await ensureThreadOwnerParticipant(threadId, context.userId);
 
-  const { episodeId } = await enqueueAdventureEpisodeGeneration({
+  const { episodeId, generatedAt } = await clonePublishedEpisodeIntoThread({
     threadId,
+    originEpisodeId: origin.origin_episode_id,
+    sourceBookId: origin.source_book_id,
+    fallbackStyleId: styleId,
+    episodeNo: 1
+  });
+
+  await sql(
+    `
+      UPDATE story_threads
+      SET latest_episode_id = $2,
+          current_book_id = $3,
+          last_generated_at = COALESCE($4::timestamptz, NOW()),
+          status = 'active',
+          completed_at = NULL,
+          updated_at = NOW()
+      WHERE id = $1
+    `,
+    [threadId, episodeId, origin.source_book_id, generatedAt ?? origin.origin_episode_generated_at]
+  );
+
+  await addTimelineItem({
     userId: context.userId,
-    bookId: origin.source_book_id,
-    book,
-    styleId,
-    styleKey: lockedStyleKey,
-    episodeNo: 1,
-    mode: "companion_publish"
+    sourceType: "companion_episode",
+    sourceId: episodeId,
+    title: origin.origin_episode_title ?? "新的同行已经开始",
+    excerpt: origin.origin_episode_excerpt ?? "这一章已经被公开成同行故事，后面的人会从这里继续往前走。",
+    bookId: origin.source_book_id
   });
 
   return {

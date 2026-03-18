@@ -7,9 +7,11 @@ import {
   getAdventureThreads,
   getAuthenticatedAppContext,
   getMyStoryStats,
+  getPersonalLineBooks,
   getStoryExperienceSchemaStatus,
   getStoryTimelineItems
 } from "@/lib/story-experience";
+import { getStoryTimelineSourceLabel } from "@/lib/story-experience-helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -24,15 +26,16 @@ export default async function MePage({
   const currentContext = await getAuthenticatedAppContext();
   const schemaStatus = await getStoryExperienceSchemaStatus();
 
-  const [timelineItems, stats, threads] = currentContext
+  const [timelineItems, stats, personalLineBooks, threads] = currentContext
     ? await Promise.all([
         getStoryTimelineItems(),
         getMyStoryStats(),
+        getPersonalLineBooks(),
         getAdventureThreads()
       ])
-    : [[], { ownedAdventureCount: 0, joinedAdventureCount: 0 }, []];
+    : [[], { ownedAdventureCount: 0, joinedAdventureCount: 0 }, [], []];
 
-  const ownedThreads = threads.filter((thread) => thread.isOwner).slice(0, 3);
+  const ownedLines = personalLineBooks.slice(0, 3);
   const joinedThreads = threads.filter((thread) => !thread.isOwner && thread.isParticipant).slice(0, 3);
 
   return (
@@ -60,8 +63,16 @@ export default async function MePage({
           <StoryFootprintTabs
             ownedCount={stats.ownedAdventureCount}
             joinedCount={stats.joinedAdventureCount}
-            ownedItems={ownedThreads.map((thread) => ({ id: thread.id, title: thread.title }))}
-            joinedItems={joinedThreads.map((thread) => ({ id: thread.id, title: thread.title }))}
+            ownedItems={ownedLines.map((line) => ({
+              id: line.threadId,
+              title: line.title,
+              href: `/memory/${line.sourceBookSlug}`
+            }))}
+            joinedItems={joinedThreads.map((thread) => ({
+              id: thread.id,
+              title: thread.title,
+              href: `/adventure/${thread.id}`
+            }))}
           />
 
           {auth === "connected" ? (
@@ -145,7 +156,7 @@ export default async function MePage({
                     className="rounded-[22px] border border-[var(--border-light)] bg-[rgba(255,255,255,0.68)] p-4"
                   >
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                      同行
+                      {getStoryTimelineSourceLabel(item.sourceType)}
                       {item.bookTitle ? ` · ${item.bookTitle}` : ""}
                     </p>
                     <p className="mt-2 text-base leading-7 text-[var(--text-secondary)]">{item.title}</p>

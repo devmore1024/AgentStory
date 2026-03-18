@@ -25,7 +25,7 @@ const MEMORY_COPY = {
   emptyExcerpt: "这本童话还在等你的分身真正走进去，留下第一段只属于你的冒险线。",
   emptyEyebrow: "冒险空态",
   emptyTitle: "第一条冒险线还没有被点亮",
-  emptyDescription: "先从首页挑一本到想回到故事里继续冒险的童话。等你真正走进去以后，这里就会按书保留你的 personal 主线。"
+  emptyDescription: "先从首页挑一本到想回到故事里继续冒险的童话。等你真正走进去以后，这里就会按书保留你的冒险主线。"
 } as const;
 
 export default async function MemoryPage() {

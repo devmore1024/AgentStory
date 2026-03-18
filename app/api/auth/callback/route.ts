@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const tokenData = await exchangeSecondMeCode(code);
+    const tokenData = await exchangeSecondMeCode(code, url.origin);
     const [userInfo, shades, softMemory] = await Promise.all([
       fetchSecondMeUserInfo(tokenData.accessToken),
       fetchSecondMeShades(tokenData.accessToken),

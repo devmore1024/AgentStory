@@ -107,7 +107,7 @@ export function getPersonalLineListPrimaryAction(params: PersonalLineActionInput
   if (params.todayGenerated) {
     return {
       kind: "link",
-      label: "查看今天这章",
+      label: "今日之章",
       href: buildEpisodeAnchorHref(params.sourceBookSlug, params.latestEpisodeId)
     };
   }
@@ -138,7 +138,7 @@ export function getPersonalLineDetailPrimaryAction(params: PersonalLineActionInp
   if (params.todayGenerated) {
     return {
       kind: "link",
-      label: "查看今天这章",
+      label: "今日之章",
       href: buildEpisodeAnchorHref(params.sourceBookSlug, params.latestPublishedEpisodeId ?? params.latestEpisodeId)
     };
   }

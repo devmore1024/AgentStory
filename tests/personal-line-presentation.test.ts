@@ -17,7 +17,7 @@ describe("personal-line presentation helpers", () => {
       })
     ).toEqual({
       kind: "link",
-      label: "查看今天这章",
+      label: "今日之章",
       href: "/memory/little-red-riding-hood#episode-episode-1"
     });
   });
@@ -75,7 +75,7 @@ describe("personal-line presentation helpers", () => {
       })
     ).toEqual({
       kind: "link",
-      label: "查看今天这章",
+      label: "今日之章",
       href: "/memory/little-red-riding-hood#episode-episode-1"
     });
   });

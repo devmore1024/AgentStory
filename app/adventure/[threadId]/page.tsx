@@ -1,8 +1,10 @@
+import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
 import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
 import { AppShell } from "@/components/app-shell";
+import { PageBackButton } from "@/components/page-back-button";
 import { StateCard } from "@/components/state-card";
 import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
 import { getAdventureThreadDetail, getAuthenticatedAppContext } from "@/lib/story-experience";
@@ -23,11 +25,14 @@ export default async function AdventureThreadPage({
 
   const isGenerating = thread.generationState === "queued" || thread.generationState === "running";
   const hasFailedGeneration = thread.generationState === "failed";
+  const shouldShowWaitingState = thread.episodes.length === 0 && !isGenerating && !hasFailedGeneration;
 
   return (
     <AppShell activeTab="adventure">
       <StoryGenerationWatcher threadId={thread.id} active={isGenerating} />
       <div className="grid gap-6">
+        <PageBackButton fallbackHref="/adventure" title="同行故事" />
+
         <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
           <AdventureThreadBadges
             isOwner={thread.isOwner}
@@ -143,25 +148,13 @@ export default async function AdventureThreadPage({
               </article>
             ))}
           </div>
-        ) : (
+        ) : shouldShowWaitingState ? (
           <StateCard
-            eyebrow={isGenerating ? "生成中" : hasFailedGeneration ? "等待重试" : "等待第一段"}
-            title={
-              isGenerating
-                ? "第一篇同行正在路上"
-                : hasFailedGeneration
-                  ? "第一篇同行暂时没有生成成功"
-                  : "这段同行还没有真正落下第一篇"
-            }
-            description={
-              isGenerating
-                ? "故事已经入队，正在把第一位参与者写下的这一段慢慢生成出来。"
-                : hasFailedGeneration
-                  ? "这段故事已经留出了入口，只差重新触发一次，让它从这里继续往前走。"
-                  : "故事已经留出了入口，接下来只差第一位走进去的人，把它推进到能被别人读见的那一步。"
-            }
+            eyebrow="等待第一段"
+            title="这段同行还没有真正落下第一篇"
+            description="故事已经留出了入口，接下来只差第一位走进去的人，把它推进到能被别人读见的那一步。"
           />
-        )}
+        ) : null}
       </div>
     </AppShell>
   );
