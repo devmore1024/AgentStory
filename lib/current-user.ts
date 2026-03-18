@@ -102,6 +102,14 @@ function buildPersonaFromRow(row: UserProfileRow) {
 }
 
 export async function getViewerContextBySecondMeUserId(secondMeUserId: string): Promise<AppUserContext | null> {
+  return getViewerContextByField("u.secondme_user_id", secondMeUserId);
+}
+
+export async function getViewerContextByUserId(userId: string): Promise<AppUserContext | null> {
+  return getViewerContextByField("u.id", userId);
+}
+
+async function getViewerContextByField(field: "u.secondme_user_id" | "u.id", value: string): Promise<AppUserContext | null> {
   const { rows } = await sql<UserProfileRow>(
     `
       SELECT
@@ -122,10 +130,10 @@ export async function getViewerContextBySecondMeUserId(secondMeUserId: string): 
         ap.story_preferences
       FROM users u
       LEFT JOIN animal_profiles ap ON ap.user_id = u.id
-      WHERE u.secondme_user_id = $1
+      WHERE ${field} = $1
       LIMIT 1
     `,
-    [secondMeUserId]
+    [value]
   );
 
   const row = rows[0];

@@ -1,4 +1,8 @@
 export type AdventureActionState = "continue" | "join" | "watch";
+export type StoryFootprintFilter = "owned" | "joined";
+export type EpisodeRecordStatus = "queued" | "generating" | "published" | "failed" | null;
+export type GenerationJobStatus = "queued" | "running" | "succeeded" | "failed" | null;
+export type EpisodeGenerationState = "idle" | "queued" | "running" | "failed";
 export type StoryTimelineSourceType =
   | "adventure_episode"
   | "personal_episode"
@@ -50,6 +54,40 @@ export function getCompanionActionLabel(actionState: AdventureActionState) {
   }
 
   return "阅读";
+}
+
+export function normalizeStoryFootprintFilter(filter?: string | null): StoryFootprintFilter {
+  return filter === "joined" ? "joined" : "owned";
+}
+
+export function filterAdventureThreadsByFootprint<T extends { isOwner: boolean; isParticipant: boolean }>(
+  threads: T[],
+  filter: StoryFootprintFilter
+) {
+  if (filter === "joined") {
+    return threads.filter((thread) => !thread.isOwner && thread.isParticipant);
+  }
+
+  return threads.filter((thread) => thread.isOwner);
+}
+
+export function getEpisodeGenerationState(
+  episodeStatus: EpisodeRecordStatus,
+  jobStatus: GenerationJobStatus
+): EpisodeGenerationState {
+  if (episodeStatus === "failed" || jobStatus === "failed") {
+    return "failed";
+  }
+
+  if (episodeStatus === "generating" || jobStatus === "running") {
+    return "running";
+  }
+
+  if (episodeStatus === "queued" || jobStatus === "queued") {
+    return "queued";
+  }
+
+  return "idle";
 }
 
 export function sanitizeCompanionThreadTitle(title: string, sourceBookTitle?: string | null) {

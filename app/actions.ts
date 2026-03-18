@@ -1,5 +1,6 @@
 "use server";
 
+import type { Route } from "next";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -31,7 +32,7 @@ export async function startOrOpenPersonalLineAction(formData: FormData) {
     const result = await startOrOpenPersonalLine(slug);
     revalidateStoryExperiencePaths();
     revalidatePath(`/memory/${slug}`);
-    redirect(`/memory/${result.slug}`);
+    redirect(`/memory/${result.slug}` as Route);
   } catch (error) {
     if (error instanceof AuthRequiredError) {
       redirect("/me?auth=required");
@@ -79,7 +80,7 @@ export async function joinAdventureAction(formData: FormData) {
   try {
     await joinAdventure(threadId);
     revalidateStoryExperiencePaths();
-    redirect(`/adventure/${threadId}`);
+    redirect(`/adventure/${threadId}` as Route);
   } catch (error) {
     if (error instanceof AuthRequiredError) {
       redirect("/me?auth=required");
@@ -101,7 +102,7 @@ export async function continueAdventureAction(formData: FormData) {
   try {
     await continueAdventure(threadId);
     revalidateStoryExperiencePaths();
-    redirect(`/adventure/${threadId}`);
+    redirect(`/adventure/${threadId}` as Route);
   } catch (error) {
     if (error instanceof AuthRequiredError) {
       redirect("/me?auth=required");

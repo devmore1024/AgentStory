@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 const MEMORY_COPY = {
   eyebrow: "冒险",
   title: "我在童话里的冒险",
-  description: "每本童话都有一条只属于你的 personal 冒险主线。分身会在你重新打开它时，按这本书自己的节奏继续往前走。",
+  description: "每本童话都有一条只属于你的冒险主线。分身会在你重新打开它时，按这本书自己的节奏继续往前走。",
   schemaTitle: "冒险线的数据表还没准备好",
   authTitle: "登录 SecondMe 后，分身才会开始替你在童话里冒险",
   authDescription: "连接后，这里会出现你冒险过的童话，以及每本书自己的最新章节。",
@@ -85,7 +86,7 @@ export default async function MemoryPage() {
 
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link
-                    href={`/memory/${line.sourceBookSlug}`}
+                    href={`/memory/${line.sourceBookSlug}` as Route}
                     className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                   >
                     {MEMORY_COPY.actionLabel}

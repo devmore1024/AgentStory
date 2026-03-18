@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  filterAdventureThreadsByFootprint,
   getAdventureActionState,
   getCompanionActionLabel,
   getCurrentAppDate,
+  getEpisodeGenerationState,
   hasFreshSecondMeCache,
   isVisibleStoryTimelineSource,
+  normalizeStoryFootprintFilter,
   sanitizeCompanionThreadTitle,
   sanitizePersonalAdventureTitle
 } from "@/lib/story-experience-helpers";
@@ -67,6 +70,32 @@ describe("story-experience helpers", () => {
     expect(getCompanionActionLabel("continue")).toBe("继续同行");
     expect(getCompanionActionLabel("join")).toBe("加入同行");
     expect(getCompanionActionLabel("watch")).toBe("阅读");
+  });
+
+  it("maps episode and job statuses into a generation state", () => {
+    expect(getEpisodeGenerationState("queued", null)).toBe("queued");
+    expect(getEpisodeGenerationState("generating", "queued")).toBe("running");
+    expect(getEpisodeGenerationState("published", "running")).toBe("running");
+    expect(getEpisodeGenerationState("failed", "running")).toBe("failed");
+    expect(getEpisodeGenerationState("published", "succeeded")).toBe("idle");
+  });
+
+  it("normalizes the story footprint filter", () => {
+    expect(normalizeStoryFootprintFilter("joined")).toBe("joined");
+    expect(normalizeStoryFootprintFilter("owned")).toBe("owned");
+    expect(normalizeStoryFootprintFilter("anything-else")).toBe("owned");
+    expect(normalizeStoryFootprintFilter(null)).toBe("owned");
+  });
+
+  it("filters threads by owned or joined footprint", () => {
+    const threads = [
+      { id: "owned-1", isOwner: true, isParticipant: true },
+      { id: "joined-1", isOwner: false, isParticipant: true },
+      { id: "open-1", isOwner: false, isParticipant: false }
+    ];
+
+    expect(filterAdventureThreadsByFootprint(threads, "owned").map((thread) => thread.id)).toEqual(["owned-1"]);
+    expect(filterAdventureThreadsByFootprint(threads, "joined").map((thread) => thread.id)).toEqual(["joined-1"]);
   });
 
   it("treats only future expiry timestamps as fresh SecondMe cache", () => {

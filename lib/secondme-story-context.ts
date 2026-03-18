@@ -361,3 +361,13 @@ export async function getCachedSecondMeStoryContext() {
     throw error;
   }
 }
+
+export async function getStoredSecondMeStoryContext(secondMeUserId: string) {
+  const cachedRow = await getContextCacheRow(secondMeUserId);
+
+  if (!cachedRow) {
+    return null;
+  }
+
+  return parseCacheRow(cachedRow);
+}

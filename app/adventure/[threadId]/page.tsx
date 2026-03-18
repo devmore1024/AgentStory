@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
 import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
+import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
 import { getAdventureThreadDetail, getAuthenticatedAppContext } from "@/lib/story-experience";
 
 export const dynamic = "force-dynamic";
@@ -19,14 +20,28 @@ export default async function AdventureThreadPage({
     notFound();
   }
 
+  const isGenerating = thread.generationState === "queued" || thread.generationState === "running";
+  const hasFailedGeneration = thread.generationState === "failed";
+
   return (
     <AppShell activeTab="adventure">
+      <StoryGenerationWatcher threadId={thread.id} active={isGenerating} />
       <div className="grid gap-6">
         <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
               {thread.isCompleted ? "已完结" : "进行中"}
             </span>
+            {isGenerating ? (
+              <span className="rounded-full bg-[rgba(255,244,214,0.92)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
+                生成中
+              </span>
+            ) : null}
+            {hasFailedGeneration ? (
+              <span className="rounded-full bg-[rgba(255,232,228,0.92)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
+                生成失败
+              </span>
+            ) : null}
             <span className="rounded-full bg-[var(--sky-light)] px-3 py-1.5 text-xs font-semibold text-[var(--sky)]">
               {thread.participantCount}/{thread.participantLimit} 人
             </span>
@@ -48,15 +63,21 @@ export default async function AdventureThreadPage({
           <div className="mt-5 flex flex-wrap gap-3">
             {currentContext ? (
               thread.actionState === "continue" ? (
-                <form action={continueAdventureAction}>
-                  <input type="hidden" name="threadId" value={thread.id} />
-                  <button
-                    type="submit"
-                    className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
-                  >
-                    继续同行
-                  </button>
-                </form>
+                isGenerating ? (
+                  <div className="inline-flex min-h-11 items-center rounded-full bg-[rgba(95,127,98,0.14)] px-5 py-3 text-sm font-semibold text-[var(--accent-moss)]">
+                    这一段正在生成中
+                  </div>
+                ) : (
+                  <form action={continueAdventureAction}>
+                    <input type="hidden" name="threadId" value={thread.id} />
+                    <button
+                      type="submit"
+                      className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                    >
+                      {hasFailedGeneration ? "重新生成这一段" : "继续同行"}
+                    </button>
+                  </form>
+                )
               ) : thread.actionState === "join" ? (
                 <form action={joinAdventureAction}>
                   <input type="hidden" name="threadId" value={thread.id} />
@@ -85,6 +106,25 @@ export default async function AdventureThreadPage({
             </Link>
           </div>
         </section>
+
+        {isGenerating ? (
+          <StateCard
+            eyebrow="生成中"
+            title={thread.latestEpisodeTitle ?? "新的篇章正在生成"}
+            description={
+              thread.latestEpisodeExcerpt ??
+              "这一段冒险已经入队，页面会自动刷新。你可以先留在这里等它写完，也可以稍后回来。"
+            }
+          />
+        ) : null}
+
+        {hasFailedGeneration ? (
+          <StateCard
+            eyebrow="生成失败"
+            title={thread.latestEpisodeTitle ?? "这一段冒险暂时卡住了"}
+            description={thread.latestEpisodeExcerpt ?? "这次生成没有成功落下来，你可以立刻再试一次。"}
+          />
+        ) : null}
 
         {thread.episodes.length > 0 ? (
           <div className="grid gap-4">
@@ -116,9 +156,21 @@ export default async function AdventureThreadPage({
           </div>
         ) : (
           <StateCard
-            eyebrow="等待第一段"
-            title="这段同行还没有真正落下第一篇"
-            description="故事已经留出了入口，接下来只差第一位走进去的人，把它推进到能被别人读见的那一步。"
+            eyebrow={isGenerating ? "生成中" : hasFailedGeneration ? "等待重试" : "等待第一段"}
+            title={
+              isGenerating
+                ? "第一篇同行正在路上"
+                : hasFailedGeneration
+                  ? "第一篇同行暂时没有生成成功"
+                  : "这段同行还没有真正落下第一篇"
+            }
+            description={
+              isGenerating
+                ? "故事已经入队，正在把第一位参与者写下的这一段慢慢生成出来。"
+                : hasFailedGeneration
+                  ? "这段故事已经留出了入口，只差重新触发一次，让它从这里继续往前走。"
+                  : "故事已经留出了入口，接下来只差第一位走进去的人，把它推进到能被别人读见的那一步。"
+            }
           />
         )}
       </div>

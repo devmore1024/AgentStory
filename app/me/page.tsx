@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { PersonaCard } from "@/components/persona-card";
 import { StateCard } from "@/components/state-card";
+import { StoryFootprintTabs } from "@/components/story-footprint-tabs";
 import {
   getAdventureThreads,
   getAuthenticatedAppContext,
@@ -132,53 +133,12 @@ export default async function MePage({
             }
           />
 
-          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">我的足迹</p>
-            <div className="mt-4 grid gap-3">
-              <div className="rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">我走进过的故事</p>
-                <p className="mt-2 text-3xl font-semibold text-[var(--accent-moss)]">{stats.ownedAdventureCount}</p>
-              </div>
-              <div className="rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">我同行过的童话</p>
-                <p className="mt-2 text-3xl font-semibold text-[var(--sky)]">{stats.joinedAdventureCount}</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">同行概览</p>
-            <div className="mt-4 grid gap-4">
-              <div className="rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">我先走进去的童话</p>
-                {ownedThreads.length > 0 ? (
-                  <div className="mt-3 space-y-3">
-                    {ownedThreads.map((thread) => (
-                      <Link key={thread.id} href={`/adventure/${thread.id}`} className="block text-sm leading-6 text-[var(--text-secondary)]">
-                        {thread.title}
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">你还没有先走进去过任何一则童话。</p>
-                )}
-              </div>
-              <div className="rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">我加入过的同行</p>
-                {joinedThreads.length > 0 ? (
-                  <div className="mt-3 space-y-3">
-                    {joinedThreads.map((thread) => (
-                      <Link key={thread.id} href={`/adventure/${thread.id}`} className="block text-sm leading-6 text-[var(--text-secondary)]">
-                        {thread.title}
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">你还没有加入过别人的同行故事。</p>
-                )}
-              </div>
-            </div>
-          </section>
+          <StoryFootprintTabs
+            ownedCount={stats.ownedAdventureCount}
+            joinedCount={stats.joinedAdventureCount}
+            ownedItems={ownedThreads.map((thread) => ({ id: thread.id, title: thread.title }))}
+            joinedItems={joinedThreads.map((thread) => ({ id: thread.id, title: thread.title }))}
+          />
 
           <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">分享资产</p>

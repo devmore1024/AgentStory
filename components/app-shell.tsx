@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { getAuthSession, isAuthSessionExpired } from "@/lib/auth";
 import { getCurrentViewerContext } from "@/lib/current-user";
 
@@ -93,6 +94,7 @@ export async function AppShell({ activeTab, children }: AppShellProps) {
         </header>
 
         <main className="flex-1">{children}</main>
+        <SiteFooter />
       </div>
 
       <BottomNav activeTab={activeTab} />

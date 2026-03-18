@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { BookCover } from "@/components/book-cover";
@@ -18,6 +19,7 @@ const HOME_COPY = {
   reunionBody: "当你回到故事里继续冒险，童话里那些曾经只存在于书页上的人，会第一次认真看向现在的你。",
   companionBody: "当这段冒险走到值得邀请别人的地方，你可以把当前节点公开成一条新的同行故事。",
   previewAction: "去看这段冒险",
+  previewFallbackAction: "去开启这段冒险",
   shelfDescription: "这些故事先替你保留在月光和书页之间。挑一本，让分身带着长大后的你回到故事里继续冒险，看看童话会不会因此变得更真一点。"
 } as const;
 
@@ -42,6 +44,10 @@ export default async function HomePage() {
         excerpt: HOME_COPY.previewFallback.excerpt,
         statusLabel: HOME_COPY.previewFallback.statusLabel
       };
+  const previewHref = latestEpisode
+    ? (`/memory/${previewEpisode.bookSlug}` as Route)
+    : (`/books/${previewEpisode.bookSlug}/enter` as Route);
+  const previewActionLabel = latestEpisode ? HOME_COPY.previewAction : HOME_COPY.previewFallbackAction;
   const homepageFairyBooks = fairyShelf?.books.slice(0, 100) ?? [];
 
   return (
@@ -96,10 +102,10 @@ export default async function HomePage() {
               </div>
               <div className="mt-5">
                 <Link
-                  href={previewEpisode.bookSlug ? `/memory/${previewEpisode.bookSlug}` : "/memory"}
+                  href={previewHref}
                   className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)] transition hover:border-[var(--accent-moss)] hover:text-[var(--accent-moss)]"
                 >
-                  {HOME_COPY.previewAction}
+                  {previewActionLabel}
                 </Link>
               </div>
             </div>

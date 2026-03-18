@@ -43,7 +43,7 @@ export default async function EnterStoryPage({
             {currentContext
               ? personalLine
                 ? `你已经在这本童话里留下一条只属于自己的冒险线了。接下来点击后，会直接回到这本书今天的故事位置，继续往前冒险。`
-                : `系统会根据你当前的动物人格“${currentContext.persona.animalName}”写下这本童话的第一段 personal 冒险线。`
+                : `系统会根据你当前的动物人格“${currentContext.persona.animalName}”写下这本童话的第一段冒险线。`
               : "登录 SecondMe 后，系统才会生成你的分身，并按你的视角把你带回真正属于你的童话里。"}
           </p>
 
