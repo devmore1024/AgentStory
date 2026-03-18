@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { AUTH_SESSION_COOKIE, AUTH_STATE_COOKIE, serializeAuthSession } from "@/lib/auth";
+import {
+  AUTH_SESSION_COOKIE,
+  AUTH_STATE_COOKIE,
+  buildAuthCookieOptions,
+  buildExpiredAuthCookieOptions,
+  serializeAuthSession
+} from "@/lib/auth";
 import { syncAuthenticatedViewerFromSecondMeData } from "@/lib/secondme-story-context";
 import {
   exchangeSecondMeCode,
@@ -55,22 +61,10 @@ export async function GET(request: Request) {
         displayName: userInfo.name,
         avatar: userInfo.avatar ?? null
       }),
-      {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: tokenData.expiresIn
-      }
+      buildAuthCookieOptions(url.toString())
     );
 
-    response.cookies.set(AUTH_STATE_COOKIE, "", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 0
-    });
+    response.cookies.set(AUTH_STATE_COOKIE, "", buildExpiredAuthCookieOptions(url.toString()));
 
     return response;
   } catch {

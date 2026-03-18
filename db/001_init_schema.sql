@@ -73,7 +73,21 @@ CREATE TABLE story_books (
 CREATE TABLE story_styles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   key TEXT NOT NULL UNIQUE CHECK (
-    key IN ('fairy', 'fable', 'epic', 'dark', 'zhihu', 'pain', 'light_web', 'suspense')
+    key IN (
+      'fairy',
+      'fable',
+      'epic',
+      'dark',
+      'zhihu',
+      'pain',
+      'light_web',
+      'suspense',
+      'healing_daily',
+      'black_humor',
+      'folklore',
+      'growth',
+      'lyrical'
+    )
   ),
   name TEXT NOT NULL,
   description TEXT,
@@ -215,8 +229,36 @@ CREATE TABLE ai_comments (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE zhihu_story_references (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  story_book_id UUID NOT NULL REFERENCES story_books(id) ON DELETE CASCADE,
+  query_keyword TEXT NOT NULL,
+  source_url TEXT NOT NULL UNIQUE,
+  source_type TEXT NOT NULL CHECK (source_type IN ('answer', 'article')),
+  title TEXT NOT NULL,
+  author_name TEXT,
+  author_headline TEXT,
+  author_url TEXT,
+  authority_level INTEGER,
+  excerpt TEXT,
+  content TEXT NOT NULL,
+  quality_score INTEGER NOT NULL DEFAULT 0,
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_verified_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX idx_story_books_category_active
   ON story_books (category_id, is_active, created_at DESC);
+
+CREATE INDEX idx_zhihu_story_references_book_quality
+  ON zhihu_story_references (story_book_id, is_active, quality_score DESC, fetched_at DESC);
+
+CREATE TRIGGER set_updated_at_zhihu_story_references
+BEFORE UPDATE ON zhihu_story_references
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE INDEX idx_generation_jobs_status_run_at
   ON generation_jobs (status, run_at);

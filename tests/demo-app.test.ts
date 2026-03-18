@@ -1,4 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/db", () => ({
+  sql: vi.fn()
+}));
+
+vi.mock("@/lib/current-user", () => ({
+  getCurrentViewerContext: vi.fn()
+}));
+
 import { filterPrimaryEntryViewsToFairy } from "@/lib/demo-app";
 
 describe("demo-app primary entry filters", () => {

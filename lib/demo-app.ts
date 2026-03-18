@@ -9,8 +9,10 @@ import {
   getStyleKeyFromId,
   getStyleName,
   normalizeStoryContentLength,
-  pickRandomShortStoryStyleKey,
-  pickThreadPrimaryStyleKey,
+  pickPersistableShortStoryStyleKey,
+  pickPersistableThreadPrimaryStyleKey,
+  resolvePersistableStyleKey,
+  stripStyleDisplayTitleAffixes,
   type StoryStyleKey
 } from "@/lib/story-style";
 
@@ -179,10 +181,7 @@ function toJson(value: unknown) {
 }
 
 function sanitizeDisplayTitle(title: string) {
-  return title
-    .replace(/^(童话风|寓言风|神话史诗风|暗黑风|知乎风|伤痛文学风|轻喜剧网感风|悬疑风)里的/, "")
-    .replace(/的(童话风|寓言风|神话史诗风|暗黑风|知乎风|伤痛文学风|轻喜剧网感风|悬疑风)$/, "")
-    .trim();
+  return stripStyleDisplayTitleAffixes(title);
 }
 
 function getGenerationLabel(status: "queued" | "running" | "succeeded" | "failed" | null) {
@@ -203,14 +202,14 @@ function getGenerationLabel(status: "queued" | "running" | "succeeded" | "failed
 
 function getCommentStyleKey(book: StoryBook): StoryStyleKey {
   if (book.categoryKey === "mythology") {
-    return "zhihu";
+    return "folklore";
   }
 
   if (book.categoryKey === "fable") {
-    return "light_web";
+    return "black_humor";
   }
 
-  return "zhihu";
+  return "light_web";
 }
 
 export function filterPrimaryEntryViewsToFairy<
@@ -230,7 +229,12 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
     zhihu: `如果把《${book.title}》当成一个已经写好的局面来看，问题从来不只是“接下来会发生什么”，而是“为什么所有人都默认只能这么发生”。我就是在这里开口的。`,
     pain: `《${book.title}》真正刺人的地方，从来不是那一幕结局，而是所有人明明来得及，却还是慢了一点。我走进去时，先碰到的正是这种来不及。`,
     light_web: `故事本来准备按老剧本往下滑，可我偏偏在《${book.title}》最该沉默的时候插了一句嘴。场面没有立刻翻车，反而一下子变得更好玩了。`,
-    suspense: `《${book.title}》的表面看起来照旧推进，可我很快发现，真正值得在意的并不是眼前这一幕，而是每个人都默契跳过的那个细节。`
+    suspense: `《${book.title}》的表面看起来照旧推进，可我很快发现，真正值得在意的并不是眼前这一幕，而是每个人都默契跳过的那个细节。`,
+    healing_daily: `我走进《${book.title}》时，没有先去改命，只先坐在故事最普通的那一角，看一餐饭、一段路和一句没说完的话，怎样慢慢把人心重新暖起来。`,
+    black_humor: `《${book.title}》里最荒诞的事，往往不是谁忽然发疯，而是每个人都一本正经地维护着那套明明已经快散架的秩序。我就在这种时刻开了口。`,
+    folklore: `走进《${book.title}》时，我先听见的不是人物说话，而是旧规矩在夜里发出的回声。谁该避、谁该等、谁不该回头，这些话比剧情更早抵达我。`,
+    growth: `《${book.title}》真正吸引我的，不只是它会发生什么，而是如果我真的走进去，自己会不会也被迫学会一点新的勇气。故事就是从这一步开始偏航的。`,
+    lyrical: `我踏进《${book.title}》时，先碰到的是风、光和一句差点散掉的话。很多变化都还没被说出来，但它们已经在空气里慢慢改了方向。`
   };
 
   const middleByStyle: Record<StoryStyleKey, string> = {
@@ -241,7 +245,12 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
     zhihu: `它没有直接替角色做判断，而是先把局势拆开：谁在自欺，谁在顺水推舟，谁又只是太习惯接受旧结论。故事因此开始出现新的转向。`,
     pain: `它没有挽回所有事情，只是在最容易错过的地方让角色稍微停了一下。于是那种本该直接滑向遗憾的情绪，第一次有了一点可以回头的缝隙。`,
     light_web: `它没有抢主角戏份，只是精准地把最该说的一句话塞进了现场。于是原本会直直撞向旧结局的情节，突然拐出了一个更鲜活的方向。`,
-    suspense: `它没有先讲答案，而是顺着不对劲的地方往回摸。越往里走，越能感觉到这个故事真正被改写的地方，也许从来都不是表面那场冲突。`
+    suspense: `它没有先讲答案，而是顺着不对劲的地方往回摸。越往里走，越能感觉到这个故事真正被改写的地方，也许从来都不是表面那场冲突。`,
+    healing_daily: `我没有急着让事情翻天覆地，而是把一次靠近、一句解释和一点愿意多停留的耐心放进了故事里。于是原本僵住的关系，开始自己慢慢松开。`,
+    black_humor: `最妙的不是我突然改变了什么，而是角色们越想把局面解释圆，越暴露出整件事本来就站不住脚。故事就是在这种一本正经的荒诞里掉了个头。`,
+    folklore: `我没有先问结局，而是先问那些传了很多年的说法到底把谁困住了。等旧禁忌和新犹豫彼此碰上，故事里的暗线也就自己浮了出来。`,
+    growth: `我没有替角色抢答，只是在关键的那一步陪他们一起多走了一点。也正是这多出来的一点，让《${book.title}》不再只是一场冒险，而像一次真正的长大。`,
+    lyrical: `故事没有急着喊出答案，只让画面一层层叠上来：目光停住、脚步放慢、旧情绪在光里重新显形。等这些东西靠近了，改写也就自然发生了。`
   };
 
   const endingByStyle: Record<StoryStyleKey, string> = {
@@ -252,7 +261,12 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
     zhihu: `最后真正被改变的，未必只是剧情本身，而是角色看待自己处境的方式。问题一旦被问对，旧故事就很难再原封不动地继续下去。`,
     pain: `最后仍然有一些东西没能挽回，但这一次，故事里终于有人真正看见了那份遗憾。那一点迟来的看见，本身就已经改写了结局的质地。`,
     light_web: `最后大家可能都没空认真总结发生了什么，但谁都知道，今天这版《${book.title}》已经比原版更像一次活生生的相遇。`,
-    suspense: `故事停下来的地方，并不是答案落地的时候，而是新的疑点刚刚浮起来的那一刻。也正因为这样，这个版本才更让人忍不住继续追下去。`
+    suspense: `故事停下来的地方，并不是答案落地的时候，而是新的疑点刚刚浮起来的那一刻。也正因为这样，这个版本才更让人忍不住继续追下去。`,
+    healing_daily: `最后真正留下来的，不是惊险，而是那点重新变得愿意靠近彼此的日常温度。故事被改写之后，也像被轻轻安放回了更柔软的位置。`,
+    black_humor: `到最后，真正被拆开的也许不是剧情，而是那套每个人都假装深信不疑的解释。等壳一碎，故事反倒显得比原来更诚实。`,
+    folklore: `最后故事没有把一切说透，只留下旧风俗仍在、夜色还没散，而我已经知道那条更古老的暗线被轻轻改写了一点。`,
+    growth: `等这一段走完，真正变了的未必只是结局，还有“我”看待自己和世界的方式。故事因此没有停在漂亮收束上，而是像真的把人往前推了一步。`,
+    lyrical: `等故事真正收束时，很多话仍然没有被大声说出来，但它们已经在回声里换了形状。我带走的，不是结论，而是一种被轻轻照亮后的余韵。`
   };
 
   return {
@@ -275,7 +289,12 @@ function buildEpisode(book: StoryBook, persona: AnimalPersona, episodeNo: number
     zhihu: `同一条观察线继续推进，到了《${book.title}》，我先拆开的是这个世界默认成立的那套逻辑。`,
     pain: `上一章留下的情绪余波没有退去，它在《${book.title}》里变成了另一种更安静的刺痛。`,
     light_web: `我延续同一种轻快节奏，一脚踏进《${book.title}》，把旧故事重新带活了。`,
-    suspense: `真正的问题没有结束，只是换了一个故事壳。到了《${book.title}》，线索又往前露出了一截。`
+    suspense: `真正的问题没有结束，只是换了一个故事壳。到了《${book.title}》，线索又往前露出了一截。`,
+    healing_daily: `我把同一种温柔慢慢带进《${book.title}》，让新的故事也从一顿饭、一次陪伴和一次重新说话开始松动。`,
+    black_humor: `同一股冷面幽默继续推进，到了《${book.title}》，我先看见的还是那些一本正经却摇摇欲坠的解释。`,
+    folklore: `夜色和旧规矩一起延续到了《${book.title}》。这一章里，我先听见的是传闻，比剧情先一步开口。`,
+    growth: `同一条成长线继续往前走，到了《${book.title}》，我先面对的是这一次必须跨过去的那一步。`,
+    lyrical: `同一种回声感继续落在《${book.title}》里，这一章里，我先听见风和光替故事说了第一句旁白。`
   };
   const contentByStyle: Record<StoryStyleKey, string> = {
     fairy: `${bridge}\n\n当故事走到《${book.title}》时，${persona.animalName}没有急着改变谁，而是先让角色意识到，他们其实不一定只能照着原剧情行动。于是新的一章像翻开一页新绘本那样展开了。`,
@@ -285,7 +304,12 @@ function buildEpisode(book: StoryBook, persona: AnimalPersona, episodeNo: number
     zhihu: `${bridge}\n\n到了《${book.title}》，我还是先看结构：谁掌握话语，谁被推着走，谁其实从一开始就在配合旧秩序。等这些关系被看清，故事才真正开始改写。`,
     pain: `${bridge}\n\n《${book.title}》这一章没有急着制造大起大落，它只是把上一章留下的情绪继续往角色心里压了一寸。也正是这多出来的一寸，让所有错过都变得更可见。`,
     light_web: `${bridge}\n\n《${book.title}》这次没有端着老故事的架子，而是被我拽回了更鲜活的现场。我一句话、一转身，就把本来要直着冲向旧结局的情节拐开了。`,
-    suspense: `${bridge}\n\n《${book.title}》这一章表面上像是新的开始，但我知道，真正重要的仍是上一章留下的那个疑点。我顺着不对劲继续往里摸，新的裂口也就跟着露了出来。`
+    suspense: `${bridge}\n\n《${book.title}》这一章表面上像是新的开始，但我知道，真正重要的仍是上一章留下的那个疑点。我顺着不对劲继续往里摸，新的裂口也就跟着露了出来。`,
+    healing_daily: `${bridge}\n\n到了《${book.title}》，我没有急着制造戏剧性，而是先把关系里真正卡住的地方慢慢捋开。等一次陪伴、一句坦白和一点重新愿意靠近发生，故事才像被温柔地重新放回正位。`,
+    black_humor: `${bridge}\n\n《${book.title}》这一章里，最有意思的并不是谁突然聪明起来，而是每个人越想把局面讲圆，越把荒诞暴露得更清楚。我就在这种裂缝里把故事轻轻掰向了另一边。`,
+    folklore: `${bridge}\n\n到了《${book.title}》，我先问的不是“接下来怎么办”，而是“这里的人一直把什么当成不能碰的规矩”。当旧说法和新犹豫碰上，故事里的暗线也开始自己发声。`,
+    growth: `${bridge}\n\n《${book.title}》这一章真正重要的，是有人终于愿意往前迈出那一步。我没有替他们做决定，只是在最该犹豫的地方陪着多走了一点，于是故事和人一起都长出了新的方向。`,
+    lyrical: `${bridge}\n\n《${book.title}》这一章没有急着追着答案跑，而是先让回声、目光和停顿把情绪慢慢推近。等这一层层水波落稳，故事改写的方向也就自然显出来了。`
   };
 
   return {
@@ -491,12 +515,14 @@ async function ensureSerialDataForContext(context: AppUserContext, seedSource: "
   }
 
   const styleIds = await getStyleIds();
-  const threadStyleKey = pickThreadPrimaryStyleKey({
-    userId: context.userId,
-    persona: context.persona,
-    seedBook: redBook
-  });
-  const primaryStyleId = styleIds.get(threadStyleKey) ?? null;
+  const threadStyleKey =
+    pickPersistableThreadPrimaryStyleKey({
+      userId: context.userId,
+      persona: context.persona,
+      seedBook: redBook,
+      styleIds
+    }) ?? "fairy";
+  const primaryStyleId = threadStyleKey ? styleIds.get(threadStyleKey) ?? null : null;
 
   const { rows: threadRows } = await sql<IdRow>(
     `
@@ -607,7 +633,7 @@ async function ensureSerialDataForContext(context: AppUserContext, seedSource: "
       feedStoryId,
       context.userId,
       context.animalProfileId,
-      styleIds.get(getCommentStyleKey(plan.book)) ?? null,
+      styleIds.get(resolvePersistableStyleKey(styleIds, [getCommentStyleKey(plan.book), "light_web", "fairy"]) ?? "fairy") ?? null,
       buildComment(plan.book.title, context.persona)
     );
   }
@@ -768,12 +794,21 @@ async function ensureSerialProgress(context: AppUserContext, force = false) {
 
   const threadStyleKey =
     getStyleKeyFromId(styleIds, thread.primary_style_id) ??
-    pickThreadPrimaryStyleKey({
+    pickPersistableThreadPrimaryStyleKey({
       userId: context.userId,
       persona: context.persona,
-      seedBook: nextBook
+      seedBook: nextBook,
+      styleIds
     });
-  const styleKey = threadStyleKey;
+  const styleKey =
+    (threadStyleKey ? resolvePersistableStyleKey(styleIds, [threadStyleKey]) : null) ??
+    pickPersistableThreadPrimaryStyleKey({
+      userId: context.userId,
+      persona: context.persona,
+      seedBook: nextBook,
+      styleIds
+    }) ??
+    "fairy";
   const styleId = styleIds.get(styleKey) ?? null;
   if (!thread.primary_style_id || thread.primary_style_id !== styleId) {
     await sql(
@@ -872,7 +907,8 @@ async function ensureSerialProgress(context: AppUserContext, force = false) {
     styleId
   });
 
-  const commentStyleId = styleIds.get(getCommentStyleKey(nextBook)) ?? null;
+  const commentStyleKey = resolvePersistableStyleKey(styleIds, [getCommentStyleKey(nextBook), "light_web", "fairy"]) ?? "fairy";
+  const commentStyleId = styleIds.get(commentStyleKey) ?? null;
   await ensureFeedStoryComment(
     feedStoryId,
     context.userId,
@@ -1022,7 +1058,13 @@ export async function createShortStoryForBookSlug(slug: string) {
   }
 
   const styleIds = await getStyleIds();
-  const styleKey = pickRandomShortStoryStyleKey(book, context.persona, context.userId);
+  const styleKey =
+    pickPersistableShortStoryStyleKey({
+      book,
+      persona: context.persona,
+      seedText: context.userId,
+      styleIds
+    }) ?? "fairy";
   const styleId = styleIds.get(styleKey) ?? null;
   const triggerScene =
     book.keyScenes[0] ??
@@ -1138,7 +1180,7 @@ export async function createShortStoryForBookSlug(slug: string) {
     feedStoryId,
     context.userId,
     context.animalProfileId,
-    styleIds.get(getCommentStyleKey(book)) ?? null,
+    styleIds.get(resolvePersistableStyleKey(styleIds, [getCommentStyleKey(book), "light_web", "fairy"]) ?? "fairy") ?? null,
     commentContent
   );
 

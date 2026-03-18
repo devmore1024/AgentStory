@@ -1,4 +1,4 @@
-import { getAuthSession, isAuthSessionExpired } from "@/lib/auth";
+import { getAuthSession } from "@/lib/auth";
 import { upsertAuthenticatedViewer } from "@/lib/current-user";
 import { isMissingRelationError, sql } from "@/lib/db";
 import { mapSecondMeProfileToPersona } from "@/lib/persona-mapper";
@@ -332,7 +332,7 @@ async function fetchLiveSecondMeStoryContext(accessToken: string) {
 export async function getCachedSecondMeStoryContext() {
   const session = await getAuthSession();
 
-  if (!session || isAuthSessionExpired(session)) {
+  if (!session) {
     return null;
   }
 

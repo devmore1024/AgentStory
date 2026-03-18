@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-03-18T22:14:07.799Z",
+  "dryRun": true,
+  "searchUrl": "https://openapi.zhihu.com/openapi/search/global",
+  "bookCount": 1,
+  "books": [
+    {
+      "slug": "fairy-little-red-riding-hood",
+      "title": "小红帽",
+      "selectedCount": 0,
+      "selectedReferences": [],
+      "previews": [
+        {
+          "queryKeyword": "小红帽",
+          "sourceUrl": "",
+          "title": "SEARCH_FAILED: Zhihu search failed for \"小红帽\": 401 {\"error\":{\"code\":101,\"name\":\"AuthenticationError\",\"message\":\"token not exist\"}}",
+          "sourceType": "answer",
+          "authorityLevel": null,
+          "qualityScore": 0,
+          "hasContent": false
+        },
+        {
+          "queryKeyword": "Little Red Riding-Hood",
+          "sourceUrl": "",
+          "title": "SEARCH_FAILED: Zhihu search failed for \"Little Red Riding-Hood\": 401 {\"error\":{\"code\":101,\"name\":\"AuthenticationError\",\"message\":\"token not exist\"}}",
+          "sourceType": "answer",
+          "authorityLevel": null,
+          "qualityScore": 0,
+          "hasContent": false
+        },
+        {
+          "queryKeyword": "little red riding hood",
+          "sourceUrl": "",
+          "title": "SEARCH_FAILED: Zhihu search failed for \"little red riding hood\": 401 {\"error\":{\"code\":101,\"name\":\"AuthenticationError\",\"message\":\"token not exist\"}}",
+          "sourceType": "answer",
+          "authorityLevel": null,
+          "qualityScore": 0,
+          "hasContent": false
+        }
+      ]
+    }
+  ]
+}

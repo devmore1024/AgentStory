@@ -85,7 +85,7 @@ export const animalPersonas: Record<AnimalPersona["animalType"], Omit<AnimalPers
     tendencies: ["观察局势", "判断时机", "善于转圜"],
     values: ["清醒", "灵活", "不盲从"],
     recommendedCategories: ["寓言", "童话"],
-    recommendedStyles: ["知乎风", "寓言风", "轻喜剧网感风"],
+    recommendedStyles: ["黑色幽默风", "寓言风", "轻喜剧网感风"],
     dimensionScores: {
       warmth: 62,
       action: 58,
@@ -110,7 +110,7 @@ export const animalPersonas: Record<AnimalPersona["animalType"], Omit<AnimalPers
     tendencies: ["分析", "洞察", "追问本质"],
     values: ["理解力", "逻辑", "克制"],
     recommendedCategories: ["寓言", "神话"],
-    recommendedStyles: ["知乎风", "寓言风", "悬疑风"],
+    recommendedStyles: ["寓言风", "民俗怪谈风", "悬疑风"],
     dimensionScores: {
       warmth: 48,
       action: 40,
@@ -160,7 +160,7 @@ export const animalPersonas: Record<AnimalPersona["animalType"], Omit<AnimalPers
     tendencies: ["按自己节奏", "直觉判断", "保持边界"],
     values: ["自我感", "审美", "自由"],
     recommendedCategories: ["童话", "寓言"],
-    recommendedStyles: ["轻喜剧网感风", "知乎风", "童话风"],
+    recommendedStyles: ["轻喜剧网感风", "诗性抒情风", "童话风"],
     dimensionScores: {
       warmth: 56,
       action: 55,
@@ -210,7 +210,7 @@ export const animalPersonas: Record<AnimalPersona["animalType"], Omit<AnimalPers
     tendencies: ["反思", "看见代价", "保持距离"],
     values: ["洞察", "清醒", "黑色幽默"],
     recommendedCategories: ["寓言", "神话"],
-    recommendedStyles: ["暗黑风", "知乎风", "悬疑风"],
+    recommendedStyles: ["暗黑风", "黑色幽默风", "悬疑风"],
     dimensionScores: {
       warmth: 38,
       action: 52,

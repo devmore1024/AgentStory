@@ -11,10 +11,13 @@ import {
   getStyleKeyFromId,
   getStyleName,
   normalizeStoryContentLength,
-  pickThreadPrimaryStyleKey,
+  pickPersistableThreadPrimaryStyleKey,
+  resolvePersistableStyleKey,
+  stripStyleDisplayTitleAffixes,
   type StoryStyleKey
 } from "@/lib/story-style";
 import { getBookBySlug, type StoryBook } from "@/lib/story-data";
+import { persistZhihuThreadMeta, resolveZhihuReferencePack } from "@/lib/zhihu-references";
 import {
   EPISODE_GENERATION_TIMEOUT_MINUTES,
   getAdventureActionState,
@@ -191,6 +194,7 @@ type AdventureThreadRow = {
   locked_style_id: string | null;
   origin_personal_thread_id: string | null;
   origin_episode_id: string | null;
+  meta?: unknown;
 };
 
 type AdventureEpisodeRow = {
@@ -283,10 +287,7 @@ function isUuid(value: string) {
 }
 
 function sanitizeDisplayTitle(title: string) {
-  return title
-    .replace(/^(童话风|寓言风|神话史诗风|暗黑风|知乎风|伤痛文学风|轻喜剧网感风|悬疑风)里的/, "")
-    .replace(/的(童话风|寓言风|神话史诗风|暗黑风|知乎风|伤痛文学风|轻喜剧网感风|悬疑风)$/, "")
-    .trim();
+  return stripStyleDisplayTitleAffixes(title);
 }
 
 function getGenerationLabel(status: "queued" | "running" | "succeeded" | "failed" | null) {
@@ -798,7 +799,8 @@ async function getAdventureThreadRow(threadId: string, currentUserId: string | n
         t.source_book_id,
         t.locked_style_id,
         t.origin_personal_thread_id,
-        t.origin_episode_id
+        t.origin_episode_id,
+        t.meta
       FROM story_threads t
       JOIN users owner ON owner.id = t.owner_user_id
       LEFT JOIN story_books sb ON sb.id = t.source_book_id
@@ -865,7 +867,8 @@ async function getPersonalThreadRowBySlug(slug: string, currentUserId: string | 
         t.source_book_id,
         t.locked_style_id,
         t.origin_personal_thread_id,
-        t.origin_episode_id
+        t.origin_episode_id,
+        t.meta
       FROM story_threads t
       JOIN users owner ON owner.id = t.owner_user_id
       JOIN story_books sb ON sb.id = t.source_book_id
@@ -934,7 +937,8 @@ async function getPersonalThreadRowById(threadId: string, currentUserId: string 
         t.source_book_id,
         t.locked_style_id,
         t.origin_personal_thread_id,
-        t.origin_episode_id
+        t.origin_episode_id,
+        t.meta
       FROM story_threads t
       JOIN users owner ON owner.id = t.owner_user_id
       JOIN story_books sb ON sb.id = t.source_book_id
@@ -1234,6 +1238,19 @@ export async function processQueuedAdventureGenerationJobs(options?: {
         }
 
         const previousEpisode = await getLatestAdventureSeed(payload.threadId);
+        const zhihuReferencePack =
+          payload.styleKey === "zhihu"
+            ? await resolveZhihuReferencePack({
+                book,
+                threadSeed: payload.threadId,
+                threadMeta: threadRow.meta
+              })
+            : null;
+
+        if (zhihuReferencePack?.metaPatch) {
+          await persistZhihuThreadMeta(payload.threadId, zhihuReferencePack.metaPatch);
+        }
+
         const episode = await generatePersonalEpisodeWithLlm({
           book,
           persona: triggerContext.context.persona,
@@ -1243,7 +1260,8 @@ export async function processQueuedAdventureGenerationJobs(options?: {
           threadTitle: threadRow.title,
           previousEpisodeTitle: previousEpisode?.title ?? null,
           previousEpisodeExcerpt: previousEpisode?.excerpt ?? null,
-          authorDisplayName: triggerContext.context.displayName
+          authorDisplayName: triggerContext.context.displayName,
+          zhihuReferencePack
         });
 
         await publishQueuedAdventureEpisode({
@@ -1284,6 +1302,19 @@ export async function processQueuedAdventureGenerationJobs(options?: {
             ? await getAdventureSeedByEpisodeId(threadRow.origin_episode_id)
             : await getLatestAdventureSeed(payload.threadId);
         const participantCount = threadRow.participant_count ?? 1;
+        const zhihuReferencePack =
+          payload.styleKey === "zhihu"
+            ? await resolveZhihuReferencePack({
+                book,
+                threadSeed: payload.threadId,
+                threadMeta: threadRow.meta
+              })
+            : null;
+
+        if (zhihuReferencePack?.metaPatch) {
+          await persistZhihuThreadMeta(payload.threadId, zhihuReferencePack.metaPatch);
+        }
+
         const episode = await generateAdventureEpisodeWithLlm({
           book,
           persona: triggerContext.context.persona,
@@ -1294,7 +1325,8 @@ export async function processQueuedAdventureGenerationJobs(options?: {
           previousEpisodeTitle: previousEpisode?.title ?? null,
           previousEpisodeExcerpt: previousEpisode?.excerpt ?? null,
           authorDisplayName: triggerContext.context.displayName,
-          participantCount
+          participantCount,
+          zhihuReferencePack
         });
 
         await publishQueuedAdventureEpisode({
@@ -1380,12 +1412,21 @@ async function ensurePersonalThreadEpisode(params: {
   const lockedStyleKey =
     params.thread.locked_style_key ??
     getStyleKeyFromId(styleIds, params.thread.locked_style_id) ??
-    pickThreadPrimaryStyleKey({
+    pickPersistableThreadPrimaryStyleKey({
       userId: params.context.userId,
       persona: params.context.persona,
-      seedBook: book
+      seedBook: book,
+      styleIds
     });
-  const styleId = styleIds.get(lockedStyleKey) ?? params.thread.locked_style_id;
+  const persistedStyleKey =
+    (lockedStyleKey ? resolvePersistableStyleKey(styleIds, [lockedStyleKey]) : null) ??
+    pickPersistableThreadPrimaryStyleKey({
+      userId: params.context.userId,
+      persona: params.context.persona,
+      seedBook: book,
+      styleIds
+    });
+  const styleId = (persistedStyleKey ? styleIds.get(persistedStyleKey) : null) ?? params.thread.locked_style_id;
 
   if (!params.thread.locked_style_id && styleId) {
     await sql(
@@ -1424,7 +1465,7 @@ async function ensurePersonalThreadEpisode(params: {
     bookId: params.thread.source_book_id,
     book,
     styleId,
-    styleKey: lockedStyleKey,
+    styleKey: persistedStyleKey ?? "fairy",
     episodeNo: queuePlan.episodeNo,
     mode: queuePlan.mode,
     existingEpisodeId: queuePlan.reuseLatestEpisodeId
@@ -1805,7 +1846,8 @@ export async function getPersonalLineBooks() {
         t.source_book_id,
         t.locked_style_id,
         t.origin_personal_thread_id,
-        t.origin_episode_id
+        t.origin_episode_id,
+        t.meta
       FROM story_threads t
       JOIN users owner ON owner.id = t.owner_user_id
       JOIN story_books sb ON sb.id = t.source_book_id
@@ -1885,7 +1927,8 @@ export async function getAdventureThreads() {
         t.source_book_id,
         t.locked_style_id,
         t.origin_personal_thread_id,
-        t.origin_episode_id
+        t.origin_episode_id,
+        t.meta
       FROM story_threads t
       JOIN users owner ON owner.id = t.owner_user_id
       LEFT JOIN story_books sb ON sb.id = t.source_book_id
@@ -2031,12 +2074,13 @@ export async function startOrOpenPersonalLine(slug: string) {
 
   if (!thread) {
     const styleIds = await getStyleIds();
-    const styleKey = pickThreadPrimaryStyleKey({
+    const styleKey = pickPersistableThreadPrimaryStyleKey({
       userId: context.userId,
       persona: context.persona,
-      seedBook: book
+      seedBook: book,
+      styleIds
     });
-    const styleId = styleIds.get(styleKey) ?? null;
+    const styleId = styleKey ? styleIds.get(styleKey) ?? null : null;
     const { rows: threadRows } = await sql<IdRow>(
       `
         INSERT INTO story_threads (
@@ -2185,12 +2229,21 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
   const lockedStyleKey =
     origin.locked_style_key ??
     getStyleKeyFromId(styleIds, origin.locked_style_id) ??
-    pickThreadPrimaryStyleKey({
+    pickPersistableThreadPrimaryStyleKey({
       userId: context.userId,
       persona: context.persona,
-      seedBook: book
+      seedBook: book,
+      styleIds
     });
-  const styleId = styleIds.get(lockedStyleKey) ?? origin.locked_style_id;
+  const persistedStyleKey =
+    (lockedStyleKey ? resolvePersistableStyleKey(styleIds, [lockedStyleKey]) : null) ??
+    pickPersistableThreadPrimaryStyleKey({
+      userId: context.userId,
+      persona: context.persona,
+      seedBook: book,
+      styleIds
+    });
+  const styleId = (persistedStyleKey ? styleIds.get(persistedStyleKey) : null) ?? origin.locked_style_id;
   const threadTitle = buildAdventureThreadTitle(book, context.displayName);
   const { rows: threadRows } = await sql<IdRow>(
     `
@@ -2243,7 +2296,7 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
       context.userId,
       threadTitle,
       origin.source_book_id,
-      styleId,
+        styleId,
       origin.personal_thread_id,
       origin.origin_episode_id,
       toJson({
@@ -2361,12 +2414,21 @@ export async function continueAdventure(threadId: string) {
   const lockedStyleKey =
     thread.locked_style_key ??
     getStyleKeyFromId(styleIds, thread.locked_style_id) ??
-    pickThreadPrimaryStyleKey({
+    pickPersistableThreadPrimaryStyleKey({
       userId: thread.id,
       persona: context.persona,
-      seedBook: book
+      seedBook: book,
+      styleIds
     });
-  const styleId = styleIds.get(lockedStyleKey) ?? thread.locked_style_id;
+  const persistedStyleKey =
+    (lockedStyleKey ? resolvePersistableStyleKey(styleIds, [lockedStyleKey]) : null) ??
+    pickPersistableThreadPrimaryStyleKey({
+      userId: thread.id,
+      persona: context.persona,
+      seedBook: book,
+      styleIds
+    });
+  const styleId = (persistedStyleKey ? styleIds.get(persistedStyleKey) : null) ?? thread.locked_style_id;
 
   if (!thread.locked_style_id && styleId) {
     await sql(
@@ -2398,7 +2460,7 @@ export async function continueAdventure(threadId: string) {
       bookId: thread.source_book_id,
       book,
       styleId,
-      styleKey: lockedStyleKey,
+      styleKey: persistedStyleKey ?? "fairy",
       episodeNo: thread.latest_episode_no ?? nextEpisodeNo,
       mode: thread.latest_episode_no && thread.latest_episode_no <= 1 ? "companion_publish" : "adventure_continue",
       existingEpisodeId: thread.latest_episode_id,
@@ -2437,7 +2499,7 @@ export async function continueAdventure(threadId: string) {
     bookId: thread.source_book_id,
     book,
     styleId,
-    styleKey: lockedStyleKey,
+    styleKey: persistedStyleKey ?? "fairy",
     episodeNo: nextEpisodeNo,
     mode: "adventure_continue"
   });
@@ -2500,7 +2562,8 @@ export async function getMyCompanionThreads() {
         t.source_book_id,
         t.locked_style_id,
         t.origin_personal_thread_id,
-        t.origin_episode_id
+        t.origin_episode_id,
+        t.meta
       FROM story_threads t
       JOIN users owner ON owner.id = t.owner_user_id
       LEFT JOIN story_books sb ON sb.id = t.source_book_id

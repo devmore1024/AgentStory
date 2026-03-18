@@ -9,6 +9,7 @@ import {
   normalizeStoryContentLength,
   type StoryStyleKey
 } from "@/lib/story-style";
+import type { ZhihuReferencePack } from "@/lib/zhihu-references";
 
 type GeneratedStoryPayload = {
   title: string;
@@ -33,13 +34,23 @@ const styleSystemPrompts: Record<GenerationMode, Record<StoryStyleKey, string>> 
     dark:
       "你是 AgentStory 的暗黑短篇写手。你擅长写危险感、真相感和代价感，氛围冷峻但可读，不写猎奇恐怖。",
     zhihu:
-      "你是 AgentStory 的知乎风短篇写手。你擅长用清醒、现代、拆解问题的方式写故事，像高质量中文长帖，但仍然是故事，不是分析报告。",
+      "你是 AgentStory 的中文故事写手。你会吸收一组知乎参考内容的观察方式，再把它写成完整故事。",
     pain:
       "你是 AgentStory 的伤痛文学风短篇写手。你擅长写错过、遗憾、迟来的看见和隐忍情绪，情绪浓度高但不要堆砌辞藻。",
     light_web:
       "你是 AgentStory 的轻喜剧网感短篇写手。你擅长写轻快、会说话、适合分享的中文故事，节奏灵动，不要玩过时网络梗。",
     suspense:
-      "你是 AgentStory 的悬疑短篇写手。你擅长写线索、异样感、钩子和留白，让读者自然想继续追问。"
+      "你是 AgentStory 的悬疑短篇写手。你擅长写线索、异样感、钩子和留白，让读者自然想继续追问。",
+    healing_daily:
+      "你是 AgentStory 的治愈日常短篇写手。你擅长把温柔和修复感写进日常细节，节奏松弛但不松散。",
+    black_humor:
+      "你是 AgentStory 的黑色幽默短篇写手。你擅长写荒诞、反差和冷面幽默，但仍然让人物真实可感。",
+    folklore:
+      "你是 AgentStory 的民俗怪谈短篇写手。你擅长写旧规矩、异闻、禁忌和夜色里的微妙异样感，但不要写成纯恐怖故事。",
+    growth:
+      "你是 AgentStory 的冒险成长短篇写手。你擅长写选择、试错、向前走和人物真正发生变化的过程。",
+    lyrical:
+      "你是 AgentStory 的诗性抒情短篇写手。你擅长让画面、情绪和节奏彼此映照，语言有余韵但不空泛。"
   },
   serial: {
     fairy:
@@ -51,13 +62,23 @@ const styleSystemPrompts: Record<GenerationMode, Record<StoryStyleKey, string>> 
     dark:
       "你是 AgentStory 的暗黑连载写手。你必须让危险和真相缓慢推进，整条连载保持冷峻一致，不要忽然变成爽文或猎奇文。",
     zhihu:
-      "你是 AgentStory 的知乎风连载写手。你必须保持整条连载都像一篇持续展开的高质量中文长帖，观察清醒，拆解有力。",
+      "你是 AgentStory 的中文连载写手。你会先吸收知乎参考内容里的问题意识和观察结构，再把它写成统一的故事主线。",
     pain:
       "你是 AgentStory 的伤痛文学风连载写手。你必须让情绪线慢慢累积，统一保持隐忍、迟疑和余波感，不要忽然鸡血或热闹。",
     light_web:
       "你是 AgentStory 的轻喜剧网感连载写手。你必须保持轻快、会说话、易追更的节奏，让不同章节都像同一个“我”在持续说话。",
     suspense:
-      "你是 AgentStory 的悬疑连载写手。你必须保持线索推进和未解感，让每章都带一点轻钩子，但不要故弄玄虚。"
+      "你是 AgentStory 的悬疑连载写手。你必须保持线索推进和未解感，让每章都带一点轻钩子，但不要故弄玄虚。",
+    healing_daily:
+      "你是 AgentStory 的治愈日常连载写手。你必须把关系修复、慢慢靠近和生活气维持成统一的连续节奏。",
+    black_humor:
+      "你是 AgentStory 的黑色幽默连载写手。你必须保持荒诞反差和冷面观察一致，让笑意和刺痛一起推进。",
+    folklore:
+      "你是 AgentStory 的民俗怪谈连载写手。你必须让整条连载都带着旧规矩、传闻和异样气场，但仍要清晰好读。",
+    growth:
+      "你是 AgentStory 的冒险成长连载写手。你必须让每一章都推动人物往前走，让成长和冒险互相牵引。",
+    lyrical:
+      "你是 AgentStory 的诗性抒情连载写手。你必须让章节之间保持同一种回声感、画面感和情绪波纹。"
   },
   comment: {
     fairy: "你是 AgentStory 的童话感评论写手。你说话温柔、有画面感，像在轻轻接住一个故事。",
@@ -67,7 +88,12 @@ const styleSystemPrompts: Record<GenerationMode, Record<StoryStyleKey, string>> 
     zhihu: "你是 AgentStory 的知乎风评论写手。你说话像短评，清醒、有分析感。",
     pain: "你是 AgentStory 的伤痛文学感评论写手。你说话会抓住遗憾和余波，但不过火。",
     light_web: "你是 AgentStory 的轻喜剧网感评论写手。你说话轻快、自然、适合社交场景。",
-    suspense: "你是 AgentStory 的悬疑感评论写手。你说话会保留一点疑问和没说完的意味。"
+    suspense: "你是 AgentStory 的悬疑感评论写手。你说话会保留一点疑问和没说完的意味。",
+    healing_daily: "你是 AgentStory 的治愈日常感评论写手。你说话温柔、松弛，像一句能让人缓下来的陪伴。",
+    black_humor: "你是 AgentStory 的黑色幽默感评论写手。你说话冷静、带一点辛辣，但不恶毒。",
+    folklore: "你是 AgentStory 的民俗怪谈感评论写手。你说话像补上一句旧传闻，留一点异样和回味。",
+    growth: "你是 AgentStory 的冒险成长感评论写手。你说话会自然点出变化、勇气和下一步。",
+    lyrical: "你是 AgentStory 的诗性抒情感评论写手。你说话有一点回声感和画面感，但不空泛。"
   }
 };
 
@@ -80,7 +106,12 @@ const generationProfiles: Record<GenerationMode, Record<StoryStyleKey, { tempera
     zhihu: { temperature: 0.78, maxTokens: 950 },
     pain: { temperature: 0.9, maxTokens: 1000 },
     light_web: { temperature: 1.0, maxTokens: 950 },
-    suspense: { temperature: 0.9, maxTokens: 980 }
+    suspense: { temperature: 0.9, maxTokens: 980 },
+    healing_daily: { temperature: 0.9, maxTokens: 980 },
+    black_humor: { temperature: 0.88, maxTokens: 960 },
+    folklore: { temperature: 0.86, maxTokens: 980 },
+    growth: { temperature: 0.9, maxTokens: 1000 },
+    lyrical: { temperature: 0.94, maxTokens: 1000 }
   },
   serial: {
     fairy: { temperature: 0.9, maxTokens: 1100 },
@@ -90,7 +121,12 @@ const generationProfiles: Record<GenerationMode, Record<StoryStyleKey, { tempera
     zhihu: { temperature: 0.76, maxTokens: 1050 },
     pain: { temperature: 0.86, maxTokens: 1100 },
     light_web: { temperature: 0.92, maxTokens: 1050 },
-    suspense: { temperature: 0.88, maxTokens: 1080 }
+    suspense: { temperature: 0.88, maxTokens: 1080 },
+    healing_daily: { temperature: 0.86, maxTokens: 1080 },
+    black_humor: { temperature: 0.84, maxTokens: 1050 },
+    folklore: { temperature: 0.84, maxTokens: 1080 },
+    growth: { temperature: 0.88, maxTokens: 1100 },
+    lyrical: { temperature: 0.9, maxTokens: 1080 }
   },
   comment: {
     fairy: { temperature: 0.86, maxTokens: 180 },
@@ -100,7 +136,12 @@ const generationProfiles: Record<GenerationMode, Record<StoryStyleKey, { tempera
     zhihu: { temperature: 0.72, maxTokens: 180 },
     pain: { temperature: 0.82, maxTokens: 180 },
     light_web: { temperature: 0.9, maxTokens: 180 },
-    suspense: { temperature: 0.8, maxTokens: 180 }
+    suspense: { temperature: 0.8, maxTokens: 180 },
+    healing_daily: { temperature: 0.78, maxTokens: 180 },
+    black_humor: { temperature: 0.76, maxTokens: 180 },
+    folklore: { temperature: 0.78, maxTokens: 180 },
+    growth: { temperature: 0.8, maxTokens: 180 },
+    lyrical: { temperature: 0.84, maxTokens: 180 }
   }
 };
 
@@ -256,6 +297,52 @@ function buildSecondMeContextPrompt(secondMeContext: SecondMeStoryContext) {
   ].join("\n");
 }
 
+function truncateZhihuReferenceText(input: string | null | undefined, max = 220) {
+  if (!input) {
+    return "暂无";
+  }
+
+  const normalized = input.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= max) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, max)}...`;
+}
+
+function requireZhihuReferencePack(pack: ZhihuReferencePack | null | undefined) {
+  if (!pack) {
+    throw new Error("Zhihu reference pack is required for zhihu style generation.");
+  }
+
+  return pack;
+}
+
+function buildZhihuReferencePackPrompt(pack: ZhihuReferencePack) {
+  const sourceLines = pack.sources.map((source, index) =>
+    [
+      `${index + 1}. 标题：${source.title}`,
+      `来源链接：${source.sourceUrl}`,
+      `作者：${source.authorName ?? "匿名"}${source.authorHeadline ? ` / ${source.authorHeadline}` : ""}`,
+      `权威度：${source.authorityLevel ?? "未知"}`,
+      `摘要：${truncateZhihuReferenceText(source.excerpt, 160)}`,
+      `正文摘录：${truncateZhihuReferenceText(source.content, 260)}`
+    ].join("\n")
+  );
+
+  return [
+    "知乎参考内容包：",
+    `参考来源类型：${pack.sourceType === "matched" ? "当前童话命中" : pack.sourceType === "fallback_locked" ? "已锁定 fallback" : "随机 fallback"}`,
+    `参考童话：${pack.referenceBookTitle}（${pack.referenceBookSlug}）`,
+    sourceLines.join("\n\n"),
+    "使用规则：",
+    "1. 这些内容只作为问题意识、叙事结构、信息密度和观察角度的参考，不要直接照抄原句。",
+    "2. 最终仍要写成 AgentStory 的第一人称故事，不要出现“知乎”“答主”“回答”“高赞”等平台痕迹。",
+    "3. 如果参考包来自 fallback 童话，只借写法和观察框架，不要把 fallback 童话的角色、剧情或结论带入当前故事。"
+  ].join("\n");
+}
+
 async function createChatCompletion(
   messages: Array<{ role: "system" | "user"; content: string }>,
   options?: { temperature?: number; maxTokens?: number }
@@ -326,11 +413,21 @@ export async function generateShortStoryWithLlm(params: {
   persona: AnimalPersona;
   styleKey: StoryStyleKey;
   triggerScene: string;
+  zhihuReferencePack?: ZhihuReferencePack | null;
 }) {
+  const zhihuReferencePack = params.styleKey === "zhihu" ? requireZhihuReferencePack(params.zhihuReferencePack) : null;
   const content = await createChatCompletion([
     {
       role: "system",
-      content: `${styleSystemPrompts.short[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content"])}`
+      content:
+        params.styleKey === "zhihu"
+          ? [
+              "你是 AgentStory 的中文短篇写手。",
+              "你要吸收给定知乎参考内容包里的问题意识、观察方式和节奏感，再把它写成完整故事。",
+              "最终输出必须是故事，而不是问答帖、摘要或分析报告。",
+              buildJsonSystemPrompt(["title", "excerpt", "content"])
+            ].join("\n\n")
+          : `${styleSystemPrompts.short[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content"])}`
     },
     {
       role: "user",
@@ -340,9 +437,13 @@ export async function generateShortStoryWithLlm(params: {
         `触发情节：${params.triggerScene}`,
         `动物人格：${params.persona.animalName}`,
         `人格摘要：${params.persona.summary}`,
-        `选定风格：${getStyleName(params.styleKey)}`,
-        `风格要求：${getStyleInstruction(params.styleKey)}`,
-        `风格变体：${getStyleVariantPrompt(params.styleKey, "short", `${params.book.slug}:${params.triggerScene}`)}`,
+        ...(params.styleKey === "zhihu"
+          ? [`特殊风格分支：知乎参考增强`, buildZhihuReferencePackPrompt(requireZhihuReferencePack(zhihuReferencePack))]
+          : [
+              `选定风格：${getStyleName(params.styleKey)}`,
+              `风格要求：${getStyleInstruction(params.styleKey)}`,
+              `风格变体：${getStyleVariantPrompt(params.styleKey, "short", `${params.book.slug}:${params.triggerScene}`)}`
+            ]),
         "任务：写一篇“我”进入经典故事后的中文短篇。",
         "要求：",
         "1. 保留原故事世界感，但介入者必须始终用第一人称“我”自称，不要出现“你的分身”“我的分身”或“分身”作为自称。",
@@ -410,11 +511,21 @@ export async function generateSerialEpisodeWithLlm(params: {
   threadTitle: string;
   previousEpisodeTitle?: string | null;
   previousEpisodeExcerpt?: string | null;
+  zhihuReferencePack?: ZhihuReferencePack | null;
 }) {
+  const zhihuReferencePack = params.styleKey === "zhihu" ? requireZhihuReferencePack(params.zhihuReferencePack) : null;
   const content = await createChatCompletion([
     {
       role: "system",
-      content: `${styleSystemPrompts.serial[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content", "bridge"])}`
+      content:
+        params.styleKey === "zhihu"
+          ? [
+              "你是 AgentStory 的中文连载写手。",
+              "你要先吸收知乎参考内容包里的问题意识和叙事结构，再写成一章统一风格的故事连载。",
+              "最终输出必须是连载章节，而不是问答、摘要或平台帖文。",
+              buildJsonSystemPrompt(["title", "excerpt", "content", "bridge"])
+            ].join("\n\n")
+          : `${styleSystemPrompts.serial[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content", "bridge"])}`
     },
     {
       role: "user",
@@ -425,9 +536,13 @@ export async function generateSerialEpisodeWithLlm(params: {
         `故事分类：${params.book.categoryName}`,
         `动物人格：${params.persona.animalName}`,
         `人格摘要：${params.persona.summary}`,
-        `本条连载统一风格：${getStyleName(params.styleKey)}`,
-        `风格要求：${getStyleInstruction(params.styleKey)}`,
-        `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`,
+        ...(params.styleKey === "zhihu"
+          ? [`特殊风格分支：知乎参考增强`, buildZhihuReferencePackPrompt(requireZhihuReferencePack(zhihuReferencePack))]
+          : [
+              `本条连载统一风格：${getStyleName(params.styleKey)}`,
+              `风格要求：${getStyleInstruction(params.styleKey)}`,
+              `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`
+            ]),
         `上一章标题：${params.previousEpisodeTitle ?? "无"}`,
         `上一章摘要：${params.previousEpisodeExcerpt ?? "无"}`,
         "任务：写一章会继续推进的中文连载章节，让“我”跨越到新的故事书里。",
@@ -471,12 +586,22 @@ export async function generateAdventureEpisodeWithLlm(params: {
   previousEpisodeExcerpt?: string | null;
   authorDisplayName: string;
   participantCount: number;
+  zhihuReferencePack?: ZhihuReferencePack | null;
 }) {
+  const zhihuReferencePack = params.styleKey === "zhihu" ? requireZhihuReferencePack(params.zhihuReferencePack) : null;
   const content = await createChatCompletion(
     [
       {
         role: "system",
-        content: `${styleSystemPrompts.serial[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content"])}`
+        content:
+          params.styleKey === "zhihu"
+            ? [
+                "你是 AgentStory 的多人冒险章节写手。",
+                "当风格是知乎分支时，你要先吸收知乎参考内容包里的结构和观察角度，再把它写成可读的第一人称故事章节。",
+                "不要写成帖子、问答或分析报告。",
+                buildJsonSystemPrompt(["title", "excerpt", "content"])
+              ].join("\n\n")
+            : `${styleSystemPrompts.serial[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content"])}`
       },
       {
         role: "user",
@@ -487,9 +612,13 @@ export async function generateAdventureEpisodeWithLlm(params: {
           `故事分类：${params.book.categoryName}`,
           `当前触发者：${params.authorDisplayName}`,
           `当前参与人数：${params.participantCount}`,
-          `锁定风格：${getStyleName(params.styleKey)}`,
-          `风格要求：${getStyleInstruction(params.styleKey)}`,
-          `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`,
+          ...(params.styleKey === "zhihu"
+            ? [`特殊风格分支：知乎参考增强`, buildZhihuReferencePackPrompt(requireZhihuReferencePack(zhihuReferencePack))]
+            : [
+                `锁定风格：${getStyleName(params.styleKey)}`,
+                `风格要求：${getStyleInstruction(params.styleKey)}`,
+                `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`
+              ]),
           `上一篇标题：${params.previousEpisodeTitle ?? "无"}`,
           `上一篇摘要：${params.previousEpisodeExcerpt ?? "无"}`,
           `动物人格：${params.persona.animalName}`,
@@ -534,12 +663,22 @@ export async function generatePersonalEpisodeWithLlm(params: {
   previousEpisodeTitle?: string | null;
   previousEpisodeExcerpt?: string | null;
   authorDisplayName: string;
+  zhihuReferencePack?: ZhihuReferencePack | null;
 }) {
+  const zhihuReferencePack = params.styleKey === "zhihu" ? requireZhihuReferencePack(params.zhihuReferencePack) : null;
   const content = await createChatCompletion(
     [
       {
         role: "system",
-        content: `${styleSystemPrompts.serial[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content"])}`
+        content:
+          params.styleKey === "zhihu"
+            ? [
+                "你是 AgentStory 的个人主线章节写手。",
+                "当风格是知乎分支时，你要先吸收知乎参考内容包里的问题意识和叙事结构，再把它写成第一人称回返故事。",
+                "不要写成问答帖或平台长文。",
+                buildJsonSystemPrompt(["title", "excerpt", "content"])
+              ].join("\n\n")
+            : `${styleSystemPrompts.serial[params.styleKey]}\n\n${buildJsonSystemPrompt(["title", "excerpt", "content"])}`
       },
       {
         role: "user",
@@ -549,9 +688,13 @@ export async function generatePersonalEpisodeWithLlm(params: {
           `回去的故事书：${params.book.title}`,
           `故事分类：${params.book.categoryName}`,
           `当前作者：${params.authorDisplayName}`,
-          `锁定风格：${getStyleName(params.styleKey)}`,
-          `风格要求：${getStyleInstruction(params.styleKey)}`,
-          `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`,
+          ...(params.styleKey === "zhihu"
+            ? [`特殊风格分支：知乎参考增强`, buildZhihuReferencePackPrompt(requireZhihuReferencePack(zhihuReferencePack))]
+            : [
+                `锁定风格：${getStyleName(params.styleKey)}`,
+                `风格要求：${getStyleInstruction(params.styleKey)}`,
+                `章节变体：${getStyleVariantPrompt(params.styleKey, "serial", `${params.threadTitle}:${params.episodeNo}`)}`
+              ]),
           `上一段标题：${params.previousEpisodeTitle ?? "无"}`,
           `上一段摘要：${params.previousEpisodeExcerpt ?? "无"}`,
           `动物人格：${params.persona.animalName}`,

@@ -10,6 +10,10 @@ AgentStory first-pass PostgreSQL schema and seed files.
 - `004_enrich_story_books.sql`: batch-enrich `key_scenes` for the first 99 books
 - `005_assign_cover_images.sql`: assign stable local cover URLs for the first 99 books
 - `006_add_story_book_import_fields.sql`: add source metadata and full story fields for imported book content
+- `007_expand_fairy_tale_catalog.sql`: expand the fairy tale shelf to the source-backed 100-book catalog
+- `008_adventure_memory_refactor.sql`: add adventure, memory, and supporting generation tables
+- `009_personal_companion_split.sql`: split personal and companion story threads
+- `010_zhihu_style_strategy.sql`: expand the style pool and add Zhihu reference storage
 
 ## Expected local database
 
@@ -33,6 +37,10 @@ psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/003_seed_story_books.s
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/004_enrich_story_books.sql
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/005_assign_cover_images.sql
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/006_add_story_book_import_fields.sql
+psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/007_expand_fairy_tale_catalog.sql
+psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/008_adventure_memory_refactor.sql
+psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/009_personal_companion_split.sql
+psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/010_zhihu_style_strategy.sql
 ```
 
 ## Notes
@@ -77,3 +85,31 @@ That helper will:
 - run `db/006_add_story_book_import_fields.sql` on the local source database first
 - create a temporary source env file pointing at local PostgreSQL
 - sync the 100 fairy books into the Aliyun database defined in `.env`
+
+## Import Zhihu references
+
+After applying `db/010_zhihu_style_strategy.sql`, you can preview or import Zhihu reference content for the fairy catalog with:
+
+```bash
+npm run import:zhihu-refs -- --dry-run --book-limit 5
+```
+
+Environment:
+
+- database: loaded from `.env.local` -> `DATABASE_URL_UNPOOLED` by default
+- Zhihu token: `ZHIHU_OPENAPI_TOKEN`
+- Zhihu API key: `ZHIHU_OPENAPI_API_KEY`
+- search endpoint override: `ZHIHU_OPENAPI_SEARCH_URL`
+- default auth transport: `Authorization: Bearer <token>` + `X-API-Key: <apiKey>`
+- optional auth query params: `ZHIHU_OPENAPI_TOKEN_QUERY_PARAM`, `ZHIHU_OPENAPI_API_KEY_QUERY_PARAM`
+- optional header overrides: `ZHIHU_OPENAPI_TOKEN_HEADER`, `ZHIHU_OPENAPI_API_KEY_HEADER`
+- set header vars to empty strings if the upstream only accepts query-param auth
+
+Behavior:
+
+- queries the `fairy_tale` catalog from `story_books`
+- builds up to 3 search keywords per book
+- fetches candidate links from Zhihu open search
+- fetches each public page and tries to extract long-form正文
+- keeps at most 5 active references per book in `zhihu_story_references`
+- writes a preview report to `plans/generated/zhihu-reference-import-preview.json`

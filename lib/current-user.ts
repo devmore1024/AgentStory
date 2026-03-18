@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { getAuthSession, isAuthSessionExpired } from "@/lib/auth";
+import { getAuthSession } from "@/lib/auth";
 import { createAnimalPersona, type AnimalPersona } from "@/lib/animal-personas";
 import { sql } from "@/lib/db";
 
@@ -157,7 +157,7 @@ async function getViewerContextByField(field: "u.secondme_user_id" | "u.id", val
 export const getCurrentViewerContext = cache(async () => {
   const session = await getAuthSession();
 
-  if (!session || isAuthSessionExpired(session)) {
+  if (!session) {
     return null;
   }
 
