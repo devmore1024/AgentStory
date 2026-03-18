@@ -6,6 +6,7 @@ import {
   getPersonalLineGenerationBadgeLabel,
   getPersonalLineListNotice
 } from "@/lib/personal-line-presentation";
+import { getStyleBadgeClass } from "@/lib/story-style";
 
 type MemoryLineCardProps = {
   line: PersonalLineBookView;
@@ -44,6 +45,11 @@ export function MemoryLineCard({
         <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
           共 {line.episodeCount} 章
         </span>
+        {line.lockedStyleName ? (
+          <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(line.lockedStyleName)}`}>
+            {line.lockedStyleName}
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-4">

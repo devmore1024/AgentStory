@@ -267,6 +267,7 @@ describe("secondary pages", () => {
     render(await MemoryDetailPage({ params: Promise.resolve({ slug: "fairy-sleeping-beauty" }) }));
 
     expect(screen.getByTestId("page-back-button")).toHaveTextContent("冒险故事:/memory");
+    expect(screen.getAllByText("童话风")[0]).toHaveClass("text-[#9D6A17]");
   });
 
   it("uses the direct-publish wording for the companion action on the memory detail page", async () => {
@@ -280,6 +281,7 @@ describe("secondary pages", () => {
     render(await AdventureThreadPage({ params: Promise.resolve({ threadId: "adventure-1" }) }));
 
     expect(screen.getByTestId("page-back-button")).toHaveTextContent("同行故事:/adventure");
+    expect(screen.getAllByText("童话风")[0]).toHaveClass("text-[#9D6A17]");
   });
 
   it("shows a top back button on the share page", async () => {

@@ -61,6 +61,7 @@ describe("MemoryDetailHero", () => {
     expect(screen.getByText("今日 18:30 更新")).toBeInTheDocument();
     expect(screen.getByText("今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。")).toBeInTheDocument();
     expect(screen.getByText("今日之章")).toBeInTheDocument();
+    expect(screen.getByText("童话风")).toHaveClass("text-[#9D6A17]");
   });
 
   it("shows a generating badge for queued personal chapters", () => {

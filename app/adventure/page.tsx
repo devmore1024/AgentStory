@@ -1,3 +1,4 @@
+import React from "react";
 import Link from "next/link";
 import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
 import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
@@ -8,6 +9,7 @@ import {
   getAuthenticatedAppContext,
   getStoryExperienceSchemaStatus
 } from "@/lib/story-experience";
+import { getStyleBadgeClass } from "@/lib/story-style";
 
 export const dynamic = "force-dynamic";
 
@@ -70,8 +72,19 @@ export default async function AdventurePage() {
                     《{thread.sourceBookTitle}》
                   </p>
                   <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">{thread.title}</h2>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+                      {thread.ownerDisplayName} 发起
+                    </span>
+                    {thread.lockedStyleName ? (
+                      <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(thread.lockedStyleName)}`}>
+                        {thread.lockedStyleName}
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
-                    {thread.ownerDisplayName} 先走了进去。{thread.lockedStyleName ? `这段同行已经定下 ${thread.lockedStyleName} 的语气。` : "第一段同行还在等它自己的语气慢慢落下来。"}
+                    {thread.ownerDisplayName} 先走了进去。
+                    {thread.lockedStyleName ? " 这段同行已经定下整体气质，后面的人会沿着同一种感觉继续走。" : " 第一段同行还在等它自己的语气慢慢落下来。"}
                   </p>
                 </div>
 

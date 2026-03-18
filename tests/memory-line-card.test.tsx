@@ -46,6 +46,7 @@ describe("MemoryLineCard", () => {
     expect(screen.getByText("今日已更新")).toBeInTheDocument();
     expect(screen.getByText("今日 18:30 已更新，冒险线每天只会继续一章，明天再来看下一章。")).toBeInTheDocument();
     expect(screen.getByText("查看今天这章")).toBeInTheDocument();
+    expect(screen.getByText("童话风")).toHaveClass("text-[#9D6A17]");
   });
 
   it("shows the continue notice before today's chapter has started", () => {

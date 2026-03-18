@@ -17,6 +17,7 @@ import {
 } from "@/lib/personal-line-presentation";
 import { formatAppTime } from "@/lib/story-experience-helpers";
 import { getAuthenticatedAppContext, getPersonalLineDetail } from "@/lib/story-experience";
+import { getStyleBadgeClass } from "@/lib/story-style";
 
 export const dynamic = "force-dynamic";
 
@@ -147,7 +148,9 @@ export default async function MemoryDetailPage({
                       由 {episode.authorDisplayName} 写下
                     </span>
                     {episode.styleName ? (
-                      <span className="rounded-full bg-[rgba(255,255,255,0.75)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+                      <span
+                        className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(episode.styleName)}`}
+                      >
                         {episode.styleName}
                       </span>
                     ) : null}

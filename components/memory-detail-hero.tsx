@@ -5,6 +5,7 @@ import {
   getPersonalLineDailyStatusLabel,
   getPersonalLineGenerationBadgeLabel
 } from "@/lib/personal-line-presentation";
+import { getStyleBadgeClass } from "@/lib/story-style";
 
 type MemoryDetailHeroProps = {
   line: PersonalLineDetailView;
@@ -41,7 +42,7 @@ export function MemoryDetailHero({ line, actions, generatedTimeLabel, dailyRuleN
           共 {line.episodeCount} 章
         </span>
         {line.lockedStyleName ? (
-          <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+          <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(line.lockedStyleName)}`}>
             {line.lockedStyleName}
           </span>
         ) : null}
