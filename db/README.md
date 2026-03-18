@@ -42,3 +42,26 @@ psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/006_add_story_book_imp
 - `004_enrich_story_books.sql` is idempotent and only fills books whose `key_scenes` is empty.
 - `005_assign_cover_images.sql` is idempotent and points `cover_image` to dynamic local SVG covers served by the app.
 - `006_add_story_book_import_fields.sql` is additive only and prepares `story_books` for offline import pipelines.
+
+## Sync the 100 source-backed fairy books
+
+When you need to copy only the primary-entry fairy catalog from local PostgreSQL into another PostgreSQL database, run:
+
+```bash
+npm run sync:fairy-books
+```
+
+Default behavior:
+
+- source DB: `.env.local` -> `DATABASE_URL`
+- target DB: `.env` -> `DATABASE_URL_UNPOOLED`
+- synced tables: `story_categories` (`fairy_tale` only) and `story_books`
+- synced rows: exactly 100 `fairy_tale` books with `popularity_rank` 1..100
+- excluded tables: `users`, `story_threads`, `story_episodes`, `short_stories`, `timeline_items`, `feed_stories`, `ai_comments`
+
+Safety rules:
+
+- the script validates that the source side really contains exactly 100 ranked fairy books before writing
+- writes use `slug` upserts, so rerunning the sync is safe
+- target `cover_image` is preserved when it already exists
+- use `npm run sync:fairy-books -- --dry-run` to verify the source selection without writing

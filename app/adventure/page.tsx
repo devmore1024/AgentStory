@@ -69,7 +69,7 @@ export default async function AdventurePage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
                     《{thread.sourceBookTitle}》
                   </p>
-                  <h2 className="display-font mt-2 text-3xl text-[var(--text-primary)]">{thread.title}</h2>
+                  <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">{thread.title}</h2>
                   <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
                     {thread.ownerDisplayName} 先走了进去。{thread.lockedStyleName ? `这段同行已经定下 ${thread.lockedStyleName} 的语气。` : "第一段同行还在等它自己的语气慢慢落下来。"}
                   </p>

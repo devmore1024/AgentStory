@@ -44,10 +44,12 @@ export default async function AdventureThreadPage({
             episodeLimit={thread.episodeLimit}
           />
 
-          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+          <p className="mt-4 text-sm font-semibold tracking-[0.08em] text-[var(--text-muted)] sm:text-base">
             《{thread.sourceBookTitle}》里的同行故事
           </p>
-          <h1 className="display-font mt-2 text-4xl text-[var(--text-primary)]">{thread.title}</h1>
+          <h1 className="display-font mt-2 text-3xl leading-[1.16] text-[var(--text-primary)] sm:text-[2.75rem]">
+            {thread.title}
+          </h1>
           <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--text-secondary)]">
             {thread.lockedStyleName
               ? `这段同行已经定下 ${thread.lockedStyleName} 的气质。后面的人会沿着同一种感觉继续走，直到故事自然走完。`
