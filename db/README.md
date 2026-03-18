@@ -65,3 +65,15 @@ Safety rules:
 - writes use `slug` upserts, so rerunning the sync is safe
 - target `cover_image` is preserved when it already exists
 - use `npm run sync:fairy-books -- --dry-run` to verify the source selection without writing
+
+If your real source database is local PostgreSQL on `127.0.0.1:5432/agentstory_dev`, use:
+
+```bash
+npm run sync:fairy-books:from-local
+```
+
+That helper will:
+
+- run `db/006_add_story_book_import_fields.sql` on the local source database first
+- create a temporary source env file pointing at local PostgreSQL
+- sync the 100 fairy books into the Aliyun database defined in `.env`

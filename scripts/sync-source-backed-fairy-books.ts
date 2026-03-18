@@ -52,7 +52,7 @@ type SourceFairyBookRow = {
 };
 
 const STORY_CATEGORY_REQUIRED_COLUMNS = ["id", "key", "name", "sort_order"] as const;
-const TARGET_STORY_BOOK_REQUIRED_COLUMNS = [
+const SOURCE_STORY_BOOK_BASE_COLUMNS = [
   "category_id",
   "title",
   "slug",
@@ -60,17 +60,22 @@ const TARGET_STORY_BOOK_REQUIRED_COLUMNS = [
   "summary",
   "key_scenes",
   "original_synopsis",
+  "public_domain",
+  "is_active",
+  "updated_at"
+] as const;
+const STORY_BOOK_IMPORT_COLUMNS = [
   "story_content",
   "source_site",
   "source_url",
   "source_license",
   "source_title",
-  "popularity_rank",
-  "public_domain",
-  "is_active",
-  "updated_at"
+  "popularity_rank"
 ] as const;
-const SOURCE_STORY_BOOK_REQUIRED_COLUMNS = TARGET_STORY_BOOK_REQUIRED_COLUMNS;
+const TARGET_STORY_BOOK_REQUIRED_COLUMNS = [
+  ...SOURCE_STORY_BOOK_BASE_COLUMNS,
+  ...STORY_BOOK_IMPORT_COLUMNS
+] as const;
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   const parsed: ParsedArgs = {
@@ -180,13 +185,34 @@ async function getTableColumns(client: DatabaseClient, tableName: string) {
   return new Set(rows.map((row: { column_name: string }) => row.column_name));
 }
 
+function getMissingColumns(columns: readonly string[], actualColumns: Set<string>) {
+  return columns.filter((column) => !actualColumns.has(column));
+}
+
 async function assertRequiredColumns(client: DatabaseClient, tableName: string, columns: readonly string[]) {
   const actualColumns = await getTableColumns(client, tableName);
-  const missingColumns = columns.filter((column) => !actualColumns.has(column));
+  const missingColumns = getMissingColumns(columns, actualColumns);
 
   if (missingColumns.length > 0) {
     throw new Error(`Table ${tableName} is missing required columns: ${missingColumns.join(", ")}.`);
   }
+}
+
+async function ensureTargetStoryBookImportFields(targetClient: DatabaseClient) {
+  await targetClient.query(`
+    ALTER TABLE story_books
+      ADD COLUMN IF NOT EXISTS story_content TEXT,
+      ADD COLUMN IF NOT EXISTS source_site TEXT,
+      ADD COLUMN IF NOT EXISTS source_url TEXT,
+      ADD COLUMN IF NOT EXISTS source_license TEXT,
+      ADD COLUMN IF NOT EXISTS source_title TEXT,
+      ADD COLUMN IF NOT EXISTS popularity_rank INTEGER
+  `);
+
+  await targetClient.query(`
+    CREATE INDEX IF NOT EXISTS idx_story_books_category_rank
+      ON story_books (category_id, popularity_rank, title)
+  `);
 }
 
 function normalizeSourceBookRow(row: SourceFairyBookRow): FairyBookSyncRow {
@@ -213,7 +239,20 @@ function normalizeSourceBookRow(row: SourceFairyBookRow): FairyBookSyncRow {
 
 async function loadSourceBackedFairyBooks(sourceClient: DatabaseClient) {
   await assertRequiredColumns(sourceClient, "story_categories", STORY_CATEGORY_REQUIRED_COLUMNS);
-  await assertRequiredColumns(sourceClient, "story_books", SOURCE_STORY_BOOK_REQUIRED_COLUMNS);
+  const storyBookColumns = await getTableColumns(sourceClient, "story_books");
+  const missingBaseColumns = getMissingColumns(SOURCE_STORY_BOOK_BASE_COLUMNS, storyBookColumns);
+
+  if (missingBaseColumns.length > 0) {
+    throw new Error(`Source table story_books is missing required columns: ${missingBaseColumns.join(", ")}.`);
+  }
+
+  const missingImportColumns = getMissingColumns(STORY_BOOK_IMPORT_COLUMNS, storyBookColumns);
+
+  if (missingImportColumns.length > 0) {
+    throw new Error(
+      `Source story_books is still on the pre-006 schema. Run db/006_add_story_book_import_fields.sql on the source database first. Missing import columns: ${missingImportColumns.join(", ")}.`
+    );
+  }
 
   const { rows } = await sourceClient.query<SourceFairyBookRow>(
     `
@@ -249,6 +288,7 @@ async function loadSourceBackedFairyBooks(sourceClient: DatabaseClient) {
 
 async function ensureFairyCategory(targetClient: DatabaseClient, firstBook: FairyBookSyncRow) {
   await assertRequiredColumns(targetClient, "story_categories", STORY_CATEGORY_REQUIRED_COLUMNS);
+  await ensureTargetStoryBookImportFields(targetClient);
   await assertRequiredColumns(targetClient, "story_books", TARGET_STORY_BOOK_REQUIRED_COLUMNS);
 
   const { rows } = await targetClient.query<{ id: string }>(
@@ -368,12 +408,9 @@ async function verifyTargetFairyBooks(targetClient: DatabaseClient, slugs: reado
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const sourceConnectionString = readEnvValue(args.sourceEnvFile, args.sourceEnvKey);
-  const targetConnectionString = readEnvValue(args.targetEnvFile, args.targetEnvKey);
   const sourceClient = new Client({ connectionString: sourceConnectionString });
-  const targetClient = new Client({ connectionString: targetConnectionString });
 
   await sourceClient.connect();
-  await targetClient.connect();
 
   try {
     const books = await loadSourceBackedFairyBooks(sourceClient);
@@ -388,6 +425,11 @@ async function main() {
       console.info("[fairy-book-sync] Dry run only. No target writes were performed.");
       return;
     }
+
+    const targetConnectionString = readEnvValue(args.targetEnvFile, args.targetEnvKey);
+    const targetClient = new Client({ connectionString: targetConnectionString });
+
+    await targetClient.connect();
 
     await targetClient.query("BEGIN");
 
@@ -413,9 +455,11 @@ async function main() {
     } catch (error) {
       await targetClient.query("ROLLBACK");
       throw error;
+    } finally {
+      await targetClient.end();
     }
   } finally {
-    await Promise.all([sourceClient.end(), targetClient.end()]);
+    await sourceClient.end();
   }
 }
 

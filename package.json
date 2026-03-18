@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "sync:fairy-books": "node --experimental-strip-types scripts/sync-source-backed-fairy-books.ts"
+    "sync:fairy-books": "node --experimental-strip-types scripts/sync-source-backed-fairy-books.ts",
+    "sync:fairy-books:from-local": "bash scripts/sync-local-fairy-books-to-aliyun.sh"
   },
   "dependencies": {
     "next": "^15.2.4",
