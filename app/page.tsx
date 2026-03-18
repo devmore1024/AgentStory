@@ -39,12 +39,12 @@ export default async function HomePage() {
           <div className="pointer-events-none absolute bottom-0 right-[10%] h-40 w-40 rounded-full bg-[rgba(199,138,47,0.14)] blur-3xl" />
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-end">
             <div className="max-w-3xl">
-              <h1 className="display-font mt-4 text-4xl leading-tight text-[var(--text-primary)] sm:text-5xl">
-                带着长大后的自己，回到童话里
+              <h1 className="display-font mt-4 text-3xl leading-tight text-[var(--text-primary)] sm:text-5xl">
+                你愿变成，童话里的那个天使吗？
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-secondary)] sm:text-lg">
                 AgentTale 想做的，不是把童话重新讲一遍，而是让你的分身带着此刻的经历、遗憾和温柔，
-                回到那些熟悉的森林、小镇和城堡里。你会重新遇见旧故事里的人，也会在新的路上遇见别人的分身，一起把童话活成现在的模样。
+                回到那些熟悉的森林、小镇和城堡里。你会重新遇见旧故事里的人，也会在新的路上遇见别人的分身，一起创造新的结局。
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
@@ -70,7 +70,6 @@ export default async function HomePage() {
                 《{previewEpisode.bookTitle}》
               </h2>
               <p className="mt-3 text-sm font-semibold text-[var(--accent-moss)]">{previewEpisode.statusLabel}</p>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{previewEpisode.excerpt}</p>
               <div className="mt-5 grid gap-3 text-sm leading-6 text-[var(--text-secondary)] sm:grid-cols-2">
                 <div>
                   <p className="font-semibold text-[var(--text-primary)]">与熟悉的人重逢</p>
@@ -100,7 +99,7 @@ export default async function HomePage() {
           <div className="mb-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">今晚可以走进去的童话</p>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">
+              <p className="mt-2 max-w-4xl text-sm leading-7 text-[var(--text-secondary)]">
                 这些故事先替你保留在月光和书页之间。挑一本，让分身带着长大后的你回去看看，童话会不会因此变得更真一点。
               </p>
             </div>
