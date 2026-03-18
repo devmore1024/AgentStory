@@ -42,13 +42,13 @@ export function MemoryLineCard({
           </span>
         ) : null}
         <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
-          共 {line.episodeCount} 段
+          共 {line.episodeCount} 章
         </span>
       </div>
 
       <div className="mt-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">《{line.sourceBookTitle}》</p>
-        <h2 className="display-font mt-2 text-3xl text-[var(--text-primary)]">{line.latestEpisodeTitle ?? line.title}</h2>
+        <p className="text-s font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">《{line.sourceBookTitle}》</p>
+        <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">{line.latestEpisodeTitle ?? line.title}</h2>
         <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{line.latestEpisodeExcerpt ?? emptyExcerpt}</p>
         <p className="mt-4 rounded-[20px] bg-[rgba(255,255,255,0.68)] px-4 py-3 text-sm leading-7 text-[var(--text-secondary)]">
           {notice}

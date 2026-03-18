@@ -66,7 +66,7 @@ export default async function AdventurePage() {
                 />
 
                 <div className="mt-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                  <p className="text-s font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
                     《{thread.sourceBookTitle}》
                   </p>
                   <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">{thread.title}</h2>

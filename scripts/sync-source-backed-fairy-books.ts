@@ -1,17 +1,27 @@
-import pg from "pg";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
-const { Client } = pg;
 const require = createRequire(import.meta.url);
+type QueryResult<T> = {
+  rows: T[];
+};
+
+type DatabaseClient = {
+  query<T>(queryText: string, values?: readonly unknown[]): Promise<QueryResult<T>>;
+  connect(): Promise<void>;
+  end(): Promise<void>;
+};
+
+const { Client } = require("pg") as {
+  Client: new (config: { connectionString: string }) => DatabaseClient;
+};
 const {
   PRIMARY_SOURCE_BACKED_FAIRY_BOOK_COUNT,
   validatePrimarySourceBackedFairyBooks
 } = require("../lib/fairy-book-sync.ts") as typeof import("../lib/fairy-book-sync");
 
 type FairyBookSyncRow = import("../lib/fairy-book-sync").FairyBookSyncRow;
-type DatabaseClient = InstanceType<typeof Client>;
 
 type ParsedArgs = {
   dryRun: boolean;
