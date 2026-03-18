@@ -68,12 +68,12 @@ export async function AppShell({ activeTab, children }: AppShellProps) {
                   <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{viewer.displayName}</p>
                   <p className="truncate text-xs text-[var(--text-muted)]">已连接 SecondMe</p>
                 </div>
-                <Link
+                <a
                   href="/api/auth/logout"
                   className="rounded-full border border-[var(--border-default)] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition hover:border-[var(--accent-moss)] hover:text-[var(--accent-moss)]"
                 >
                   退出
-                </Link>
+                </a>
               </div>
             ) : isExpiredSession ? (
               <Link
