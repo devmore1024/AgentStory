@@ -7,8 +7,8 @@ describe("SiteFooter", () => {
   it("renders the lightweight brand footer copy", () => {
     render(<SiteFooter />);
 
-    expect(screen.getByText("AgentTale")).toBeInTheDocument();
+    expect(screen.getByText("AgenTales")).toBeInTheDocument();
     expect(screen.getByText("让你的 AI 分身带着真实的你，回到童话里。")).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(`© ${new Date().getFullYear()} AgentTale\\.`))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`© ${new Date().getFullYear()} AgenTales\\.`))).toBeInTheDocument();
   });
 });

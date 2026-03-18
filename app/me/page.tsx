@@ -13,6 +13,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const SHOW_SHARE_ASSETS = false;
+
 export default async function MePage({
   searchParams
 }: {
@@ -52,8 +54,15 @@ export default async function MePage({
               </Link>
             </section>
           ) : (
-            <PersonaCard persona={currentContext.persona} />
+            <PersonaCard persona={currentContext.persona} showArchiveButton={false} />
           )}
+
+          <StoryFootprintTabs
+            ownedCount={stats.ownedAdventureCount}
+            joinedCount={stats.joinedAdventureCount}
+            ownedItems={ownedThreads.map((thread) => ({ id: thread.id, title: thread.title }))}
+            joinedItems={joinedThreads.map((thread) => ({ id: thread.id, title: thread.title }))}
+          />
 
           {auth === "connected" ? (
             <section className="rounded-[28px] border border-[rgba(95,127,98,0.22)] bg-[rgba(231,239,230,0.86)] p-5">
@@ -94,6 +103,36 @@ export default async function MePage({
               </p>
             </section>
           ) : null}
+        </div>
+
+        <div className="space-y-6">
+          <StateCard
+            eyebrow={currentContext ? "我的分身档案" : "等待连接"}
+            title={currentContext ? "这里会继续长出你的重逢记录" : "连接后这里会变成你的专属童话档案馆"}
+            description={
+              currentContext
+                ? "现在这页会把你的分身、你冒险过的童话，以及你和别人同行过的故事放在同一个档案馆里。"
+                : "登录成功后，这里会出现你的动物人格、故事时间线和同行记录。"
+            }
+          />
+
+          {SHOW_SHARE_ASSETS ? (
+            <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">分享资产</p>
+              <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">动物人格可以被分享出去</h2>
+              <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">
+                当前分享页仍然沿用动物人格主视图。后面如果同行体验继续稳定下来，这里还可以再扩展你冒险过的童话与同行摘要。
+              </p>
+              <div className="mt-5">
+                <Link
+                  href="/me/share"
+                  className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                >
+                  打开分享卡
+                </Link>
+              </div>
+            </section>
+          ) : null}
 
           <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">重逢记录</p>
@@ -119,41 +158,6 @@ export default async function MePage({
                 <p className="text-sm leading-7 text-[var(--text-secondary)]">你的档案馆还没有记录，先从首页挑一本到想回到故事里继续冒险的童话，让第一段同行先落下来。</p>
               </div>
             )}
-          </section>
-        </div>
-
-        <div className="space-y-6">
-          <StateCard
-            eyebrow={currentContext ? "我的分身档案" : "等待连接"}
-            title={currentContext ? "这里会继续长出你的重逢记录" : "连接后这里会变成你的专属童话档案馆"}
-            description={
-              currentContext
-                ? "现在这页会把你的分身、你冒险过的童话，以及你和别人同行过的故事放在同一个档案馆里。"
-                : "登录成功后，这里会出现你的动物人格、故事时间线和同行记录。"
-            }
-          />
-
-          <StoryFootprintTabs
-            ownedCount={stats.ownedAdventureCount}
-            joinedCount={stats.joinedAdventureCount}
-            ownedItems={ownedThreads.map((thread) => ({ id: thread.id, title: thread.title }))}
-            joinedItems={joinedThreads.map((thread) => ({ id: thread.id, title: thread.title }))}
-          />
-
-          <section className="rounded-[32px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.84)] p-6 shadow-[var(--shadow-medium)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">分享资产</p>
-            <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">动物人格可以被分享出去</h2>
-            <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">
-              当前分享页仍然沿用动物人格主视图。后面如果同行体验继续稳定下来，这里还可以再扩展你冒险过的童话与同行摘要。
-            </p>
-            <div className="mt-5">
-              <Link
-                href="/me/share"
-                className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
-              >
-                打开分享卡
-              </Link>
-            </div>
           </section>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React from "react";
 
 const FOOTER_COPY = {
-  brand: "AgentTale",
+  brand: "AgenTales",
   tagline: "让你的 AI 分身带着真实的你，回到童话里。",
   legal: "All rights reserved."
 } as const;

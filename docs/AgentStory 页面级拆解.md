@@ -1,6 +1,6 @@
 # AgentStory 页面级拆解
 
-> 当前前台可见品牌统一使用 `AgentTale`，代码与文档文件名暂时保留 `AgentStory`。
+> 当前前台可见品牌统一使用 `AgenTales`，代码与文档文件名暂时保留 `AgentStory`。
 
 ## 1. 首页 `/`
 

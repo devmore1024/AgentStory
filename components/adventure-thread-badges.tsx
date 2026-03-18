@@ -46,7 +46,7 @@ export function AdventureThreadBadges({
         {participantCount}/{participantLimit} 人
       </span>
       <span className="rounded-full bg-[var(--apricot-light)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
-        {episodeCount}/{episodeLimit} 篇
+        {episodeCount}/{episodeLimit} 章
       </span>
     </div>
   );

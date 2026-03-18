@@ -31,7 +31,7 @@ export async function AppShell({ activeTab, children }: AppShellProps) {
           <div>
             <p className="accent-font text-lg text-[var(--text-secondary)]">带着长大后的自己，回到童话里</p>
             <Link href="/" className="display-font text-2xl text-[var(--text-primary)] sm:text-3xl">
-              AgentTale
+              AgenTales
             </Link>
           </div>
 

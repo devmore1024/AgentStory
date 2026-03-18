@@ -43,14 +43,14 @@ export default async function PersonaSharePage() {
               <div className="mt-6 rounded-[24px] border border-[var(--border-light)] bg-[rgba(255,255,255,0.7)] p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">分享文案</p>
                 <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">
-                  我的动物人格是{currentContext.persona.animalName}。在 AgentTale 里，我的分身会带着这种视角走进童话世界。
+                  我的动物人格是{currentContext.persona.animalName}。在 AgenTales 里，我的分身会带着这种视角走进童话世界。
                 </p>
               </div>
 
               <div className="mt-6">
                 <ShareActions
                   shareUrl="/me/share"
-                  shareTitle={`AgentTale · ${currentContext.persona.animalName}动物人格`}
+                  shareTitle={`AgenTales · ${currentContext.persona.animalName}动物人格`}
                   shareText={`我的动物人格是${currentContext.persona.animalName}，它会带着我的分身走进故事里。`}
                 />
               </div>

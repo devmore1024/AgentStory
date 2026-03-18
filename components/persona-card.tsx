@@ -1,10 +1,19 @@
+import React from "react";
 import Link from "next/link";
 import type { AnimalPersona } from "@/lib/animal-personas";
 import { PersonaRadar } from "@/components/persona-radar";
 import { PersonaBadge } from "@/components/persona-badge";
 import { PersonaPortrait } from "@/components/persona-portrait";
 
-export function PersonaCard({ persona, compact = false }: { persona: AnimalPersona; compact?: boolean }) {
+export function PersonaCard({
+  persona,
+  compact = false,
+  showArchiveButton = true
+}: {
+  persona: AnimalPersona;
+  compact?: boolean;
+  showArchiveButton?: boolean;
+}) {
   return (
     <section className="paper-grain relative overflow-hidden rounded-[32px] border border-[var(--border-light)] bg-[linear-gradient(180deg,#fff8ef_0%,#f5eadb_48%,#e7efe6_100%)] p-5 shadow-[var(--shadow-large)] sm:p-6">
       <div className={`relative z-10 grid gap-6 ${compact ? "lg:grid-cols-[1.02fr_0.98fr]" : "lg:grid-cols-[1.08fr_0.92fr]"}`}>
@@ -97,7 +106,7 @@ export function PersonaCard({ persona, compact = false }: { persona: AnimalPerso
               </div>
             </div>
           ) : null}
-          {!compact ? (
+          {!compact && showArchiveButton ? (
             <Link
               href="/me"
               className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)] transition hover:bg-[var(--accent-moss-hover)]"

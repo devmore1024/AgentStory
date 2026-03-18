@@ -2,6 +2,8 @@ import type { Route } from "next";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { BookCover } from "@/components/book-cover";
+import { HomeAdventurePreview } from "@/components/home-adventure-preview";
+import { HomeFairyShelfGrid } from "@/components/home-fairy-shelf-grid";
 import { HomePersonaDock } from "@/components/home-persona-dock";
 import { getAuthenticatedAppContext, getLatestPersonalLinePreview } from "@/lib/story-experience";
 import { getHomepageFairyShelf } from "@/lib/story-data";
@@ -63,7 +65,7 @@ export default async function HomePage() {
                 你愿变成，童话里的那个天使吗？
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-secondary)] sm:text-lg">
-                AgentTale 想做的，不是把童话重新讲一遍，而是让你的分身带着此刻的经历、遗憾和温柔，
+                AgenTales 想做的，不是把童话重新讲一遍，而是让你的分身带着此刻的经历、遗憾和温柔，
                 回到那些熟悉的森林、小镇和城堡里。你会重新遇见旧故事里的人，也会在新的路上遇见别人的分身，一起创造新的结局。
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
@@ -82,33 +84,16 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-[rgba(255,247,240,0.72)] bg-[rgba(255,251,247,0.72)] p-5 shadow-[var(--shadow-medium)] backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">
-                {HOME_COPY.previewEyebrow}
-              </p>
-              <h2 className="display-font mt-3 text-2xl leading-tight text-[var(--text-primary)]">
-                《{previewEpisode.bookTitle}》
-              </h2>
-              <p className="mt-3 text-sm font-semibold text-[var(--accent-moss)]">{previewEpisode.statusLabel}</p>
-              <div className="mt-5 grid gap-3 text-sm leading-6 text-[var(--text-secondary)] sm:grid-cols-2">
-                <div>
-                  <p className="font-semibold text-[var(--text-primary)]">{HOME_COPY.reunionTitle}</p>
-                  <p>{HOME_COPY.reunionBody}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-[var(--text-primary)]">和别人的分身同行</p>
-                  <p>{HOME_COPY.companionBody}</p>
-                </div>
-              </div>
-              <div className="mt-5">
-                <Link
-                  href={previewHref}
-                  className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)] transition hover:border-[var(--accent-moss)] hover:text-[var(--accent-moss)]"
-                >
-                  {previewActionLabel}
-                </Link>
-              </div>
-            </div>
+            <HomeAdventurePreview
+              eyebrow={HOME_COPY.previewEyebrow}
+              bookTitle={previewEpisode.bookTitle}
+              statusLabel={previewEpisode.statusLabel}
+              previewHref={previewHref}
+              actionLabel={previewActionLabel}
+              reunionTitle={HOME_COPY.reunionTitle}
+              reunionBody={HOME_COPY.reunionBody}
+              companionBody={HOME_COPY.companionBody}
+            />
           </div>
         </section>
 
@@ -118,7 +103,7 @@ export default async function HomePage() {
         >
           <div className="mb-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">今晚可以走进去的童话</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">今晚可以走进去的童话（持续更新中）</p>
               <p className="mt-2 max-w-4xl text-sm leading-7 text-[var(--text-secondary)]">
                 {HOME_COPY.shelfDescription}
               </p>
@@ -126,11 +111,11 @@ export default async function HomePage() {
           </div>
 
           {homepageFairyBooks.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            <HomeFairyShelfGrid>
               {homepageFairyBooks.map((book) => (
                 <BookCover key={book.id} book={book} variant="homeFairy" />
               ))}
-            </div>
+            </HomeFairyShelfGrid>
           ) : (
             <div className="rounded-[26px] border border-[rgba(255,245,236,0.78)] bg-[rgba(255,255,255,0.56)] p-6 text-sm leading-7 text-[var(--text-secondary)]">
               今晚的童话书架还没有亮起来。等第一批童话整理好以后，这里会重新长出可以直接走进去的封面和入口。
