@@ -3,10 +3,10 @@ import { AppShell } from "@/components/app-shell";
 import { PersonaCard } from "@/components/persona-card";
 import { StateCard } from "@/components/state-card";
 import { StoryFootprintTabs } from "@/components/story-footprint-tabs";
+import { getStoryFootprintView } from "@/lib/me-page-presentation";
 import {
   getAdventureThreads,
   getAuthenticatedAppContext,
-  getMyStoryStats,
   getPersonalLineBooks,
   getStoryExperienceSchemaStatus,
   getStoryTimelineItems
@@ -26,17 +26,18 @@ export default async function MePage({
   const currentContext = await getAuthenticatedAppContext();
   const schemaStatus = await getStoryExperienceSchemaStatus();
 
-  const [timelineItems, stats, personalLineBooks, threads] = currentContext
+  const [timelineItems, personalLineBooks, threads] = currentContext
     ? await Promise.all([
         getStoryTimelineItems(),
-        getMyStoryStats(),
         getPersonalLineBooks(),
         getAdventureThreads()
       ])
-    : [[], { ownedAdventureCount: 0, joinedAdventureCount: 0 }, [], []];
+    : [[], [], []];
 
-  const ownedLines = personalLineBooks.slice(0, 3);
-  const joinedThreads = threads.filter((thread) => !thread.isOwner && thread.isParticipant).slice(0, 3);
+  const footprintView = getStoryFootprintView({
+    personalLineBooks,
+    adventureThreads: threads
+  });
 
   return (
     <AppShell activeTab="me">
@@ -61,18 +62,10 @@ export default async function MePage({
           )}
 
           <StoryFootprintTabs
-            ownedCount={stats.ownedAdventureCount}
-            joinedCount={stats.joinedAdventureCount}
-            ownedItems={ownedLines.map((line) => ({
-              id: line.threadId,
-              title: line.title,
-              href: `/memory/${line.sourceBookSlug}`
-            }))}
-            joinedItems={joinedThreads.map((thread) => ({
-              id: thread.id,
-              title: thread.title,
-              href: `/adventure/${thread.id}`
-            }))}
+            ownedCount={footprintView.ownedCount}
+            joinedCount={footprintView.joinedCount}
+            ownedItems={footprintView.ownedItems}
+            joinedItems={footprintView.joinedItems}
           />
 
           {auth === "connected" ? (

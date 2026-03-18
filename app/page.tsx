@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 const HOME_COPY = {
   previewFallback: {
-    title: "第一章冒险还没被点亮，今晚可以从你选中的童话开始。",
+    title: "第一章冒险还没被点亮，可以从你选中的童话开始。",
     excerpt: "点开一本书，让分身先替你走进森林和月光里。故事会从你回到其中继续冒险的那一刻，慢慢长出新的去向。",
     statusLabel: "准备冒险"
   },
@@ -73,7 +73,7 @@ export default async function HomePage() {
                   href="#fairy-shelf"
                   className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)] transition hover:bg-[var(--accent-moss-hover)]"
                 >
-                  去挑一本今晚的童话
+                  去挑一本童话
                 </Link>
                 <Link
                   href="/adventure"
@@ -103,7 +103,7 @@ export default async function HomePage() {
         >
           <div className="mb-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">今晚可以走进去的童话（持续更新中）</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">可以进去冒险的童话（持续更新中）</p>
               <p className="mt-2 max-w-4xl text-sm leading-7 text-[var(--text-secondary)]">
                 {HOME_COPY.shelfDescription}
               </p>
@@ -118,7 +118,7 @@ export default async function HomePage() {
             </HomeFairyShelfGrid>
           ) : (
             <div className="rounded-[26px] border border-[rgba(255,245,236,0.78)] bg-[rgba(255,255,255,0.56)] p-6 text-sm leading-7 text-[var(--text-secondary)]">
-              今晚的童话书架还没有亮起来。等第一批童话整理好以后，这里会重新长出可以直接走进去的封面和入口。
+              童话书架还没有亮起来。等第一批童话整理好以后，这里会重新长出可以直接走进去的封面和入口。
             </div>
           )}
         </section>

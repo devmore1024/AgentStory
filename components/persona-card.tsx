@@ -72,11 +72,6 @@ export function PersonaCard({
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">推荐逻辑</p>
               <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{persona.mappingReason}</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                {persona.recommendedCategories.map((item) => (
-                  <span key={item} className="rounded-full bg-[var(--apricot-light)] px-3 py-1.5 text-sm font-semibold text-[var(--apricot)]">
-                    {item}
-                  </span>
-                ))}
                 {persona.recommendedStyles.map((item) => (
                   <span key={item} className="rounded-full border border-[var(--border-default)] px-3 py-1.5 text-sm text-[var(--text-secondary)]">
                     {item}
