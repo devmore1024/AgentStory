@@ -150,7 +150,7 @@ export default async function MePage({
                   >
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
                       {getStoryTimelineSourceLabel(item.sourceType)}
-                      {item.bookTitle ? ` · ${item.bookTitle}` : ""}
+                      {item.bookTitle ? ` · 《${item.bookTitle}》` : ""}
                     </p>
                     <p className="mt-2 text-base leading-7 text-[var(--text-secondary)]">{item.title}</p>
                     {item.excerpt ? <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{item.excerpt}</p> : null}
