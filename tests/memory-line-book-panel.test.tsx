@@ -1,8 +1,9 @@
 import React from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryLineBookPanel } from "@/components/memory-line-book-panel";
+import { getStoryCoverFallbackSrc } from "@/lib/story-cover-cdn";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -42,7 +43,14 @@ function createBookFixture(overrides: Partial<MemoryLineBook> = {}): MemoryLineB
   };
 }
 
+const originalGeneratedCoversDir = process.env.GENERATED_COVERS_DIR;
+
+beforeEach(() => {
+  process.env.GENERATED_COVERS_DIR = "/tmp/agentstory-memory-line-no-generated";
+});
+
 afterEach(() => {
+  process.env.GENERATED_COVERS_DIR = originalGeneratedCoversDir;
   cleanup();
 });
 
@@ -82,7 +90,7 @@ describe("MemoryLineBookPanel", () => {
     fireEvent.error(coverImage);
 
     await waitFor(() => {
-      expect(coverImage).toHaveAttribute("src", "/covers/fairy-the-three-little-pigs");
+      expect(coverImage).toHaveAttribute("src", getStoryCoverFallbackSrc("fairy-the-three-little-pigs"));
     });
   });
 });

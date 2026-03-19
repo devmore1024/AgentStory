@@ -1,7 +1,8 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { StoryDetailBookSidebar } from "@/components/story-detail-book-sidebar";
+import { getStoryCoverFallbackSrc } from "@/lib/story-cover-cdn";
 
 type StoryDetailSidebarBook = Parameters<typeof StoryDetailBookSidebar>[0]["book"];
 
@@ -26,7 +27,14 @@ function createBookFixture(overrides: Partial<StoryDetailSidebarBook> = {}): Sto
   };
 }
 
+const originalGeneratedCoversDir = process.env.GENERATED_COVERS_DIR;
+
+beforeEach(() => {
+  process.env.GENERATED_COVERS_DIR = "/tmp/agentstory-story-detail-sidebar-no-generated";
+});
+
 afterEach(() => {
+  process.env.GENERATED_COVERS_DIR = originalGeneratedCoversDir;
   cleanup();
 });
 
@@ -50,7 +58,7 @@ describe("StoryDetailBookSidebar", () => {
     fireEvent.error(coverImage);
 
     await waitFor(() => {
-      expect(coverImage).toHaveAttribute("src", "/covers/fairy-the-three-little-pigs");
+      expect(coverImage).toHaveAttribute("src", getStoryCoverFallbackSrc("fairy-the-three-little-pigs"));
     });
   });
 });

@@ -3,6 +3,7 @@ import path from "node:path";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { afterEach, describe, expect, it } from "vitest";
 import { resolveGeneratedCoverFile, resolveGeneratedCoverPublicPathSync } from "@/lib/generated-cover-files";
+import { getStoryCoverCdnUrl } from "@/lib/story-cover-cdn";
 
 const tempDirs: string[] = [];
 
@@ -32,7 +33,7 @@ describe("resolveGeneratedCoverFile", () => {
       contentType: "image/jpeg"
     });
     expect(resolveGeneratedCoverPublicPathSync("fairy-the-snow-queen", dir)).toBe(
-      "/generated-covers/fairy-the-snow-queen.jpeg"
+      getStoryCoverCdnUrl("/generated-covers/fairy-the-snow-queen.jpeg")
     );
   });
 

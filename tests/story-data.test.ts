@@ -1,14 +1,28 @@
-import { describe, expect, it } from "vitest";
-import {
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { StoryBook, StoryCategory } from "@/lib/story-data";
+
+const originalDatabaseUrl = process.env.DATABASE_URL;
+process.env.DATABASE_URL ||= "postgresql://postgres:postgres@localhost:5432/agentstory";
+
+const {
   getHomepageFairyShelfFromCategories,
   getResolvedKeyScenes,
   getResolvedStoryParagraphs,
   getStoryBookOptionalSelectClauses,
   hasIllustratedCoverForShelf,
-  sortVisibleFairyShelfBooks,
-  type StoryBook,
-  type StoryCategory
-} from "@/lib/story-data";
+  sortVisibleFairyShelfBooks
+} = await import("@/lib/story-data");
+
+const originalGeneratedCoversDir = process.env.GENERATED_COVERS_DIR;
+
+beforeEach(() => {
+  process.env.GENERATED_COVERS_DIR = "/tmp/agentstory-story-data-no-generated";
+});
+
+afterEach(() => {
+  process.env.GENERATED_COVERS_DIR = originalGeneratedCoversDir;
+  process.env.DATABASE_URL = originalDatabaseUrl;
+});
 
 function createBook(overrides: Partial<StoryBook> = {}): StoryBook {
   return {

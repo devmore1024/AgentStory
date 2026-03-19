@@ -3,6 +3,7 @@ import path from "node:path";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resolveCoverAsset } from "@/lib/cover-assets";
+import { getStoryCoverCdnUrl, getStoryCoverFallbackSrc } from "@/lib/story-cover-cdn";
 
 const tempDirs: string[] = [];
 const originalGeneratedCoversDir = process.env.GENERATED_COVERS_DIR;
@@ -38,8 +39,8 @@ describe("resolveCoverAsset generated cover preference", () => {
       categoryKey: "fairy_tale"
     });
 
-    expect(asset.src).toBe("/generated-covers/fairy-little-red-riding-hood.jpeg");
+    expect(asset.src).toBe(getStoryCoverCdnUrl("/generated-covers/fairy-little-red-riding-hood.jpeg"));
     expect(asset.isExternal).toBe(false);
-    expect(asset.fallbackSrc).toBe("/covers/fairy-little-red-riding-hood");
+    expect(asset.fallbackSrc).toBe(getStoryCoverFallbackSrc("fairy-little-red-riding-hood"));
   });
 });

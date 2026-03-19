@@ -47,6 +47,13 @@ ALIYUN_OSS_REGION = oss-cn-hongkong
 - **路径**：`images/{journalId}/{style}-{timestamp}.png`
 - **示例**：`images/cmluv181s70002l504/journal-1740841200000.png`
 
+### 故事封面 CDN
+
+- **封面前缀**：`story/`
+- **示例**：`${NEXT_PUBLIC_ASSET_PREFIX}/story/generated-covers/fairy-cinderella.jpeg`
+- **回退封面**：`${NEXT_PUBLIC_ASSET_PREFIX}/story/covers/fairy-cinderella`
+- **前缀来源**：优先使用 `NEXT_PUBLIC_ASSET_PREFIX`，路径规则保持 `story/` + 原封面路径不变；如果未配置，才会退回到封面专用前缀或 OSS 推导地址。
+
 ### 音频存储
 
 - **路径**：`audios/{journalId}/{timestamp}.mp3`

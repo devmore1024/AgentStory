@@ -1,5 +1,6 @@
 import { hashString, inferCoverMotif, type CoverCategoryKey, type CoverMotifKey } from "@/lib/cover-motifs";
 import { resolveGeneratedCoverPublicPathSync } from "@/lib/generated-cover-files";
+import { getStoryCoverFallbackSrc, getStoryCoverCdnUrl, isManagedStoryCoverAsset } from "@/lib/story-cover-cdn";
 
 type CoverTint = {
   overlay: string;
@@ -69,6 +70,10 @@ function isExternalUrl(src: string) {
   return /^https?:\/\//i.test(src);
 }
 
+function isExternalCoverAsset(src: string) {
+  return isExternalUrl(src) && !isManagedStoryCoverAsset(src);
+}
+
 function pickFromPool<T>(pool: readonly T[], seed: string) {
   return pool[hashString(seed) % pool.length];
 }
@@ -92,7 +97,7 @@ function createCommonsArtwork(
 
 function createLocalArtwork(slug: string, tint: CoverTint = fairyTint): CoverOverride {
   return {
-    src: `/covers/${slug}`,
+    src: getStoryCoverFallbackSrc(slug),
     sourcePage: null,
     licenseNote: null,
     objectPosition: "center center",
@@ -412,7 +417,7 @@ export const coverSourceRegistry = {
 };
 
 export function resolveCoverAsset(book: CoverResolverInput): ResolvedCoverAsset {
-  const fallbackSrc = `/covers/${book.slug}`;
+  const fallbackSrc = getStoryCoverFallbackSrc(book.slug);
   const generatedCoverSrc = resolveGeneratedCoverPublicPathSync(book.slug);
   const directCover = book.coverImage?.trim();
 
@@ -429,10 +434,12 @@ export function resolveCoverAsset(book: CoverResolverInput): ResolvedCoverAsset 
   }
 
   if (directCover) {
+    const resolvedDirectCover = getStoryCoverCdnUrl(directCover);
+
     return {
-      src: directCover,
+      src: resolvedDirectCover,
       fallbackSrc,
-      isExternal: isExternalUrl(directCover),
+      isExternal: isExternalCoverAsset(resolvedDirectCover),
       sourcePage: null,
       licenseNote: null,
       objectPosition: "center center",
@@ -443,10 +450,13 @@ export function resolveCoverAsset(book: CoverResolverInput): ResolvedCoverAsset 
   const override = slugCoverOverrides[book.slug] ?? resolveThemedArtwork(book);
 
   if (override) {
+    const resolvedOverrideSrc = getStoryCoverCdnUrl(override.src);
+
     return {
       ...override,
+      src: resolvedOverrideSrc,
       fallbackSrc,
-      isExternal: isExternalUrl(override.src)
+      isExternal: isExternalCoverAsset(resolvedOverrideSrc)
     };
   }
 

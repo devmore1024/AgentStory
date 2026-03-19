@@ -1,6 +1,7 @@
 import path from "node:path";
 import { access } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { getStoryCoverCdnUrl } from "@/lib/story-cover-cdn";
 
 const GENERATED_COVER_EXTENSIONS = [".jpeg", ".jpg", ".png", ".webp"] as const;
 
@@ -25,7 +26,7 @@ function getGeneratedCoverBaseDir(baseDir?: string) {
 }
 
 function getPublicCoverPath(slug: string, extension: string) {
-  return `/generated-covers/${slug}${extension}`;
+  return getStoryCoverCdnUrl(`/generated-covers/${slug}${extension}`);
 }
 
 export function resolveGeneratedCoverPublicPathSync(

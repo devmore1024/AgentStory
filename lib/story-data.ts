@@ -8,6 +8,7 @@ import {
   getSourceBackedFairyBook,
   sourceBackedFairyCatalog
 } from "@/lib/fairy-source-backed-catalog";
+import { isStoryCoverFallbackSrc } from "@/lib/story-cover-cdn";
 
 export type StoryBook = {
   id: string;
@@ -44,7 +45,7 @@ export function getHomepageFairyShelfFromCategories(categories: StoryCategory[])
 export function hasIllustratedCoverForShelf(
   book: Pick<StoryBook, "slug" | "coverImage" | "title" | "categoryKey" | "summary" | "originalSynopsis">
 ) {
-  return resolveCoverAsset(book).src !== `/covers/${book.slug}`;
+  return !isStoryCoverFallbackSrc(resolveCoverAsset(book).src, book.slug);
 }
 
 export function sortVisibleFairyShelfBooks<T extends StoryBook>(books: T[]) {

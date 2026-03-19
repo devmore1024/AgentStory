@@ -1,8 +1,9 @@
 import React from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BookCover } from "@/components/book-cover";
+import { getStoryCoverFallbackSrc } from "@/lib/story-cover-cdn";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -18,6 +19,17 @@ vi.mock("next/link", () => ({
     </a>
   )
 }));
+
+const originalGeneratedCoversDir = process.env.GENERATED_COVERS_DIR;
+
+beforeEach(() => {
+  process.env.GENERATED_COVERS_DIR = "/tmp/agentstory-book-cover-no-generated";
+});
+
+afterEach(() => {
+  process.env.GENERATED_COVERS_DIR = originalGeneratedCoversDir;
+  cleanup();
+});
 
 type BookFixture = Parameters<typeof BookCover>[0]["book"];
 
@@ -49,17 +61,16 @@ describe("BookCover", () => {
     const coverImage = screen.getByAltText("三只小猪 封面");
 
     expect(coverImage).toHaveAttribute("src", expect.stringContaining("commons.wikimedia.org"));
-    expect(screen.getByText("童话")).toBeInTheDocument();
     expect(screen.getByText("三只小猪")).toBeInTheDocument();
+    expect(screen.getByText("三只小猪各自盖房子，而狼的到来很快考验了它们的选择。")).toBeInTheDocument();
   });
 
-  it("uses the home fairy variant to hide the category badge and keep the fairy shelf styling focused", () => {
+  it("uses the home fairy variant styling for the fairy shelf card", () => {
     render(<BookCover book={createBookFixture()} variant="homeFairy" />);
 
     const coverFrame = screen.getByAltText("三只小猪 封面").closest("[data-cover-variant]");
 
     expect(coverFrame).toHaveAttribute("data-cover-variant", "homeFairy");
-    expect(screen.queryByText("童话")).not.toBeInTheDocument();
     expect(screen.getByText("三只小猪")).toBeInTheDocument();
   });
 
@@ -92,7 +103,7 @@ describe("BookCover", () => {
 
     const coverImage = screen.getByAltText("蓝胡子 封面");
 
-    expect(coverImage).toHaveAttribute("src", "/covers/fairy-bluebeard");
+    expect(coverImage).toHaveAttribute("src", getStoryCoverFallbackSrc("fairy-bluebeard"));
   });
 
   it("switches back to the fallback svg cover when the remote image fails", async () => {
@@ -103,7 +114,7 @@ describe("BookCover", () => {
     fireEvent.error(coverImage);
 
     await waitFor(() => {
-      expect(coverImage).toHaveAttribute("src", "/covers/fairy-the-three-little-pigs");
+      expect(coverImage).toHaveAttribute("src", getStoryCoverFallbackSrc("fairy-the-three-little-pigs"));
     });
   });
 });

@@ -1,4 +1,5 @@
 import { resolveCoverAsset } from "@/lib/cover-assets";
+import { isStoryCoverFallbackSrc } from "@/lib/story-cover-cdn";
 
 export type ImportedFairySource = {
   slug: string;
@@ -45,7 +46,7 @@ function createImportedCover(input: {
     originalSynopsis: input.originalSynopsis
   });
 
-  return resolved.src === `/covers/${input.slug}` ? null : resolved.src;
+  return isStoryCoverFallbackSrc(resolved.src, input.slug) ? null : resolved.src;
 }
 
 function candidate(source: ImportedFairySource) {

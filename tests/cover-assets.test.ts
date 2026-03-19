@@ -1,47 +1,58 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { coverSourceRegistry, resolveCoverAsset } from "@/lib/cover-assets";
+import { getStoryCoverFallbackSrc } from "@/lib/story-cover-cdn";
+
+const originalGeneratedCoversDir = process.env.GENERATED_COVERS_DIR;
+
+beforeEach(() => {
+  process.env.GENERATED_COVERS_DIR = "/tmp/agentstory-cover-assets-no-generated";
+});
+
+afterEach(() => {
+  process.env.GENERATED_COVERS_DIR = originalGeneratedCoversDir;
+});
 
 describe("resolveCoverAsset", () => {
-  it("prefers a stored cover image before curated overrides when imported data is present", () => {
+  it("prefers a stored cover image when no generated cover exists for the slug", () => {
     const asset = resolveCoverAsset({
-      slug: "fairy-the-three-little-pigs",
+      slug: "custom-book",
       coverImage: "https://www.gutenberg.org/cache/epub/7439/pg7439.cover.medium.jpg",
-      title: "三只小猪",
+      title: "自定义故事",
       categoryKey: "fairy_tale"
     });
 
     expect(asset.src).toBe("https://www.gutenberg.org/cache/epub/7439/pg7439.cover.medium.jpg");
     expect(asset.isExternal).toBe(true);
-    expect(asset.fallbackSrc).toBe("/covers/fairy-the-three-little-pigs");
+    expect(asset.fallbackSrc).toBe(getStoryCoverFallbackSrc("custom-book"));
     expect(asset.sourcePage).toBeNull();
   });
 
   it("uses slug override metadata when a book has an exact curated match and no stored cover image", () => {
     const asset = resolveCoverAsset({
-      slug: "fairy-the-three-little-pigs",
+      slug: "fable-the-crow-and-the-fox",
       coverImage: null,
-      title: "三只小猪",
-      categoryKey: "fairy_tale"
+      title: "乌鸦和狐狸",
+      categoryKey: "fable"
     });
 
-    expect(asset.src).toBe(coverSourceRegistry.slugCoverOverrides["fairy-the-three-little-pigs"].src);
+    expect(asset.src).toBe(coverSourceRegistry.slugCoverOverrides["fable-the-crow-and-the-fox"].src);
     expect(asset.isExternal).toBe(true);
-    expect(asset.fallbackSrc).toBe("/covers/fairy-the-three-little-pigs");
+    expect(asset.fallbackSrc).toBe(getStoryCoverFallbackSrc("fable-the-crow-and-the-fox"));
     expect(asset.sourcePage).toContain("commons.wikimedia.org/wiki/File:");
   });
 
   it("uses a themed external cover pool for books outside the exact override list", () => {
     const asset = resolveCoverAsset({
-      slug: "fairy-bluebeard",
+      slug: "myth-custom-sky-story",
       coverImage: null,
-      title: "蓝胡子",
-      categoryKey: "fairy_tale",
-      originalSynopsis: "新婚妻子被告诫不要打开某一扇门，而门后的秘密远比她想象得可怕。"
+      title: "织天之光",
+      categoryKey: "mythology",
+      originalSynopsis: "天空被点燃，众人只能跟随一道古老的光踏上旅途。"
     });
 
     expect(asset.src).toContain("commons.wikimedia.org");
     expect(asset.isExternal).toBe(true);
-    expect(asset.fallbackSrc).toBe("/covers/fairy-bluebeard");
+    expect(asset.fallbackSrc).toBe(getStoryCoverFallbackSrc("myth-custom-sky-story"));
     expect(asset.sourcePage).toContain("commons.wikimedia.org/wiki/File:");
   });
 
@@ -53,7 +64,7 @@ describe("resolveCoverAsset", () => {
       categoryKey: "fairy_tale"
     });
 
-    expect(asset.src).toBe("/covers/fairy-bluebeard");
+    expect(asset.src).toBe(getStoryCoverFallbackSrc("fairy-bluebeard"));
     expect(asset.isExternal).toBe(false);
   });
 
@@ -65,7 +76,7 @@ describe("resolveCoverAsset", () => {
 
     expect(asset.src).toBe("https://example.com/custom-cover.jpg");
     expect(asset.isExternal).toBe(true);
-    expect(asset.fallbackSrc).toBe("/covers/custom-book");
+    expect(asset.fallbackSrc).toBe(getStoryCoverFallbackSrc("custom-book"));
     expect(asset.sourcePage).toBeNull();
   });
 
@@ -75,8 +86,8 @@ describe("resolveCoverAsset", () => {
       coverImage: null
     });
 
-    expect(asset.src).toBe("/covers/missing-book");
-    expect(asset.fallbackSrc).toBe("/covers/missing-book");
+    expect(asset.src).toBe(getStoryCoverFallbackSrc("missing-book"));
+    expect(asset.fallbackSrc).toBe(getStoryCoverFallbackSrc("missing-book"));
     expect(asset.isExternal).toBe(false);
   });
 });
