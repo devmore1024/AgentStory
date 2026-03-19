@@ -26,6 +26,8 @@ describe("PersonaSvgGalleryPage", () => {
     render(await PersonaSvgGalleryPage());
 
     expect(screen.getByTestId("page-back-button")).toHaveTextContent("人格图谱:/me");
+    expect(screen.getByText(/20 种动物人格的两层视觉资产/)).toBeInTheDocument();
+    expect(screen.getAllByText("识别特征")).toHaveLength(6);
 
     for (const persona of Object.values(animalPersonas)) {
       expect(screen.getByTestId(`persona-svg-card-${persona.animalType}`)).toHaveTextContent(persona.animalName);
@@ -33,5 +35,7 @@ describe("PersonaSvgGalleryPage", () => {
       expect(screen.getByTestId(`persona-portrait-panel-${persona.animalType}`)).toHaveTextContent("详细 SVG");
       expect(screen.getByRole("img", { name: `${persona.animalName}动物人格头像` })).toBeInTheDocument();
     }
+
+    expect(screen.getByText(/狮子、刺猬、马、大象、天鹅和鹤/)).toBeInTheDocument();
   });
 });
