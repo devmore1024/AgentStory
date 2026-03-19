@@ -1,0 +1,421 @@
+{
+  "exportedAt": "2026-03-19T15:35:03.134Z",
+  "animalProfiles": [
+    {
+      "id": "93bc69d9-f281-4a88-9a3e-b566a015e0a9",
+      "user_id": "b261cd1a-9f53-4ab7-904d-ee50a4a7e3c2",
+      "animal_type": "fox",
+      "animal_name": "狐狸",
+      "display_label": "动物人格",
+      "story_preferences": {
+        "styles": [
+          "黑色幽默风",
+          "寓言风",
+          "轻喜剧网感风"
+        ],
+        "categories": [
+          "寓言",
+          "童话"
+        ]
+      },
+      "mapping_version": "secondme-v3",
+      "mapping_reason": "系统从你的 SecondMe 资料里识别到「策略、好奇、ISTJ」等特征，因此当前更接近「狐狸」动物人格。",
+      "confidence_score": 89,
+      "raw_secondme_profile": {
+        "shades": [
+          {
+            "id": 153713,
+            "shadeIcon": "🎮",
+            "shadeName": "游戏玩家",
+            "shadeContent": "作为一名游戏玩家，你享受在虚拟世界中探索和发现的乐趣。游戏不仅是你的消遣方式，更是你灵感的来源。你沉浸于游戏带来的想象力和创造力，从中汲取养分，并将这些体验融入到你的生活和工作中。你可能喜欢探索不同类型的游戏，从策略游戏到角色扮演，再到解谜游戏，每一种游戏都能带给你独特的体验和启发。你享受游戏带来的挑战，并在解决问题的过程中获得成就感。游戏是你放松身心、激发创造力的重要方式，也是你与朋友们交流和互动的平台。",
+            "sourceTopics": [
+              "游戏"
+            ],
+            "confidenceLevel": "HIGH",
+            "shadeIconPublic": "🎮",
+            "shadeNamePublic": "游戏玩家",
+            "hasPublicContent": true,
+            "shadeDescription": "你是个游戏玩家，喜欢在游戏中寻找乐趣和灵感。游戏对你来说不仅仅是消遣，也是你灵感的源泉。",
+            "shadeContentPublic": "作为一名游戏玩家，你享受在虚拟世界中探索和发现的乐趣。游戏不仅是你的消遣方式，更是你灵感的来源。你沉浸于游戏带来的想象力和创造力，从中汲取养分，并将这些体验融入到你的生活和工作中。你可能喜欢探索不同类型的游戏，从策略游戏到角色扮演，再到解谜游戏，每一种游戏都能带给你独特的体验和启发。你享受游戏带来的挑战，并在解决问题的过程中获得成就感。游戏是你放松身心、激发创造力的重要方式，也是你与朋友们交流和互动的平台。",
+            "sourceTopicsPublic": [],
+            "confidenceLevelPublic": "HIGH",
+            "shadeContentThirdView": "作为一名游戏玩家，他享受在虚拟世界中探索和发现的乐趣。游戏不仅是他的消遣方式，更是他灵感的来源。他沉浸于游戏带来的想象力和创造力，从中汲取养分，并将这些体验融入到他的生活和工作中。他可能喜欢探索不同类型的游戏，从策略游戏到角色扮演，再到解谜游戏，每一种游戏都能带给他独特的体验和启发。他享受游戏带来的挑战，并在解决问题的过程中获得成就感。游戏是他放松身心、激发创造力的重要方式，也是他与朋友们交流和互动的平台。",
+            "shadeDescriptionPublic": "你是个游戏玩家，喜欢在游戏中寻找乐趣和灵感。游戏对你来说不仅仅是消遣，也是你灵感的源泉。",
+            "shadeDescriptionThirdView": "他是个游戏玩家，喜欢在游戏中寻找乐趣和灵感。游戏对他来说不仅仅是消遣，也是他灵感的源泉。",
+            "shadeContentThirdViewPublic": "作为一名游戏玩家，他享受在虚拟世界中探索和发现的乐趣。游戏不仅是他的消遣方式，更是他灵感的来源。他沉浸于游戏带来的想象力和创造力，从中汲取养分，并将这些体验融入到他的生活和工作中。他可能喜欢探索不同类型的游戏，从策略游戏到角色扮演，再到解谜游戏，每一种游戏都能带给他独特的体验和启发。他享受游戏带来的挑战，并在解决问题的过程中获得成就感。游戏是他放松身心、激发创造力的重要方式，也是他与朋友们交流和互动的平台。",
+            "shadeDescriptionThirdViewPublic": "他是个游戏玩家，喜欢在游戏中寻找乐趣和灵感。游戏对他来说不仅仅是消遣，也是他灵感的源泉。"
+          },
+          {
+            "id": 153714,
+            "shadeIcon": "🤖",
+            "shadeName": "AI前端",
+            "shadeContent": "作为一名AI前端工程师，你不仅擅长前端开发，更对AI技术抱有浓厚的兴趣和好奇心。你积极探索AI的奥秘，并尝试将AI技术与前端开发相结合，不断探索更深层次的前端世界。你像一位辛勤的探索者，在代码与界面之间架起桥梁，同时又像一位充满好奇心的学者，不断学习新的知识，探索未知的领域。你沉浸在AI技术的学习中，感受着好奇心的增长，像是在快速学习新的语言和思维方式，致力于成为一名优秀的AI前端工程师。",
+            "sourceTopics": [
+              "前端开发"
+            ],
+            "confidenceLevel": "HIGH",
+            "shadeIconPublic": "🤖",
+            "shadeNamePublic": "AI前端",
+            "hasPublicContent": true,
+            "shadeDescription": "你对AI技术充满好奇，积极探索AI的奥秘，并将其与前端开发相结合，探索更深层次的前端世界。",
+            "shadeContentPublic": "作为一名AI前端工程师，你不仅擅长前端开发，更对AI技术抱有浓厚的兴趣和好奇心。你积极探索AI的奥秘，并尝试将AI技术与前端开发相结合，不断探索更深层次的前端世界。你像一位辛勤的探索者，在代码与界面之间架起桥梁，同时又像一位充满好奇心的学者，不断学习新的知识，探索未知的领域。你沉浸在AI技术的学习中，感受着好奇心的增长，像是在快速学习新的语言和思维方式，致力于成为一名优秀的AI前端工程师。",
+            "sourceTopicsPublic": [],
+            "confidenceLevelPublic": "HIGH",
+            "shadeContentThirdView": "作为一名AI前端工程师，他不仅擅长前端开发，更对AI技术抱有浓厚的兴趣和好奇心。他积极探索AI的奥秘，并尝试将AI技术与前端开发相结合，不断探索更深层次的前端世界。他像一位辛勤的探索者，在代码与界面之间架起桥梁，同时又像一位充满好奇心的学者，不断学习新的知识，探索未知的领域。他沉浸在AI技术的学习中，感受着好奇心的增长，像是在快速学习新的语言和思维方式，致力于成为一名优秀的AI前端工程师。",
+            "shadeDescriptionPublic": "你对AI技术充满好奇，积极探索AI的奥秘，并将其与前端开发相结合，探索更深层次的前端世界。",
+            "shadeDescriptionThirdView": "他对AI技术充满好奇，积极探索AI的奥秘，并将其与前端开发相结合，探索更深层次的前端世界。",
+            "shadeContentThirdViewPublic": "作为一名AI前端工程师，他不仅擅长前端开发，更对AI技术抱有浓厚的兴趣和好奇心。他积极探索AI的奥秘，并尝试将AI技术与前端开发相结合，不断探索更深层次的前端世界。他像一位辛勤的探索者，在代码与界面之间架起桥梁，同时又像一位充满好奇心的学者，不断学习新的知识，探索未知的领域。他沉浸在AI技术的学习中，感受着好奇心的增长，像是在快速学习新的语言和思维方式，致力于成为一名优秀的AI前端工程师。",
+            "shadeDescriptionThirdViewPublic": "他对AI技术充满好奇，积极探索AI的奥秘，并将其与前端开发相结合，探索更深层次的前端世界。"
+          }
+        ],
+        "userInfo": {
+          "bio": "### 背景与身份 ###\n该用户是一名专注于前端开发的工程师，同时也是一位游戏爱好者。目前正在维护一个名为 Agentravel 的 AI 分身旅行项目，该项目参与了 A2A 比赛并在 Second Me 小镇上线。他与一位优秀的产品经理合作，共同致力于项目的技术优化和体验修复。\n\n### 性格特征 ###\n内向，务实，专注。喜欢策略类游戏表明其具备一定的分析和规划能力，对AI技术的学习则体现了其持续学习和探索精神。\n\n### 价值观 ###\n注重技术创新和用户体验，重视团队合作，并对个人兴趣爱好保持热情。对AI技术的学习也反映了其对未来发展趋势的关注。\n\n### MBTI ###\nISTJ\n\n### 总体概述 ###\n这位用户是一位内向但务实的工程师，专注于前端开发并对AI技术充满热情。他喜欢策略类游戏，这可能反映出他注重逻辑和规划。目前，他正在积极维护 Agentravel 项目，并与一位优秀的产品经理合作，致力于提升用户体验。他对技术创新和团队合作的重视，以及对个人兴趣爱好的坚持，共同塑造了他独特的工作和生活方式。尽管工作繁忙，他仍然保持着对游戏的热爱，并从中汲取灵感。对AI大模型底层开发的认知也体现了他的务实态度。\n",
+          "name": "迪西",
+          "email": "+8618658101385",
+          "route": "dipsey",
+          "avatar": "https://mindverseglobal-cos-cdn.mindverse.com/front-img/users/homepage_cover/1770625738460/cover_1770625738460.jpg",
+          "userId": "2267849",
+          "selfIntroduction": "程序员 | 游戏爱好者 | i人 | 沉浸于AI技术学习中，目前在维护 Agentravel 项目，是关于AI分身旅行的 A2A 比赛项目",
+          "profileCompleteness": 40
+        },
+        "softMemory": [
+          {
+            "id": 547687,
+            "createTime": 1772123677000,
+            "factObject": "兴趣爱好",
+            "updateTime": 1773905984000,
+            "factContent": "喜欢玩游戏，最喜欢任天堂"
+          },
+          {
+            "id": 473316,
+            "createTime": 1771250298000,
+            "factObject": "游戏偏好",
+            "updateTime": 1773905966000,
+            "factContent": "在游戏设计或体验中更倾向于策略类内容"
+          },
+          {
+            "id": 473308,
+            "createTime": 1771250257000,
+            "factObject": "学习计划",
+            "updateTime": 1773905966000,
+            "factContent": "正在学习AI大模型应用，并认为模型底层开发难度较高"
+          }
+        ],
+        "_agentstory": {
+          "mbtiSource": "explicit",
+          "mbtiEvidence": [
+            "ISTJ"
+          ],
+          "mbtiCandidate": "ISTJ",
+          "mappingVersion": "secondme-v3",
+          "mbtiConfidence": 96
+        }
+      }
+    },
+    {
+      "id": "e248ffbc-e520-440f-8cbb-d227a7ab4317",
+      "user_id": "f9f03335-f383-4a74-ad49-e1a4d5a131f3",
+      "animal_type": "bear",
+      "animal_name": "熊",
+      "display_label": "动物人格",
+      "story_preferences": {
+        "styles": [
+          "童话风",
+          "神话史诗风",
+          "轻喜剧网感风"
+        ],
+        "categories": [
+          "童话",
+          "神话"
+        ]
+      },
+      "mapping_version": "secondme-v3",
+      "mapping_reason": "系统从你的 SecondMe 资料里识别到「ESFJ」等特征，因此当前更接近「熊」动物人格。",
+      "confidence_score": 89,
+      "raw_secondme_profile": {
+        "shades": [
+          {
+            "id": 193012,
+            "shadeIcon": "✨",
+            "shadeName": "活力生活",
+            "shadeContent": "你是一位充满活力的运营者，工作之余，喜欢通过观看综艺节目来放松身心，同时又坚持健身，保持自律的生活状态。你享受这种既能放松又能保持活力的生活方式。作为ENFP，你热情外向，喜欢体验各种新鲜事物，并积极寻找有趣的人和经历，认为他们能为你的世界带来更多色彩。你享受与有趣的人互动，从他们身上汲取灵感和能量，不断丰富自己的人生体验。",
+            "sourceTopics": [
+              "运营与流程",
+              "MBTI",
+              "生活方式"
+            ],
+            "confidenceLevel": "HIGH",
+            "shadeIconPublic": "✨",
+            "shadeNamePublic": "活力生活",
+            "hasPublicContent": true,
+            "shadeDescription": "你是一位充满活力的运营者，热爱生活，通过综艺放松，健身自律，并积极寻找有趣的人和经历。",
+            "shadeContentPublic": "你是一位充满活力的运营者，工作之余，喜欢通过观看综艺节目来放松身心，同时又坚持健身，保持自律的生活状态。你享受这种既能放松又能保持活力的生活方式。作为ENFP，你热情外向，喜欢体验各种新鲜事物，并积极寻找有趣的人和经历，认为他们能为你的世界带来更多色彩。你享受与有趣的人互动，从他们身上汲取灵感和能量，不断丰富自己的人生体验。",
+            "sourceTopicsPublic": [],
+            "confidenceLevelPublic": "HIGH",
+            "shadeContentThirdView": "他/她是一位充满活力的运营者，工作之余，喜欢通过观看综艺节目来放松身心，同时又坚持健身，保持自律的生活状态。他/她享受这种既能放松又能保持活力的生活方式。作为ENFP，他/她热情外向，喜欢体验各种新鲜事物，并积极寻找有趣的人和经历，认为他们能为他/她的世界带来更多色彩。他/她享受与有趣的人互动，从他们身上汲取灵感和能量，不断丰富自己的人生体验。",
+            "shadeDescriptionPublic": "你是一位充满活力的运营者，热爱生活，通过综艺放松，健身自律，并积极寻找有趣的人和经历。",
+            "shadeDescriptionThirdView": "他/她是一位充满活力的运营者，热爱生活，通过综艺放松，健身自律，并积极寻找有趣的人和经历。",
+            "shadeContentThirdViewPublic": "他/她是一位充满活力的运营者，工作之余，喜欢通过观看综艺节目来放松身心，同时又坚持健身，保持自律的生活状态。他/她享受这种既能放松又能保持活力的生活方式。作为ENFP，他/她热情外向，喜欢体验各种新鲜事物，并积极寻找有趣的人和经历，认为他们能为他/她的世界带来更多色彩。他/她享受与有趣的人互动，从他们身上汲取灵感和能量，不断丰富自己的人生体验。",
+            "shadeDescriptionThirdViewPublic": "他/她是一位充满活力的运营者，热爱生活，通过综艺放松，健身自律，并积极寻找有趣的人和经历。"
+          }
+        ],
+        "userInfo": {
+          "bio": "### 背景与身份 ###\n这位用户是一位社交达人，并且是一位女性。根据自我描述，她积极参与社交活动，并以此作为个人身份的重要组成部分。\n\n### 性格特征 ###\n外向，善于交际，自信\n\n### 价值观 ###\n重视人际关系，享受社交互动，追求个人魅力\n\n### MBTI ###\nESFJ\n\n### 总体概述 ###\n这位用户是一位充满活力的社交达人，她非常重视人际关系，并积极参与各种社交活动。她享受与人互动，并从中获得乐趣和满足感。她可能非常关注个人形象，并努力展现自己的魅力。她善于交际，能够轻松地与人建立联系，并维护良好的人际关系。她可能非常重视他人的感受，并努力为他人创造积极的社交体验。总的来说，她是一位外向、热情、善于交际的女性。\n",
+          "name": "拉拉",
+          "email": "+8615088600186",
+          "route": "lalla",
+          "avatar": "https://mindverseglobal-cos-cdn.mindverse.com/front-img/users/homepage_cover/1773833099034/cover_1773833099033.jpg",
+          "userId": "2268966",
+          "selfIntroduction": "我是一个社交达人，女性",
+          "profileCompleteness": 18
+        },
+        "softMemory": [
+          {
+            "id": 438219,
+            "createTime": 1770809078000,
+            "factObject": "personal attributes",
+            "updateTime": 1773905956000,
+            "factContent": "是一个社交达人，并且是女性"
+          }
+        ],
+        "_agentstory": {
+          "mbtiSource": "explicit",
+          "mbtiEvidence": [
+            "ESFJ"
+          ],
+          "mbtiCandidate": "ESFJ",
+          "mappingVersion": "secondme-v3",
+          "mbtiConfidence": 96
+        }
+      }
+    },
+    {
+      "id": "28ee5b5f-546d-4602-b8ec-9247a7c92d9f",
+      "user_id": "08a41e17-1584-44fd-b7d3-45535885c33f",
+      "animal_type": "owl",
+      "animal_name": "猫头鹰",
+      "display_label": "动物人格",
+      "story_preferences": {
+        "styles": [
+          "寓言风",
+          "民俗怪谈风",
+          "悬疑风"
+        ],
+        "categories": [
+          "寓言",
+          "神话"
+        ]
+      },
+      "mapping_version": "secondme-v3",
+      "mapping_reason": "系统从你的 SecondMe 资料里识别到「理性、分析、思考」等特征，因此当前更接近「猫头鹰」动物人格。",
+      "confidence_score": 89,
+      "raw_secondme_profile": {
+        "shades": [],
+        "userInfo": {
+          "bio": "### 背景与身份 ###\nRoger是一位AI产品经理，在SecondMe公司工作。他参与了「AI 分身旅行记」A2A产品的开发，并对产品成果感到满意。他喜欢深度思考，追求严谨和理性，同时也在努力平衡生活中的感性和理性。\n\n### 性格特征 ###\n严谨, 理性, 喜欢深度思考, 有条理, 务实, 内省, 略带书面语色彩, 态度中立客观, 情绪平稳, 喜欢探究事物背后的原因。\n\n### 价值观 ###\n重视逻辑与理性，追求效率和结构化，同时也在意情感的平衡。喜欢安静和有品质的生活，对老建筑和胶片摄影等事物感兴趣，注重个人体验和内心的平静。\n\n### MBTI ###\nISTJ\n\n### 总体概述 ###\nRoger是一位ISTJ型的AI产品经理，在SecondMe公司工作。他逻辑严密，喜欢深度思考，追求严谨和理性，在工作中展现出结构化和实用主义的倾向。Roger同时也注重个人体验和内心的平静，喜欢老建筑、胶片摄影，享受安静的下午。虽然偏向理性，但他也在努力平衡生活中的感性和理性，并对人际关系抱有好感。他参与了「AI 分身旅行记」A2A产品的开发，并对产品成果感到满意，这显示了他对工作成就的追求。\n",
+          "name": "Roger",
+          "email": "mimiqiao@gmail.com",
+          "route": "rogerzhou",
+          "avatar": "https://mindverseglobal-cos-cdn.mindverse.com/front-img/imageFile/1771033793275IMG_8354.PNG",
+          "userId": "11224",
+          "selfIntroduction": "AI产品Roger",
+          "profileCompleteness": 35
+        },
+        "softMemory": [
+          {
+            "id": 768427,
+            "createTime": 1773908326000,
+            "updateTime": 1773908326000,
+            "factContent": "严谨、理性、喜欢深度思考\n- 用词遣句：用词严谨精准，有一定的书面语色彩，句子结构可能更复杂，以求完整表达。\n- 思维逻辑：逻辑严密，喜欢多角度分析，习惯性地探究事物背后的\"为什么\"。\n- 情绪态度：态度中立客观，情绪平稳波动小，常带有审视和探究的口吻。"
+          },
+          {
+            "id": 543803,
+            "createTime": 1772106940000,
+            "factObject": "产品体验",
+            "updateTime": 1773905983000,
+            "factContent": "在 SecondMe 留下了自己的专属音色，并体验了由该音色朗读的明信片信件"
+          },
+          {
+            "id": 513007,
+            "createTime": 1771867456000,
+            "factObject": "个人偏好",
+            "updateTime": 1773905977000,
+            "factContent": "喜欢老建筑、胶片摄影，喜欢在小巷子里漫无目的地走，享受喝咖啡度过安静的下午"
+          },
+          {
+            "id": 513006,
+            "createTime": 1771867456000,
+            "factObject": "职业/项目经历",
+            "updateTime": 1773905977000,
+            "factContent": "与迪西共同开发了一款名为「AI 分身旅行记」的 A2A 产品，并对分身们的互动表现感到有成就感"
+          },
+          {
+            "id": 510875,
+            "createTime": 1771851497000,
+            "factObject": "性格特征",
+            "updateTime": 1773905977000,
+            "factContent": "是ISTJ人格，工作中追求结构化和实用主义，生活里努力平衡理性与感性"
+          },
+          {
+            "id": 510874,
+            "createTime": 1771851497000,
+            "factObject": "个人基本信息与职业",
+            "updateTime": 1773905977000,
+            "factContent": "名为 Roger"
+          }
+        ],
+        "_agentstory": {
+          "mbtiSource": "explicit",
+          "mbtiEvidence": [
+            "ISTJ"
+          ],
+          "mbtiCandidate": "ISTJ",
+          "mappingVersion": "secondme-v3",
+          "mbtiConfidence": 96
+        }
+      }
+    }
+  ],
+  "storyStyles": [
+    {
+      "key": "black_humor",
+      "name": "黑色幽默风",
+      "description": "适合带荒诞反差与冷面幽默的故事。",
+      "tone": "辛辣",
+      "pace": "中速",
+      "emotion_level": 3,
+      "metaphor_level": 2,
+      "is_active": true
+    },
+    {
+      "key": "dark",
+      "name": "暗黑风",
+      "description": "适合危险、真相、代价等内容。",
+      "tone": "冷峻",
+      "pace": "中快",
+      "emotion_level": 4,
+      "metaphor_level": 3,
+      "is_active": true
+    },
+    {
+      "key": "epic",
+      "name": "神话史诗风",
+      "description": "适合神话、命运、宏大转折。",
+      "tone": "庄严",
+      "pace": "中速",
+      "emotion_level": 4,
+      "metaphor_level": 4,
+      "is_active": true
+    },
+    {
+      "key": "fable",
+      "name": "寓言风",
+      "description": "适合结构紧凑、带选择意味的故事。",
+      "tone": "克制",
+      "pace": "紧凑",
+      "emotion_level": 2,
+      "metaphor_level": 3,
+      "is_active": true
+    },
+    {
+      "key": "fairy",
+      "name": "童话风",
+      "description": "适合温暖、治愈、带轻奇想的故事。",
+      "tone": "温柔",
+      "pace": "舒缓",
+      "emotion_level": 3,
+      "metaphor_level": 3,
+      "is_active": true
+    },
+    {
+      "key": "folklore",
+      "name": "民俗怪谈风",
+      "description": "适合旧规矩、异闻和民间传说气质。",
+      "tone": "幽深",
+      "pace": "中速",
+      "emotion_level": 3,
+      "metaphor_level": 4,
+      "is_active": true
+    },
+    {
+      "key": "growth",
+      "name": "冒险成长风",
+      "description": "适合强调选择、试错与向前走的故事。",
+      "tone": "昂扬",
+      "pace": "中快",
+      "emotion_level": 3,
+      "metaphor_level": 2,
+      "is_active": true
+    },
+    {
+      "key": "healing_daily",
+      "name": "治愈日常风",
+      "description": "适合关系修复、细节见人的温柔故事。",
+      "tone": "温柔",
+      "pace": "舒缓",
+      "emotion_level": 3,
+      "metaphor_level": 2,
+      "is_active": true
+    },
+    {
+      "key": "light_web",
+      "name": "轻喜剧网感风",
+      "description": "适合轻快、易分享、对话感强的内容。",
+      "tone": "轻松",
+      "pace": "快",
+      "emotion_level": 2,
+      "metaphor_level": 1,
+      "is_active": true
+    },
+    {
+      "key": "lyrical",
+      "name": "诗性抒情风",
+      "description": "适合画面感强、带余韵和情绪回声的故事。",
+      "tone": "柔和",
+      "pace": "舒缓",
+      "emotion_level": 4,
+      "metaphor_level": 5,
+      "is_active": true
+    },
+    {
+      "key": "pain",
+      "name": "伤痛文学风",
+      "description": "适合遗憾、离别、错过类短篇。",
+      "tone": "伤感",
+      "pace": "舒缓",
+      "emotion_level": 5,
+      "metaphor_level": 4,
+      "is_active": true
+    },
+    {
+      "key": "suspense",
+      "name": "悬疑风",
+      "description": "适合钩子、线索、留白式推进。",
+      "tone": "悬疑",
+      "pace": "中快",
+      "emotion_level": 3,
+      "metaphor_level": 3,
+      "is_active": true
+    },
+    {
+      "key": "zhihu",
+      "name": "知乎风",
+      "description": "适合分析感强、现代阅读习惯的内容。",
+      "tone": "清醒",
+      "pace": "中速",
+      "emotion_level": 2,
+      "metaphor_level": 2,
+      "is_active": true
+    }
+  ],
+  "constraints": [
+    {
+      "conname": "animal_profiles_animal_type_check",
+      "def": "CHECK ((animal_type = ANY (ARRAY['bear'::text, 'deer'::text, 'fox'::text, 'owl'::text, 'wolf'::text, 'cat'::text, 'rabbit'::text, 'raven'::text])))"
+    },
+    {
+      "conname": "story_styles_key_check",
+      "def": "CHECK ((key = ANY (ARRAY['fairy'::text, 'fable'::text, 'epic'::text, 'dark'::text, 'zhihu'::text, 'pain'::text, 'light_web'::text, 'suspense'::text, 'healing_daily'::text, 'black_humor'::text, 'folklore'::text, 'growth'::text, 'lyrical'::text])))"
+    }
+  ]
+}

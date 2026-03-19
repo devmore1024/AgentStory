@@ -14,22 +14,20 @@ export type StoryStyleKey =
   | "black_humor"
   | "folklore"
   | "growth"
-  | "lyrical";
+  | "lyrical"
+  | "classical_poetic"
+  | "realist"
+  | "magic_realism"
+  | "sci_future"
+  | "hotblooded"
+  | "meta_roast"
+  | "absurd_comedy";
 
 export type RegularStoryStyleKey = Exclude<StoryStyleKey, "zhihu">;
 
 type StoryMode = "short" | "serial" | "comment";
-type StyleSourceBucket = "persona" | "category" | "fallback";
-type StableWeightedStylePools<T> = {
-  personaPool: readonly T[];
-  categoryPool: readonly T[];
-  fallbackPool: readonly T[];
-  seed: string;
-};
 
 export const ZHIHU_STYLE_BUCKET_PERCENT = 0;
-export const AUTHOR_PERSONA_STYLE_BUCKET_PERCENT = 80;
-export const BOOK_CATEGORY_STYLE_BUCKET_PERCENT = 20;
 
 export const regularStoryStyleKeys: RegularStoryStyleKey[] = [
   "fairy",
@@ -43,7 +41,14 @@ export const regularStoryStyleKeys: RegularStoryStyleKey[] = [
   "black_humor",
   "folklore",
   "growth",
-  "lyrical"
+  "lyrical",
+  "classical_poetic",
+  "realist",
+  "magic_realism",
+  "sci_future",
+  "hotblooded",
+  "meta_roast",
+  "absurd_comedy"
 ] as const;
 
 const styleLabelToKey: Record<string, StoryStyleKey> = {
@@ -59,7 +64,14 @@ const styleLabelToKey: Record<string, StoryStyleKey> = {
   黑色幽默风: "black_humor",
   民俗怪谈风: "folklore",
   冒险成长风: "growth",
-  诗性抒情风: "lyrical"
+  诗性抒情风: "lyrical",
+  古风诗意风: "classical_poetic",
+  现实主义风: "realist",
+  魔幻现实主义风: "magic_realism",
+  科幻未来风: "sci_future",
+  热血中二风: "hotblooded",
+  反套路吐槽风: "meta_roast",
+  沙雕搞笑风: "absurd_comedy"
 };
 
 const styleNames: Record<StoryStyleKey, string> = {
@@ -75,7 +87,14 @@ const styleNames: Record<StoryStyleKey, string> = {
   black_humor: "黑色幽默风",
   folklore: "民俗怪谈风",
   growth: "冒险成长风",
-  lyrical: "诗性抒情风"
+  lyrical: "诗性抒情风",
+  classical_poetic: "古风诗意风",
+  realist: "现实主义风",
+  magic_realism: "魔幻现实主义风",
+  sci_future: "科幻未来风",
+  hotblooded: "热血中二风",
+  meta_roast: "反套路吐槽风",
+  absurd_comedy: "沙雕搞笑风"
 };
 
 const styleBadgeClasses: Record<StoryStyleKey, string> = {
@@ -91,28 +110,17 @@ const styleBadgeClasses: Record<StoryStyleKey, string> = {
   black_humor: "border-[rgba(126,98,92,0.3)] bg-[rgba(211,191,186,0.24)] text-[#6D4B46]",
   folklore: "border-[rgba(120,103,77,0.3)] bg-[rgba(216,201,173,0.24)] text-[#6B5535]",
   growth: "border-[rgba(99,141,188,0.28)] bg-[rgba(180,209,238,0.24)] text-[#466E97]",
-  lyrical: "border-[rgba(182,120,154,0.28)] bg-[rgba(236,199,217,0.24)] text-[#965A75]"
+  lyrical: "border-[rgba(182,120,154,0.28)] bg-[rgba(236,199,217,0.24)] text-[#965A75]",
+  classical_poetic: "border-[rgba(136,112,79,0.3)] bg-[rgba(220,205,180,0.24)] text-[#7B5C34]",
+  realist: "border-[rgba(120,121,123,0.28)] bg-[rgba(218,218,214,0.24)] text-[#5E5F61]",
+  magic_realism: "border-[rgba(92,136,112,0.28)] bg-[rgba(189,225,208,0.24)] text-[#477258]",
+  sci_future: "border-[rgba(87,147,193,0.3)] bg-[rgba(188,225,245,0.24)] text-[#3D759D]",
+  hotblooded: "border-[rgba(208,101,72,0.3)] bg-[rgba(246,203,189,0.24)] text-[#B95234]",
+  meta_roast: "border-[rgba(153,115,76,0.3)] bg-[rgba(236,215,186,0.24)] text-[#8C643A]",
+  absurd_comedy: "border-[rgba(205,143,83,0.3)] bg-[rgba(247,223,185,0.24)] text-[#B2732C]"
 };
 
-const categoryStylePools: Record<StoryBook["categoryKey"], RegularStoryStyleKey[]> = {
-  fairy_tale: ["fairy", "healing_daily", "growth", "lyrical", "light_web", "pain", "dark", "suspense"],
-  fable: ["fable", "black_humor", "light_web", "growth", "suspense", "dark"],
-  mythology: ["epic", "folklore", "dark", "growth", "lyrical", "suspense", "pain", "fairy"]
-};
-
-const serialSafeStyleKeys: RegularStoryStyleKey[] = [
-  "fairy",
-  "epic",
-  "dark",
-  "pain",
-  "light_web",
-  "suspense",
-  "healing_daily",
-  "black_humor",
-  "folklore",
-  "growth",
-  "lyrical"
-] as const;
+const serialSafeStyleKeys: RegularStoryStyleKey[] = [...regularStoryStyleKeys];
 
 const styleVariationPrompts: Record<StoryMode, Record<StoryStyleKey, string[]>> = {
   short: {
@@ -128,7 +136,14 @@ const styleVariationPrompts: Record<StoryMode, Record<StoryStyleKey, string[]>> 
     black_humor: ["请让反差里带一点轻微辛辣，但不要刻薄。", "请让好笑和荒诞都落在处境本身。", "请让人物自我辩解时更有黑色幽默。"],
     folklore: ["请增强民间传说感和夜色气息。", "请让故事里有旧习俗、禁忌或口耳相传的纹理。", "请让异样感先从风俗和场景里渗出来。"],
     growth: ["请强化“我”在故事里学会了什么。", "请让选择和成长比奇观更重要。", "请让故事像一次真正往前走的小冒险。"],
-    lyrical: ["请让句子更有节奏和诗性，但不要空泛。", "请让画面、情绪和停顿更柔和地连在一起。", "请让故事读起来像一段被轻轻唱出来的独白。"]
+    lyrical: ["请让句子更有节奏和诗性，但不要空泛。", "请让画面、情绪和停顿更柔和地连在一起。", "请让故事读起来像一段被轻轻唱出来的独白。"],
+    classical_poetic: ["请让古典意境更明显，但中文仍然自然可读。", "请把情绪收进景物、步态和光影里。", "请让故事像从旧卷轴里缓缓展开。"],
+    realist: ["请把人物反应写得更真实、更克制。", "请让冲突来自处境和人性，而不是戏剧化硬拧。", "请让细节更贴近日常经验。"],
+    magic_realism: ["请让超现实元素像日常一样出现，不要特意解释。", "请让现实和异样并排存在，语气保持平静。", "请让荒诞感带出一种更深的真实。"],
+    sci_future: ["请加入科技装置、未来背景或系统界面，但保持故事可读。", "请让设定感服务于人物选择，而不是堆设定。", "请让未来世界的秩序感和陌生感一起出现。"],
+    hotblooded: ["请把燃点落在宣言、对抗和行动爆发上。", "请让人物在关键时刻说出真正压在心里的信念。", "请让剧情有更强的冲锋感和命运感。"],
+    meta_roast: ["请让吐槽更聪明，不要把人物写成段子机器。", "请让故事自觉一点，但不要跳出现场。", "请让反套路感真正推动情节转弯。"],
+    absurd_comedy: ["请强化反差和荒诞节奏。", "请让好笑来自局面失控后的连锁反应。", "请让无厘头里仍然保留角色真实感。"]
   },
   serial: {
     fairy: ["请保持轻柔和连续感，让每章都像翻过同一本书的新页。", "请让连载里的奇迹感统一，不要忽冷忽热。", "请用同一种温柔视角穿过不同故事世界。"],
@@ -143,7 +158,14 @@ const styleVariationPrompts: Record<StoryMode, Record<StoryStyleKey, string[]>> 
     black_humor: ["请保持冷面幽默和荒诞感统一。", "请让角色的自我解释持续带一点辛辣反差。", "请让连载像在笑着拆开一层层不体面的真相。"],
     folklore: ["请保持民俗纹理、禁忌感和旧故事气味统一。", "请让每章都像从同一部口耳相传的异闻录里翻出来。", "请让新的故事世界也接住同一种怪谈气场。"],
     growth: ["请保持成长线和冒险推进感统一。", "请让每章都像在回答上一个选择留下的问题。", "请让连载一直保留向前走的动能。"],
-    lyrical: ["请保持诗性、留白和轻微回声感统一。", "请让章节像同一首长诗的不同行。", "请让推进发生在画面和情绪的回响里。"]
+    lyrical: ["请保持诗性、留白和轻微回声感统一。", "请让章节像同一首长诗的不同行。", "请让推进发生在画面和情绪的回响里。"],
+    classical_poetic: ["请保持古典语感和意境统一。", "请让章节像同一卷古典叙事被缓缓续写。", "请让景物和情绪始终互相映照。"],
+    realist: ["请保持写实、克制和人物可信度统一。", "请让每章都像在更接近人物真正的处境。", "请让变化来自生活逻辑和人性推进。"],
+    magic_realism: ["请保持现实与异样并存的统一气场。", "请让超现实元素持续出现，但始终像日常的一部分。", "请让连载像现实表面下慢慢泛起的第二层世界。"],
+    sci_future: ["请保持未来背景、科技装置和系统秩序感统一。", "请让设定随着章节推进自然展开，不要突然失联。", "请让未来世界的规则始终影响人物选择。"],
+    hotblooded: ["请保持燃点、宣言感和对抗推进统一。", "请让每章都像把人物往更大的战场推一步。", "请让热血感始终落在目标、羁绊和出手时机上。"],
+    meta_roast: ["请保持聪明的反套路感统一。", "请让连载持续保留一点自觉和拆招能力。", "请让吐槽始终服务于推进，而不是抢走剧情。"],
+    absurd_comedy: ["请保持荒诞反差和节奏统一。", "请让每章都能把局面再推向一点更离谱却自洽的方向。", "请让笑点和人物关系一起递进。"]
   },
   comment: {
     fairy: ["评论更温柔一点。", "评论更像看见角色心意。", "评论保留一点绘本感。"],
@@ -158,7 +180,14 @@ const styleVariationPrompts: Record<StoryMode, Record<StoryStyleKey, string[]>> 
     black_humor: ["评论更冷面一点。", "评论像笑着戳穿一个问题。", "评论保留一点荒诞感。"],
     folklore: ["评论更像在讲一则旧闻。", "评论里带一点民间异样感。", "评论像顺手补了一句老规矩。"],
     growth: ["评论更像一句向前看的总结。", "评论强调变化和勇气。", "评论像给下一步留个提气的句子。"],
-    lyrical: ["评论更像一句带余韵的诗。", "评论保留回声感。", "评论像轻轻落下来的尾音。"]
+    lyrical: ["评论更像一句带余韵的诗。", "评论保留回声感。", "评论像轻轻落下来的尾音。"],
+    classical_poetic: ["评论更有古典意境。", "评论像从旧句子里轻轻落下来。", "评论保留雅致和留白。"],
+    realist: ["评论更像现实里的真话。", "评论克制一些，不要替角色抒情过头。", "评论像一句看穿处境的平静判断。"],
+    magic_realism: ["评论带一点异样和恍惚。", "评论像在现实里看见另一层影子。", "评论保留荒诞但真实的余味。"],
+    sci_future: ["评论更像来自未来视角。", "评论轻轻带一点系统感或装置感。", "评论保留冷静和设定感。"],
+    hotblooded: ["评论更燃一点。", "评论像一句会把人重新点着的话。", "评论强调信念、出手和不退。"],
+    meta_roast: ["评论更聪明地吐槽。", "评论像轻轻拆掉一个套路。", "评论保留一点会心一笑。"],
+    absurd_comedy: ["评论更离谱一点但别失控。", "评论像顺手接住了这场荒诞。", "评论保留好笑和反差。"]
   }
 };
 
@@ -230,7 +259,14 @@ function getLengthPad(styleKey: StoryStyleKey) {
     black_humor: "真正可笑的地方，从来不是有人故意演坏人，而是每个人都在认真维护一套明明早就失灵的解释。等这层壳裂开，故事才露出它荒诞又诚实的里子。",
     folklore: "旧故事最厉害的地方，是它们总能把异样先藏进习俗、传闻和夜风里。等角色终于察觉不对，命运往往已经被一种更古老的力量轻轻改写过了。",
     growth: "于是这一章真正留下来的，不只是一次偏航，而是一个人终于开始往前长的那一小步。故事被改写的同时，“我”也不再停在原来那个位置上。",
-    lyrical: "有些改写不是靠大声说出来的，而是靠回声、光线和停顿慢慢落定。等这一段真正写完，故事里的情绪也像水面一样，轻轻换了一种纹路。"
+    lyrical: "有些改写不是靠大声说出来的，而是靠回声、光线和停顿慢慢落定。等这一段真正写完，故事里的情绪也像水面一样，轻轻换了一种纹路。",
+    classical_poetic: "很多事不需要直接说破，只要一阵风、一盏灯、一步停顿，就足够让旧故事在古意里改了走向。真正留下来的，是景物和心事彼此照见后的余韵。",
+    realist: "真正打动人的，不是情节突然变大，而是人物终于像现实里那样做了一个并不体面却诚实的决定。故事因此没有更戏剧化，反而更像会发生在身边。",
+    magic_realism: "故事并没有大张旗鼓地宣告奇迹降临，只是让现实表面悄悄浮起另一层纹理。等角色回头时，会发现那点异样早已经把命运推离了旧位置。",
+    sci_future: "这一次被改写的，不只是情节，还有角色理解世界的方式。装置、界面、权限和未来秩序一起进入现场，让旧故事第一次像在另一套时空规则里重新运行。",
+    hotblooded: "真正让这一章发亮的，不是口号，而是有人终于在最该退的时候往前冲了一步。等信念和行动撞在一起，故事就会自己长出燃点。",
+    meta_roast: "最有意思的不是谁突然变聪明，而是角色终于意识到自己一直在照着哪套老套路走。一旦有人把这层壳轻轻戳破，故事立刻会换一种更清醒也更好笑的走法。",
+    absurd_comedy: "局面真正被改写的那一刻，往往不是因为谁制定了周密计划，而是因为一连串看似离谱的失控突然咬合到了一起。等笑声稍微落下，新的方向也就顺势出现了。"
   };
 
   return pads[styleKey];
@@ -274,11 +310,7 @@ export function normalizeStoryContentLength(content: string, styleKey: StoryStyl
   }
 
   const sliced = compact.slice(0, cutIndex);
-  const punctuationIndex = Math.max(
-    sliced.lastIndexOf("。"),
-    sliced.lastIndexOf("！"),
-    sliced.lastIndexOf("？")
-  );
+  const punctuationIndex = Math.max(sliced.lastIndexOf("。"), sliced.lastIndexOf("！"), sliced.lastIndexOf("？"));
 
   return (punctuationIndex > Math.floor(sliced.length * 0.72) ? sliced.slice(0, punctuationIndex + 1) : sliced).trim();
 }
@@ -297,7 +329,14 @@ export function getStyleInstruction(styleKey: StoryStyleKey) {
     black_humor: "请用带一点冷面幽默和荒诞反差的黑色幽默风写作，但不要刻薄，也不要写成纯吐槽。",
     folklore: "请用民俗怪谈风写作，强调旧规矩、传闻、禁忌和若隐若现的异样感，但不要写成纯恐怖故事。",
     growth: "请用冒险成长风写作，重点写选择、试错、往前走和真正发生在人物身上的成长。",
-    lyrical: "请用诗性抒情风写作，语言有节奏和余韵，画面与情绪交织，但不要空泛堆辞藻。"
+    lyrical: "请用诗性抒情风写作，语言有节奏和余韵，画面与情绪交织，但不要空泛堆辞藻。",
+    classical_poetic: "请用古风诗意风写作，保留古典语感、意境和节制的美感，但不要写成生硬的古文或仙侠模板。",
+    realist: "请用现实主义风写作，强调真实处境、克制表达和人物心理可信度，不要故作深沉。",
+    magic_realism: "请用魔幻现实主义风写作，让超现实因素自然融入日常现实，语气平静，但余味要带一点荒诞真实感。",
+    sci_future: "请用科幻未来风写作，允许科技装置、未来城市、系统界面、机械结构和时空工程进入正文，但设定必须服务人物和情节。",
+    hotblooded: "请用热血中二风写作，强化燃点、宣言感、命运感和出手时刻，但不要只会喊口号。",
+    meta_roast: "请用反套路吐槽风写作，可以聪明地吐槽剧情和设定，但仍然要留在故事现场里推进剧情。",
+    absurd_comedy: "请用沙雕搞笑风写作，强调荒诞反差、无厘头节奏和喜剧连锁反应，但不要低幼或胡闹失控。"
   };
 
   return instructions[styleKey];
@@ -316,14 +355,13 @@ export function getPersonaRecommendedStyleKeys(persona: AnimalPersona) {
   );
 }
 
-export function getEligibleShortStoryStyleKeys(book: StoryBook, persona: AnimalPersona) {
+export function getEligibleShortStoryStyleKeys(_book: StoryBook, persona: AnimalPersona) {
   const preferred = getPersonaRecommendedStyleKeys(persona).filter(isRegularStoryStyleKey);
-  const categoryPool = categoryStylePools[book.categoryKey];
+  return (preferred.length > 0 ? preferred : regularStoryStyleKeys) as RegularStoryStyleKey[];
+}
 
-  return uniqueStyleKeys([
-    ...preferred,
-    ...categoryPool
-  ]) as RegularStoryStyleKey[];
+function rotateCandidates<T>(candidates: readonly T[], startIndex: number) {
+  return candidates.map((_, index) => candidates[(startIndex + index) % candidates.length]);
 }
 
 function getRotatedCandidates<T>(candidates: readonly T[], seed: string) {
@@ -334,67 +372,21 @@ function getRotatedCandidates<T>(candidates: readonly T[], seed: string) {
   return rotateCandidates(candidates, hashToInt(seed) % candidates.length);
 }
 
-function pickStableStyleSourceBucket<T>(params: StableWeightedStylePools<T>): StyleSourceBucket {
-  const hasPersonaPool = params.personaPool.length > 0;
-  const hasCategoryPool = params.categoryPool.length > 0;
-
-  if (!hasPersonaPool && !hasCategoryPool) {
-    return "fallback";
-  }
-
-  if (!hasPersonaPool) {
-    return "category";
-  }
-
-  if (!hasCategoryPool) {
-    return "persona";
-  }
-
-  return hashToInt(`${params.seed}:bucket`) % (AUTHOR_PERSONA_STYLE_BUCKET_PERCENT + BOOK_CATEGORY_STYLE_BUCKET_PERCENT) <
-    AUTHOR_PERSONA_STYLE_BUCKET_PERCENT
-    ? "persona"
-    : "category";
-}
-
-function buildStableWeightedCandidateOrder<T>(params: StableWeightedStylePools<T>) {
-  const personaPool = uniqueStyleKeys(params.personaPool);
-  const categoryPool = uniqueStyleKeys(params.categoryPool);
-  const fallbackPool = uniqueStyleKeys(params.fallbackPool);
-  const sourceBucket = pickStableStyleSourceBucket({
-    ...params,
-    personaPool,
-    categoryPool,
-    fallbackPool
-  });
-
-  if (sourceBucket === "fallback") {
-    return getRotatedCandidates(fallbackPool, `${params.seed}:fallback`);
-  }
-
-  const primaryPool = sourceBucket === "persona" ? personaPool : categoryPool;
-  const secondaryPool = sourceBucket === "persona" ? categoryPool : personaPool;
-
-  return uniqueStyleKeys([
-    ...getRotatedCandidates(primaryPool, `${params.seed}:${sourceBucket}`),
-    ...getRotatedCandidates(secondaryPool, `${params.seed}:${sourceBucket === "persona" ? "category" : "persona"}`),
-    ...getRotatedCandidates(fallbackPool, `${params.seed}:fallback`)
-  ]);
-}
-
 function getShortStorySelectionSeed(book: StoryBook, seedText: string) {
   return `short:${book.slug}:${seedText}`;
 }
 
 function getShortStoryStyleCandidates(book: StoryBook, persona: AnimalPersona, seedText: string) {
-  const personaPool = getPersonaRecommendedStyleKeys(persona).filter(isRegularStoryStyleKey);
-  const categoryPool = categoryStylePools[book.categoryKey];
+  const personaPool = uniqueStyleKeys(getPersonaRecommendedStyleKeys(persona).filter(isRegularStoryStyleKey));
 
-  return buildStableWeightedCandidateOrder<RegularStoryStyleKey>({
-    personaPool,
-    categoryPool,
-    fallbackPool: uniqueStyleKeys([...personaPool, ...categoryPool, ...regularStoryStyleKeys]) as RegularStoryStyleKey[],
-    seed: getShortStorySelectionSeed(book, seedText)
-  }) as RegularStoryStyleKey[];
+  if (personaPool.length > 0) {
+    return uniqueStyleKeys([
+      ...getRotatedCandidates(personaPool, `${getShortStorySelectionSeed(book, seedText)}:persona`),
+      ...getRotatedCandidates(regularStoryStyleKeys, `${getShortStorySelectionSeed(book, seedText)}:fallback`)
+    ]) as RegularStoryStyleKey[];
+  }
+
+  return getRotatedCandidates(regularStoryStyleKeys, `${getShortStorySelectionSeed(book, seedText)}:fallback`) as RegularStoryStyleKey[];
 }
 
 export function pickRandomShortStoryStyleKey(book: StoryBook, persona: AnimalPersona, seedText: string) {
@@ -418,19 +410,21 @@ function getThreadPrimaryStyleCandidates(params: {
   persona: AnimalPersona;
   seedBook?: StoryBook | null;
 }) {
-  const personaPool = getPersonaRecommendedStyleKeys(params.persona)
-    .filter(isRegularStoryStyleKey)
-    .filter((styleKey) => serialSafeStyleKeys.includes(styleKey));
-  const categoryPool = params.seedBook
-    ? categoryStylePools[params.seedBook.categoryKey].filter((styleKey) => serialSafeStyleKeys.includes(styleKey))
-    : [];
+  const personaPool = uniqueStyleKeys(
+    getPersonaRecommendedStyleKeys(params.persona)
+      .filter(isRegularStoryStyleKey)
+      .filter((styleKey) => serialSafeStyleKeys.includes(styleKey))
+  );
+  const seed = getThreadSelectionSeed(params);
 
-  return buildStableWeightedCandidateOrder<RegularStoryStyleKey>({
-    personaPool,
-    categoryPool,
-    fallbackPool: uniqueStyleKeys([...personaPool, ...categoryPool, ...serialSafeStyleKeys, ...regularStoryStyleKeys]) as RegularStoryStyleKey[],
-    seed: getThreadSelectionSeed(params)
-  }) as RegularStoryStyleKey[];
+  if (personaPool.length > 0) {
+    return uniqueStyleKeys([
+      ...getRotatedCandidates(personaPool, `${seed}:persona`),
+      ...getRotatedCandidates(serialSafeStyleKeys, `${seed}:fallback`)
+    ]) as RegularStoryStyleKey[];
+  }
+
+  return getRotatedCandidates(serialSafeStyleKeys, `${seed}:fallback`) as RegularStoryStyleKey[];
 }
 
 export function pickThreadPrimaryStyleKey(params: {
@@ -443,10 +437,6 @@ export function pickThreadPrimaryStyleKey(params: {
   }
 
   return getThreadPrimaryStyleCandidates(params)[0] ?? "fairy";
-}
-
-function rotateCandidates<T>(candidates: readonly T[], startIndex: number) {
-  return candidates.map((_, index) => candidates[(startIndex + index) % candidates.length]);
 }
 
 export function resolvePersistableStyleKey(

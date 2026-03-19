@@ -57,7 +57,6 @@ function createViewerContext() {
       expressionStyle: "克制",
       tendencies: ["观察"],
       values: ["诚实"],
-      recommendedCategories: ["fairy_tale"],
       recommendedStyles: ["童话风"],
       dimensionScores: {
         warmth: 75,

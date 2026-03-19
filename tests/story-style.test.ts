@@ -48,21 +48,25 @@ function findUserByBucketState(expected: boolean) {
 
 describe("story style strategy", () => {
   it("removes zhihu from persona default recommendation keys", () => {
-    expect(getPersonaRecommendedStyleKeys(animalPersonas.owl)).toEqual(["fable", "folklore", "suspense"]);
+    expect(getPersonaRecommendedStyleKeys(animalPersonas.owl)).toEqual(["sci_future", "suspense", "realist"]);
     expect(getPersonaRecommendedStyleKeys(animalPersonas.fox)).not.toContain("zhihu");
   });
 
-  it("keeps zhihu out of the regular short-story candidate pool", () => {
+  it("keeps zhihu out of the regular short-story candidate pool and ignores book category", () => {
+    const fairyBook = createBook({
+      slug: "same-book"
+    });
     const mythologyBook = createBook({
+      slug: "same-book",
       categoryKey: "mythology",
       categoryName: "神话"
     });
+    const fairyPool = getEligibleShortStoryStyleKeys(fairyBook, animalPersonas.owl);
+    const mythologyPool = getEligibleShortStoryStyleKeys(mythologyBook, animalPersonas.owl);
 
-    const pool = getEligibleShortStoryStyleKeys(mythologyBook, animalPersonas.owl);
-
-    expect(pool).not.toContain("zhihu");
-    expect(pool).toContain("folklore");
-    expect(pool).toContain("suspense");
+    expect(fairyPool).toEqual(["sci_future", "suspense", "realist"]);
+    expect(mythologyPool).toEqual(fairyPool);
+    expect(fairyPool).not.toContain("zhihu");
   });
 
   it("disables the zhihu special branch when bucket percent is zero", () => {
@@ -110,49 +114,42 @@ describe("story style strategy", () => {
     expect(first).not.toBe("zhihu");
   });
 
-  it("biases fox fairy-tale short stories toward persona recommendations", () => {
+  it("keeps short-story selections inside persona recommendations when they exist", () => {
     const book = createBook({
       slug: "fairy-sleeping-beauty"
     });
     const personaRecommended = new Set(getPersonaRecommendedStyleKeys(animalPersonas.fox).filter((styleKey) => styleKey !== "zhihu"));
-    let recommendedHits = 0;
-    let categoryOnlyHits = 0;
+    const selected = new Set<string>();
 
     for (let index = 0; index < 400; index += 1) {
       const styleKey = pickRandomShortStoryStyleKey(book, animalPersonas.fox, `reader-${index}`);
-
-      if (personaRecommended.has(styleKey)) {
-        recommendedHits += 1;
-      } else {
-        categoryOnlyHits += 1;
-      }
+      selected.add(styleKey);
+      expect(personaRecommended.has(styleKey)).toBe(true);
     }
 
-    expect(recommendedHits).toBeGreaterThan(categoryOnlyHits * 3);
+    expect(selected.size).toBeGreaterThan(1);
   });
 
-  it("keeps a small category-style influence in the weighted short-story pool", () => {
-    const book = createBook({
-      slug: "fairy-sleeping-beauty"
+  it("keeps short-story selection stable even if only the book category changes", () => {
+    const fairyBook = createBook({
+      slug: "same-book"
     });
-    const personaRecommended = new Set(getPersonaRecommendedStyleKeys(animalPersonas.fox).filter((styleKey) => styleKey !== "zhihu"));
-    const categoryOnlySelections = new Set<string>();
+    const mythologyBook = createBook({
+      slug: "same-book",
+      categoryKey: "mythology",
+      categoryName: "神话"
+    });
 
-    for (let index = 0; index < 400; index += 1) {
-      const styleKey = pickRandomShortStoryStyleKey(book, animalPersonas.fox, `reader-${index}`);
-
-      if (!personaRecommended.has(styleKey)) {
-        categoryOnlySelections.add(styleKey);
-      }
-    }
-
-    expect(categoryOnlySelections.size).toBeGreaterThan(0);
+    expect(pickRandomShortStoryStyleKey(fairyBook, animalPersonas.owl, "reader-7")).toBe(
+      pickRandomShortStoryStyleKey(mythologyBook, animalPersonas.owl, "reader-7")
+    );
   });
 
   it("strips newly added style names from display titles", () => {
     expect(stripStyleDisplayTitleAffixes("治愈日常风里的小王子")).toBe("小王子");
-    expect(stripStyleDisplayTitleAffixes("海的女儿的黑色幽默风")).toBe("海的女儿");
-    expect(stripStyleDisplayTitleAffixes("诗性抒情风里的夜莺")).toBe("夜莺");
+    expect(stripStyleDisplayTitleAffixes("海的女儿的科幻未来风")).toBe("海的女儿");
+    expect(stripStyleDisplayTitleAffixes("古风诗意风里的夜莺")).toBe("夜莺");
+    expect(stripStyleDisplayTitleAffixes("反套路吐槽风里的狐狸")).toBe("狐狸");
   });
 
   it("falls back to an existing persisted thread style when the selected new style is missing in db", () => {

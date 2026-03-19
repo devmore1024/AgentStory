@@ -522,37 +522,93 @@ export const getCategoryTotals = cache(async () => {
   }));
 });
 
+const personaBookCueKeywords: Record<AnimalPersona["animalType"], string[]> = {
+  bear: ["守护", "陪伴", "归来", "守夜", "家", "照顾", "保护", "重逢", "winter", "home"],
+  deer: ["月", "雪", "海", "玫瑰", "夜莺", "眼泪", "相遇", "失而复得", "moon", "gentle"],
+  fox: ["计谋", "审判", "骗局", "偷", "试探", "规则", "狐狸", "贼", "judge", "clever"],
+  owl: ["预言", "机关", "谜题", "真相", "结构", "图书馆", "系统", "星图", "logic", "signal"],
+  wolf: ["狼", "追猎", "火", "誓言", "禁地", "冲突", "夺回", "对抗", "hunt", "battle"],
+  cat: ["窗", "房间", "镜子", "月光", "秘密", "独处", "礼服", "舞会", "velvet", "quiet"],
+  rabbit: ["梦", "森林", "误入", "钟声", "洞穴", "轻声", "奇遇", "白兔", "dream", "wonder"],
+  raven: ["乌鸦", "影子", "倒影", "代价", "秘密", "谎言", "回声", "黑羽", "shadow", "truth"],
+  lion: ["王", "王座", "荣耀", "加冕", "太阳", "远征", "誓师", "旷野", "crown", "glory"],
+  dog: ["朋友", "同行", "家门", "等待", "信件", "厨房", "篝火", "回来", "friend", "loyal"],
+  dolphin: ["海面", "潮", "呼吸", "盐", "波纹", "梦游", "岛", "水光", "ocean", "current"],
+  swan: ["湖", "羽毛", "舞步", "白纱", "月色", "湖心", "离歌", "倒影", "swan", "grace"],
+  otter: ["滑倒", "误会", "翻车", "水花", "笑场", "闹剧", "接梗", "手忙脚乱", "chaos", "splash"],
+  squirrel: ["种子", "树枝", "行李", "小路", "临时起意", "藏宝", "偷听", "忙碌", "quick", "stash"],
+  horse: ["长路", "旅途", "原野", "奔跑", "渡口", "启程", "驿站", "远方", "journey", "gallop"],
+  hedgehog: ["门口", "冬夜", "手套", "沉默", "刺", "硬壳", "认真", "缩回去", "quiet", "boundary"],
+  elephant: ["记忆", "远年", "旧信", "家族", "河流", "迁徙", "祖辈", "重量", "memory", "ancestral"],
+  crane: ["旧俗", "河滩", "香灰", "钟声", "禁忌", "长桥", "夜雾", "纸灯", "ritual", "mist"],
+  whale: ["深海", "巨浪", "回声", "沉没", "港口", "鲸歌", "潮汐", "深夜", "deep", "echo"],
+  falcon: ["高塔", "俯冲", "目标", "天幕", "箭", "引擎", "战线", "侦测", "strike", "target"]
+};
+
+function countMatchedCueKeywords(text: string, keywords: string[]) {
+  return keywords.reduce((total, keyword) => (text.includes(keyword.toLowerCase()) ? total + 1 : total), 0);
+}
+
+function getPopularityStabilityScore(popularityRank: number | null) {
+  if (popularityRank == null) {
+    return 0;
+  }
+
+  if (popularityRank <= 10) {
+    return 3;
+  }
+
+  if (popularityRank <= 30) {
+    return 2;
+  }
+
+  if (popularityRank <= 60) {
+    return 1;
+  }
+
+  return 0;
+}
+
 export const getRecommendedBooksForPersona = cache(async (persona: AnimalPersona, limit = 6) => {
   const categories = await getCategoriesWithBooks();
   const books = categories.flatMap((category) => category.books);
 
   const scored = books
     .map((book) => {
-      let score = 0;
+      const searchableText = [
+        book.slug,
+        book.title,
+        book.summary,
+        book.originalSynopsis ?? "",
+        book.keyScenes.join(" ")
+      ]
+        .join(" ")
+        .toLowerCase();
+      const cueMatchCount = countMatchedCueKeywords(searchableText, personaBookCueKeywords[persona.animalType]);
+      const styleAffinityScore = persona.recommendedStyles.reduce((score, styleLabel) => {
+        if (styleLabel === "暗黑风" && /夜|影|禁忌|惩罚|狼|黑/i.test(searchableText)) {
+          return score + 1;
+        }
 
-      if (persona.recommendedCategories.includes(book.categoryName)) {
-        score += 10;
-      }
+        if (styleLabel === "童话风" && /森林|魔法|王子|公主|小屋|精灵/i.test(searchableText)) {
+          return score + 1;
+        }
 
-      if (persona.animalType === "wolf" && book.categoryKey === "mythology") {
-        score += 3;
-      }
+        if (styleLabel === "悬疑风" && /谜|秘密|消失|门|锁|真相/i.test(searchableText)) {
+          return score + 1;
+        }
 
-      if (persona.animalType === "rabbit" && book.categoryKey === "fairy_tale") {
-        score += 3;
-      }
+        if (styleLabel === "现实主义风" && /家庭|生活|工作|日子|村子|家人/i.test(searchableText)) {
+          return score + 1;
+        }
 
-      if (persona.animalType === "owl" && book.categoryKey !== "fairy_tale") {
-        score += 2;
-      }
+        if (styleLabel === "科幻未来风" && /机器|装置|系统|未来|星|引擎|时空/i.test(searchableText)) {
+          return score + 1;
+        }
 
-      if (persona.animalType === "fox" && /fox|wolf|crow|lion|judge|trial|盗|贼/i.test(`${book.slug} ${book.title}`)) {
-        score += 2;
-      }
-
-      if (persona.animalType === "deer" && /moon|rose|nightingale|mermaid|雪|月|海/i.test(`${book.slug} ${book.title}`)) {
-        score += 2;
-      }
+        return score;
+      }, 0);
+      const score = cueMatchCount * 3 + styleAffinityScore + getPopularityStabilityScore(book.popularityRank);
 
       return {
         book,

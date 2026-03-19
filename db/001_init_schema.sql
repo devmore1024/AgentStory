@@ -25,7 +25,28 @@ CREATE TABLE animal_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
   animal_type TEXT NOT NULL CHECK (
-    animal_type IN ('bear', 'deer', 'fox', 'owl', 'wolf', 'cat', 'rabbit', 'raven')
+    animal_type IN (
+      'bear',
+      'deer',
+      'fox',
+      'owl',
+      'wolf',
+      'cat',
+      'rabbit',
+      'raven',
+      'lion',
+      'dog',
+      'dolphin',
+      'swan',
+      'otter',
+      'squirrel',
+      'horse',
+      'hedgehog',
+      'elephant',
+      'crane',
+      'whale',
+      'falcon'
+    )
   ),
   animal_name TEXT NOT NULL,
   display_label TEXT NOT NULL DEFAULT '动物人格',
@@ -86,7 +107,14 @@ CREATE TABLE story_styles (
       'black_humor',
       'folklore',
       'growth',
-      'lyrical'
+      'lyrical',
+      'classical_poetic',
+      'realist',
+      'magic_realism',
+      'sci_future',
+      'hotblooded',
+      'meta_roast',
+      'absurd_comedy'
     )
   ),
   name TEXT NOT NULL,

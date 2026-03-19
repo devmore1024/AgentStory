@@ -121,6 +121,150 @@ const palettes: Record<AnimalPersona["animalType"], Palette> = {
     line: "#232A35",
     light: "#F8FAFC",
     shadow: "#566171"
+  },
+  lion: {
+    primaryFrom: "#D8A153",
+    primaryTo: "#B1702F",
+    secondaryFrom: "#FFF2DF",
+    secondaryTo: "#F2D2A7",
+    tertiaryFrom: "#E9BC79",
+    tertiaryTo: "#CC8D4E",
+    accent: "#FFDDA9",
+    line: "#7A4B22",
+    light: "#FFF9F1",
+    shadow: "#B67A40"
+  },
+  dog: {
+    primaryFrom: "#C28E6B",
+    primaryTo: "#996646",
+    secondaryFrom: "#FFF3E8",
+    secondaryTo: "#EFD2BC",
+    tertiaryFrom: "#D7AE91",
+    tertiaryTo: "#BE8768",
+    accent: "#FFD2B8",
+    line: "#6B4A38",
+    light: "#FFF9F5",
+    shadow: "#AD7858"
+  },
+  dolphin: {
+    primaryFrom: "#7ABED7",
+    primaryTo: "#4C89B0",
+    secondaryFrom: "#EFFBFF",
+    secondaryTo: "#CEEAF6",
+    tertiaryFrom: "#A8D7E8",
+    tertiaryTo: "#73B4D1",
+    accent: "#D1F1FA",
+    line: "#3D6F8B",
+    light: "#F8FDFF",
+    shadow: "#5B98B7"
+  },
+  swan: {
+    primaryFrom: "#D8B8CC",
+    primaryTo: "#BA91AE",
+    secondaryFrom: "#FFF8FC",
+    secondaryTo: "#ECD7E4",
+    tertiaryFrom: "#F1D2DF",
+    tertiaryTo: "#D6A9BE",
+    accent: "#FCE4EF",
+    line: "#805C74",
+    light: "#FFF9FD",
+    shadow: "#C493A9"
+  },
+  otter: {
+    primaryFrom: "#B48B66",
+    primaryTo: "#856245",
+    secondaryFrom: "#FFF4EA",
+    secondaryTo: "#E7D0BB",
+    tertiaryFrom: "#D6AF8A",
+    tertiaryTo: "#B98561",
+    accent: "#F7D8BC",
+    line: "#624733",
+    light: "#FFF8F2",
+    shadow: "#9F7455"
+  },
+  squirrel: {
+    primaryFrom: "#C68A4C",
+    primaryTo: "#9F6230",
+    secondaryFrom: "#FFF1DF",
+    secondaryTo: "#F0D0AA",
+    tertiaryFrom: "#E6B577",
+    tertiaryTo: "#C98448",
+    accent: "#FFD9A4",
+    line: "#734723",
+    light: "#FFF9F0",
+    shadow: "#AE7442"
+  },
+  horse: {
+    primaryFrom: "#B48063",
+    primaryTo: "#8A5C43",
+    secondaryFrom: "#FFF3EA",
+    secondaryTo: "#E7CFBF",
+    tertiaryFrom: "#D7A88A",
+    tertiaryTo: "#BC8162",
+    accent: "#F2D2C0",
+    line: "#613F33",
+    light: "#FFF8F3",
+    shadow: "#9D7058"
+  },
+  hedgehog: {
+    primaryFrom: "#A58B7D",
+    primaryTo: "#7A655A",
+    secondaryFrom: "#FFF6F0",
+    secondaryTo: "#E8D7CB",
+    tertiaryFrom: "#C5AF9E",
+    tertiaryTo: "#A78E7D",
+    accent: "#F0E1D7",
+    line: "#594B43",
+    light: "#FFF9F5",
+    shadow: "#8E786C"
+  },
+  elephant: {
+    primaryFrom: "#A9B5C2",
+    primaryTo: "#7D8A99",
+    secondaryFrom: "#F6FAFD",
+    secondaryTo: "#DCE4EC",
+    tertiaryFrom: "#C7D1DB",
+    tertiaryTo: "#9FACBA",
+    accent: "#E5ECF4",
+    line: "#566270",
+    light: "#FBFDFF",
+    shadow: "#8B98A7"
+  },
+  crane: {
+    primaryFrom: "#B1C0C4",
+    primaryTo: "#7B9198",
+    secondaryFrom: "#F8FBFB",
+    secondaryTo: "#DEE8E8",
+    tertiaryFrom: "#D2DBDC",
+    tertiaryTo: "#A5B2B6",
+    accent: "#EDF4F2",
+    line: "#586B71",
+    light: "#FCFEFD",
+    shadow: "#8DA1A6"
+  },
+  whale: {
+    primaryFrom: "#6D97B4",
+    primaryTo: "#496D90",
+    secondaryFrom: "#F2F8FC",
+    secondaryTo: "#D7E6F0",
+    tertiaryFrom: "#9FC1D7",
+    tertiaryTo: "#759DBA",
+    accent: "#DDEFFC",
+    line: "#39576F",
+    light: "#FAFDFF",
+    shadow: "#5B7E9D"
+  },
+  falcon: {
+    primaryFrom: "#8D9AB2",
+    primaryTo: "#667287",
+    secondaryFrom: "#F4F7FB",
+    secondaryTo: "#D7DEE8",
+    tertiaryFrom: "#BBC5D7",
+    tertiaryTo: "#8C99B2",
+    accent: "#E4EAF4",
+    line: "#475160",
+    light: "#FAFCFE",
+    shadow: "#758198"
   }
 };
 
@@ -502,6 +646,238 @@ function ravenPortrait(ids: PersonaPortraitArtIds) {
   );
 }
 
+function simplePortrait(
+  ids: PersonaPortraitArtIds,
+  palette: Palette,
+  content: React.ReactNode,
+  motionClass = "persona-float"
+) {
+  return (
+    <>
+      <defs>
+        {gradient(ids.primary, palette.primaryFrom, palette.primaryTo)}
+        {gradient(ids.secondary, palette.secondaryFrom, palette.secondaryTo)}
+        {gradient(ids.tertiary, palette.tertiaryFrom, palette.tertiaryTo)}
+        {radialGlow(ids.glow, palette.light, palette.accent)}
+        {shadowGradient(ids.shadow, palette.shadow)}
+      </defs>
+      <ellipse cx="64" cy="108" rx="23" ry="7" fill={`url(#${ids.shadow})`} />
+      <g className={motionClass} style={origin(64, 68)}>
+        <ellipse cx="64" cy="67" rx="34" ry="30" fill={`url(#${ids.glow})`} opacity="0.24" />
+        {content}
+      </g>
+    </>
+  );
+}
+
+function lionPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.lion;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <circle cx="64" cy="70" r="28" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="3" />
+      <circle cx="64" cy="72" r="21" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="2.5" />
+      <ellipse cx="64" cy="82" rx="12" ry="9" fill={`url(#${ids.secondary})`} stroke={palette.line} strokeWidth="2" className="persona-breathe" style={origin(64, 82)} />
+      <ellipse cx="54" cy="69" rx="3.2" ry="4.6" fill={palette.line} className="persona-blink" style={origin(54, 69)} />
+      <ellipse cx="74" cy="69" rx="3.2" ry="4.6" fill={palette.line} className="persona-blink" style={origin(74, 69)} />
+      <path d="M64 74l-4 5h8l-4-5z" fill={palette.line} />
+      <path d="M57 84c3 3 11 3 14 0" fill="none" stroke={palette.line} strokeWidth="2.4" strokeLinecap="round" />
+    </>
+  );
+}
+
+function dogPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.dog;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path d="M38 60c-8 2-12 10-10 18 2 10 10 16 20 18M90 60c8 2 12 10 10 18-2 10-10 16-20 18" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="2.6" />
+      <circle cx="64" cy="72" r="25" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="3" />
+      <ellipse cx="64" cy="84" rx="13" ry="10" fill={`url(#${ids.secondary})`} stroke={palette.line} strokeWidth="2.1" className="persona-breathe" style={origin(64, 84)} />
+      <ellipse cx="54" cy="72" rx="3.2" ry="4.6" fill={palette.line} className="persona-blink" style={origin(54, 72)} />
+      <ellipse cx="74" cy="72" rx="3.2" ry="4.6" fill={palette.line} className="persona-blink" style={origin(74, 72)} />
+      <path d="M64 78l-4 4h8l-4-4z" fill={palette.line} />
+      <path d="M58 88c2.6 3 9.4 3 12 0" fill="none" stroke={palette.line} strokeWidth="2.3" strokeLinecap="round" />
+    </>
+  );
+}
+
+function dolphinPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.dolphin;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path
+        d="M32 78c10-20 28-30 46-30 14 0 24 6 32 15-7 0-12 2-16 6 6 1 10 4 12 8-8 2-14 6-18 12-8 10-18 15-34 15-10 0-18-6-22-26z"
+        fill={`url(#${ids.primary})`}
+        stroke={palette.line}
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <path d="M72 50l9-12m-2 16l16-6" fill="none" stroke={palette.line} strokeWidth="2.5" strokeLinecap="round" />
+      <circle cx="72" cy="69" r="3" fill={palette.light} />
+      <circle cx="73" cy="69" r="1.8" fill={palette.line} className="persona-glint" />
+      <path d="M48 90c8 5 18 5 26 0" fill="none" stroke={palette.accent} strokeWidth="2.2" strokeLinecap="round" />
+    </>,
+    "persona-drift"
+  );
+}
+
+function swanPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.swan;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path d="M63 42c8 0 13 7 13 17 0 8-4 14-9 18 8 2 15 8 18 18H47c4-16 13-22 23-24-5-4-9-10-9-17 0-8 3-12 9-12z" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="2.6" strokeLinejoin="round" />
+      <path d="M63 42c-4 0-7 4-7 9 0 8 6 13 13 16" fill="none" stroke={palette.line} strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M75 47l15-4-8 10" fill="none" stroke={palette.line} strokeWidth="2.2" strokeLinecap="round" />
+    </>,
+    "persona-sway"
+  );
+}
+
+function otterPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.otter;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <circle cx="64" cy="72" r="24" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="3" />
+      <circle cx="46" cy="56" r="8" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="2" />
+      <circle cx="82" cy="56" r="8" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="2" />
+      <ellipse cx="64" cy="83" rx="12" ry="9" fill={`url(#${ids.secondary})`} stroke={palette.line} strokeWidth="2" />
+      <path d="M48 82H38m10 6H34m42-6h10m-10 6h14" fill="none" stroke={palette.line} strokeWidth="2" strokeLinecap="round" />
+      <path d="M58 88c2.5 3 9.5 3 12 0" fill="none" stroke={palette.line} strokeWidth="2.2" strokeLinecap="round" />
+    </>
+  );
+}
+
+function squirrelPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.squirrel;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path d="M92 42c18 4 22 18 16 30-4 7-10 12-18 13" fill="none" stroke={palette.line} strokeWidth="5" strokeLinecap="round" />
+      <circle cx="58" cy="74" r="22" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="3" />
+      <path d="M42 59l8-12 6 13m16 0l8-12 6 13" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="2.2" strokeLinejoin="round" />
+      <ellipse cx="57" cy="76" rx="3" ry="4.2" fill={palette.line} className="persona-blink" style={origin(57, 76)} />
+      <ellipse cx="71" cy="76" rx="3" ry="4.2" fill={palette.line} className="persona-blink" style={origin(71, 76)} />
+      <path d="M58 86c3 3 8 3 11 0" fill="none" stroke={palette.line} strokeWidth="2.1" strokeLinecap="round" />
+    </>
+  );
+}
+
+function horsePortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.horse;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path d="M42 58l10-14 6 14m20-4 12-10 6 16" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="2.4" strokeLinejoin="round" />
+      <path d="M40 73c0-18 12-28 24-28s24 10 24 28v14c0 11-8 20-19 20H59c-11 0-19-9-19-20V73z" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="3" />
+      <path d="M52 87c6 3 18 3 24 0" fill="none" stroke={palette.line} strokeWidth="2.4" strokeLinecap="round" />
+      <ellipse cx="54" cy="70" rx="2.8" ry="4.4" fill={palette.line} className="persona-blink" style={origin(54, 70)} />
+      <ellipse cx="74" cy="70" rx="2.8" ry="4.4" fill={palette.line} className="persona-blink" style={origin(74, 70)} />
+    </>
+  );
+}
+
+function hedgehogPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.hedgehog;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path d="M36 72l10-14 8 8 6-12 8 10 8-12 8 12 6-10 8 12 8-8 10 14" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="2.6" strokeLinejoin="round" />
+      <path d="M40 74c2 18 12 29 24 29s22-11 24-29H40z" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="3" />
+      <path d="M54 90c4 4 16 4 20 0" fill="none" stroke={palette.line} strokeWidth="2.2" strokeLinecap="round" />
+    </>
+  );
+}
+
+function elephantPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.elephant;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <circle cx="44" cy="72" r="13" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="2.4" />
+      <circle cx="84" cy="72" r="13" fill={`url(#${ids.tertiary})`} stroke={palette.line} strokeWidth="2.4" />
+      <path d="M38 76c0-18 10-29 26-29s26 11 26 29v10c0 12-8 21-19 21H57c-11 0-19-9-19-21V76z" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="3" />
+      <path d="M64 74v14c0 8 4 13 9 13" fill="none" stroke={palette.line} strokeWidth="4" strokeLinecap="round" />
+    </>
+  );
+}
+
+function cranePortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.crane;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path d="M64 42c8 0 13 8 13 19 0 10-5 18-9 24l9 19H51l11-24c-5-4-8-11-8-19 0-11 4-19 10-19z" fill={`url(#${ids.primary})`} stroke={palette.line} strokeWidth="2.6" strokeLinejoin="round" />
+      <path d="M77 49l18-5-10 11" fill="none" stroke={palette.line} strokeWidth="2.3" strokeLinecap="round" />
+    </>,
+    "persona-sway"
+  );
+}
+
+function whalePortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.whale;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path
+        d="M28 77c12-18 30-27 50-27 16 0 28 7 36 18-8 0-15 4-18 8 6 3 9 8 9 14-10 0-18 4-24 10H54c-14 0-26-9-26-23z"
+        fill={`url(#${ids.primary})`}
+        stroke={palette.line}
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <path d="M88 98l10 10m-2-12l14 6" fill="none" stroke={palette.line} strokeWidth="2.2" strokeLinecap="round" />
+    </>,
+    "persona-drift"
+  );
+}
+
+function falconPortrait(ids: PersonaPortraitArtIds) {
+  const palette = palettes.falcon;
+
+  return simplePortrait(
+    ids,
+    palette,
+    <>
+      <path
+        d="M38 92c4-22 16-38 34-44 10-3 18-1 28 5-8 2-14 8-18 14l14 3-14 8c-4 10-13 18-28 26z"
+        fill={`url(#${ids.primary})`}
+        stroke={palette.line}
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <path d="M73 52l12-12m-4 16l18-5" fill="none" stroke={palette.line} strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="72" cy="68" r="2.6" fill={palette.line} />
+    </>,
+    "persona-drift"
+  );
+}
+
 export function renderPersonaPortraitArt(
   animalType: AnimalPersona["animalType"],
   ids: PersonaPortraitArtIds
@@ -523,5 +899,29 @@ export function renderPersonaPortraitArt(
       return rabbitPortrait(ids);
     case "raven":
       return ravenPortrait(ids);
+    case "lion":
+      return lionPortrait(ids);
+    case "dog":
+      return dogPortrait(ids);
+    case "dolphin":
+      return dolphinPortrait(ids);
+    case "swan":
+      return swanPortrait(ids);
+    case "otter":
+      return otterPortrait(ids);
+    case "squirrel":
+      return squirrelPortrait(ids);
+    case "horse":
+      return horsePortrait(ids);
+    case "hedgehog":
+      return hedgehogPortrait(ids);
+    case "elephant":
+      return elephantPortrait(ids);
+    case "crane":
+      return cranePortrait(ids);
+    case "whale":
+      return whalePortrait(ids);
+    case "falcon":
+      return falconPortrait(ids);
   }
 }

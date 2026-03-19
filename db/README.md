@@ -14,6 +14,7 @@ AgentStory first-pass PostgreSQL schema and seed files.
 - `008_adventure_memory_refactor.sql`: add adventure, memory, and supporting generation tables
 - `009_personal_companion_split.sql`: split personal and companion story threads
 - `010_zhihu_style_strategy.sql`: expand the style pool and add Zhihu reference storage
+- `011_expand_persona_style_pool.sql`: expand persona animals to 20, add 7 new regular styles, and normalize `story_preferences`
 
 ## Expected local database
 
@@ -41,6 +42,7 @@ psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/007_expand_fairy_tale_
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/008_adventure_memory_refactor.sql
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/009_personal_companion_split.sql
 psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/010_zhihu_style_strategy.sql
+psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/011_expand_persona_style_pool.sql
 ```
 
 ## Notes
@@ -50,6 +52,27 @@ psql -h 127.0.0.1 -U YOUR_PG_USER -d agentstory_dev -f db/010_zhihu_style_strate
 - `004_enrich_story_books.sql` is idempotent and only fills books whose `key_scenes` is empty.
 - `005_assign_cover_images.sql` is idempotent and points `cover_image` to dynamic local SVG covers served by the app.
 - `006_add_story_book_import_fields.sql` is additive only and prepares `story_books` for offline import pipelines.
+
+## Run TypeScript DB backfills
+
+Some DB maintenance scripts are written in TypeScript and import project modules via `@/` aliases.
+
+Use the shared loader:
+
+```bash
+node --experimental-strip-types --loader ./scripts/ts-strip-loader.mjs scripts/recompute-animal-personas.ts
+```
+
+If you need to point the script at production, pass `DATABASE_URL` explicitly:
+
+```bash
+DATABASE_URL="$DATABASE_URL_UNPOOLED" \
+node --experimental-strip-types --loader ./scripts/ts-strip-loader.mjs scripts/recompute-animal-personas.ts
+```
+
+For the full production checklist, see:
+
+- [AgentStory 线上数据库发布清单](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E7%BA%BF%E4%B8%8A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%91%E5%B8%83%E6%B8%85%E5%8D%95.md)
 
 ## Sync the 100 source-backed fairy books
 

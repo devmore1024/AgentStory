@@ -1,6 +1,7 @@
 import React from "react";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { animalTypes } from "@/lib/animal-personas";
 import { PersonaBadge } from "@/components/persona-badge";
 
 afterEach(() => {
@@ -17,5 +18,11 @@ describe("PersonaBadge", () => {
     expect(badge).toHaveClass("overflow-hidden");
     expect(badge).toHaveClass("h-14");
     expect(badge).toHaveClass("w-14");
+  });
+
+  it.each(animalTypes)("renders a badge for %s", (animalType) => {
+    const { container } = render(<PersonaBadge animalType={animalType} size="sm" variant="paper" />);
+
+    expect(container.querySelector("svg")).toBeInTheDocument();
   });
 });

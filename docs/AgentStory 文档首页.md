@@ -1,7 +1,7 @@
 # AgentStory 文档首页
 
 > 文档导航入口
-> 更新日期：2026-03-15
+> 更新日期：2026-03-19
 
 ---
 
@@ -26,15 +26,17 @@
 9. [AgentStory 接口草案](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%8E%A5%E5%8F%A3%E8%8D%89%E6%A1%88.md)
 10. [AgentStory 页面原型图说明](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E9%A1%B5%E9%9D%A2%E5%8E%9F%E5%9E%8B%E5%9B%BE%E8%AF%B4%E6%98%8E.md)
 11. [AgentStory 故事风格规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%95%85%E4%BA%8B%E9%A3%8E%E6%A0%BC%E8%A7%84%E8%8C%83.md)
-12. [AgentStory MVP 动物类型范围](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20MVP%20%E5%8A%A8%E7%89%A9%E7%B1%BB%E5%9E%8B%E8%8C%83%E5%9B%B4.md)
-13. [AgentStory 动物映射规则](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E5%8A%A8%E7%89%A9%E6%98%A0%E5%B0%84%E8%A7%84%E5%88%99.md)
-14. [AgentStory 首版风格配置表](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E9%A6%96%E7%89%88%E9%A3%8E%E6%A0%BC%E9%85%8D%E7%BD%AE%E8%A1%A8.md)
-15. [AgentStory Prompt 配置表](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20Prompt%20%E9%85%8D%E7%BD%AE%E8%A1%A8.md)
-16. [AgentStory 视觉风格参考调研](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E8%A7%86%E8%A7%89%E9%A3%8E%E6%A0%BC%E5%8F%82%E8%80%83%E8%B0%83%E7%A0%94.md)
-17. [AgentStory 绘本封面参考](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E7%BB%98%E6%9C%AC%E5%B0%81%E9%9D%A2%E5%8F%82%E8%80%83.md)
-18. [AgentStory design-system](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20design-system.md)
-19. [AgentStory 技术方案设计](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)
-20. [AgentStory 本地开发环境规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E8%A7%84%E8%8C%83.md)
+12. [AgentStory 动物人格与文风 v4](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E5%8A%A8%E7%89%A9%E4%BA%BA%E6%A0%BC%E4%B8%8E%E6%96%87%E9%A3%8E%20v4.md)
+13. [AgentStory MVP 动物类型范围](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20MVP%20%E5%8A%A8%E7%89%A9%E7%B1%BB%E5%9E%8B%E8%8C%83%E5%9B%B4.md)
+14. [AgentStory 动物映射规则](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E5%8A%A8%E7%89%A9%E6%98%A0%E5%B0%84%E8%A7%84%E5%88%99.md)
+15. [AgentStory 首版风格配置表](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E9%A6%96%E7%89%88%E9%A3%8E%E6%A0%BC%E9%85%8D%E7%BD%AE%E8%A1%A8.md)
+16. [AgentStory Prompt 配置表](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20Prompt%20%E9%85%8D%E7%BD%AE%E8%A1%A8.md)
+17. [AgentStory 视觉风格参考调研](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E8%A7%86%E8%A7%89%E9%A3%8E%E6%A0%BC%E5%8F%82%E8%80%83%E8%B0%83%E7%A0%94.md)
+18. [AgentStory 绘本封面参考](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E7%BB%98%E6%9C%AC%E5%B0%81%E9%9D%A2%E5%8F%82%E8%80%83.md)
+19. [AgentStory design-system](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20design-system.md)
+20. [AgentStory 技术方案设计](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)
+21. [AgentStory 本地开发环境规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E8%A7%84%E8%8C%83.md)
+22. [AgentStory 线上数据库发布清单](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E7%BA%BF%E4%B8%8A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%91%E5%B8%83%E6%B8%85%E5%8D%95.md)
 
 ---
 
@@ -70,6 +72,9 @@
 - [AgentStory 故事风格规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%95%85%E4%BA%8B%E9%A3%8E%E6%A0%BC%E8%A7%84%E8%8C%83.md)
   - 用途：统一故事生成风格池、风格特征、风格策略与边界
 
+- [AgentStory 动物人格与文风 v4](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E5%8A%A8%E7%89%A9%E4%BA%BA%E6%A0%BC%E4%B8%8E%E6%96%87%E9%A3%8E%20v4.md)
+  - 用途：查看当前实现的 20 动物、19 个常规文风、`secondme-v4` 输出和“文风不再跟分类绑定”的规则
+
 - [AgentStory MVP 动物类型范围](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20MVP%20%E5%8A%A8%E7%89%A9%E7%B1%BB%E5%9E%8B%E8%8C%83%E5%9B%B4.md)
   - 用途：统一首版动物代表枚举、人格覆盖范围、推荐倾向和数据枚举边界
 
@@ -96,6 +101,9 @@
 
 - [AgentStory 本地开发环境规范](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E8%A7%84%E8%8C%83.md)
   - 用途：查看本地 PostgreSQL、Redis、环境变量、seed、启动顺序和响应式调试要求
+
+- [AgentStory 线上数据库发布清单](/Users/showjoy/devmore/waytoagi/AgentStory/docs/AgentStory%20%E7%BA%BF%E4%B8%8A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%91%E5%B8%83%E6%B8%85%E5%8D%95.md)
+  - 用途：查看阿里云 RDS 发布前检查、备份、执行 migration、运行回填和发布后校验的标准流程
 
 ### 开发与数据
 

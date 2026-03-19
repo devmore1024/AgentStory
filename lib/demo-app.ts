@@ -4,9 +4,10 @@ import { getCurrentViewerContext, type AppUserContext } from "@/lib/current-user
 import { sql } from "@/lib/db";
 import { isSourceBackedPrimaryEntryFairySlug } from "@/lib/fairy-source-backed-catalog";
 import { generateCommentWithLlm, generateSerialEpisodeWithLlm, generateShortStoryWithLlm } from "@/lib/llm";
-import { getBookBySlug, getCategoriesWithBooks, type StoryBook } from "@/lib/story-data";
+import { getBookBySlug, getRecommendedBooksForPersona, type StoryBook } from "@/lib/story-data";
 import { formatEpisodeOrdinal, replaceEpisodeSequenceNumbersWithChinese } from "@/lib/story-experience-helpers";
 import {
+  getPersonaRecommendedStyleKeys,
   getStyleKeyFromId,
   getStyleName,
   normalizeStoryContentLength,
@@ -201,16 +202,8 @@ function getGenerationLabel(status: "queued" | "running" | "succeeded" | "failed
   return "种子内容";
 }
 
-function getCommentStyleKey(book: StoryBook): StoryStyleKey {
-  if (book.categoryKey === "mythology") {
-    return "folklore";
-  }
-
-  if (book.categoryKey === "fable") {
-    return "black_humor";
-  }
-
-  return "light_web";
+function getCommentStyleKey(persona: AnimalPersona): StoryStyleKey {
+  return getPersonaRecommendedStyleKeys(persona).find((styleKey) => styleKey !== "zhihu") ?? "light_web";
 }
 
 export function filterPrimaryEntryViewsToFairy<
@@ -222,7 +215,8 @@ export function filterPrimaryEntryViewsToFairy<
 }
 
 function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleKey: StoryStyleKey) {
-  const openingByStyle: Record<StoryStyleKey, string> = {
+  const styleLabel = getStyleName(styleKey);
+  const openingByStyle: Partial<Record<StoryStyleKey, string>> = {
     fairy: `故事一开始并没有急着把危险送到眼前。${book.title}里的风先吹过了树林，像有人提前翻到了结局那一页，而我只是站在路边，看着事情还没真正发生。`,
     fable: `这个故事原本很短，短到像一句早就写好的判断。可当${persona.animalName}停在${book.title}的现场时，它没有急着得出结论，而是先看见了每个角色都在躲着的那一点犹豫。`,
     epic: `在${book.title}的世界里，命运通常比人更早开口。可这一次，我在众神、誓言与预言之间先问了一句：如果还可以再选一次，故事会不会往另一边倒去？`,
@@ -235,10 +229,17 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
     black_humor: `《${book.title}》里最荒诞的事，往往不是谁忽然发疯，而是每个人都一本正经地维护着那套明明已经快散架的秩序。我就在这种时刻开了口。`,
     folklore: `走进《${book.title}》时，我先听见的不是人物说话，而是旧规矩在夜里发出的回声。谁该避、谁该等、谁不该回头，这些话比剧情更早抵达我。`,
     growth: `《${book.title}》真正吸引我的，不只是它会发生什么，而是如果我真的走进去，自己会不会也被迫学会一点新的勇气。故事就是从这一步开始偏航的。`,
-    lyrical: `我踏进《${book.title}》时，先碰到的是风、光和一句差点散掉的话。很多变化都还没被说出来，但它们已经在空气里慢慢改了方向。`
+    lyrical: `我踏进《${book.title}》时，先碰到的是风、光和一句差点散掉的话。很多变化都还没被说出来，但它们已经在空气里慢慢改了方向。`,
+    classical_poetic: `我走进《${book.title}》时，先看见的是风过帘影、灯照旧阶，很多心事还没有被说破，可故事已经在这点古意里悄悄转了向。`,
+    realist: `《${book.title}》里真正让我停下来的，不是传奇感，而是每个人都像现实里那样，明明知道问题在哪，却还在犹豫要不要承认。`,
+    magic_realism: `我走进《${book.title}》时，一切看起来都还正常，可空气里像多了一层谁也没解释的异样。也正是这层异样，让故事开始慢慢偏航。`,
+    sci_future: `当《${book.title}》被放进未来背景里重新运转时，我先看见的是悬浮界面、失效权限和一套正在倒计时的系统规则。故事也因此从第一秒就换了轨道。`,
+    hotblooded: `我闯进《${book.title}》时，最先撞上的不是安静叙述，而是那种“再不出手就会彻底失去”的紧绷感。故事几乎立刻被点燃了。`,
+    meta_roast: `《${book.title}》本来准备很认真地照旧走下去，可我一进场就看出了那套老套路的缝。场面还没塌，故事就已经开始转向。`,
+    absurd_comedy: `我走进《${book.title}》时，局面明明看起来还很正常，可只要多停一秒，就会发现所有人都在一本正经地把离谱当日常。接下来当然越来越不对劲。`
   };
 
-  const middleByStyle: Record<StoryStyleKey, string> = {
+  const middleByStyle: Partial<Record<StoryStyleKey, string>> = {
     fairy: `它没有替谁做决定，只是把一个新的问题放在角色面前。${persona.mappingReason}于是故事开始松动，不再只剩下原来的那条路。`,
     fable: `它没有急着给答案，而是先让角色把自己一直没看见的盲点说出来。于是原本一句话就能讲完的寓言，忽然被拉长成一次真正的选择。`,
     epic: `我没有对抗神意，只是把“顺从”和“承担”之外的第三种回答轻轻摆出来。于是原本宏大的命运，第一次像是要向一个普通问题低头。`,
@@ -251,10 +252,17 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
     black_humor: `最妙的不是我突然改变了什么，而是角色们越想把局面解释圆，越暴露出整件事本来就站不住脚。故事就是在这种一本正经的荒诞里掉了个头。`,
     folklore: `我没有先问结局，而是先问那些传了很多年的说法到底把谁困住了。等旧禁忌和新犹豫彼此碰上，故事里的暗线也就自己浮了出来。`,
     growth: `我没有替角色抢答，只是在关键的那一步陪他们一起多走了一点。也正是这多出来的一点，让《${book.title}》不再只是一场冒险，而像一次真正的长大。`,
-    lyrical: `故事没有急着喊出答案，只让画面一层层叠上来：目光停住、脚步放慢、旧情绪在光里重新显形。等这些东西靠近了，改写也就自然发生了。`
+    lyrical: `故事没有急着喊出答案，只让画面一层层叠上来：目光停住、脚步放慢、旧情绪在光里重新显形。等这些东西靠近了，改写也就自然发生了。`,
+    classical_poetic: `我没有急着让谁高声表态，只是把一阵风、一句旧话和一次回望慢慢放回原位。等人物终于意识到此刻不必照旧，故事就自己生出了新的章法。`,
+    realist: `我没有替角色做决定，只是在最像现实的那一刻，把那句他们一直不肯承认的话放到了台面上。于是故事开始不再绕着问题打转。`,
+    magic_realism: `我没有解释那点异样从何而来，只是顺着它继续往前走。越往里，越能感觉到现实表面正被另一层隐秘秩序轻轻顶开。`,
+    sci_future: `我没有直接改掉结局，而是先让人物看见那块一直被忽略的系统界面、那条悄悄失效的权限提示和那台本该停转却仍在工作的装置。故事于是从设定内部松开了。`,
+    hotblooded: `我没有做复杂分析，只是在最该出手的地方把信念说了出来。等人物终于不再后退，故事原本沉下去的火也跟着重新烧起来。`,
+    meta_roast: `我没有把套路直接掀翻，只是轻轻指出它哪里最像在自我重复。等角色自己也意识到这一点，故事立刻换上了更聪明的走法。`,
+    absurd_comedy: `我没有周密布置什么，只是让几件原本就很离谱的小事撞在一起。越往后，所有人越认真地把荒诞执行到底，故事也就越偏离旧版本。`
   };
 
-  const endingByStyle: Record<StoryStyleKey, string> = {
+  const endingByStyle: Partial<Record<StoryStyleKey, string>> = {
     fairy: `最后没有人宣布“结局被改写了”，可所有人都能感觉到，今天的版本已经不再只是旧故事的复述，而更像一段真正属于我的冒险。`,
     fable: `到最后，故事没有把道理大声说出口，可每个人都知道，原来那条最顺手的判断并不一定就是最对的答案。`,
     epic: `结局没有彻底推翻命运，但命运已经不再像一堵密不透风的墙。我只是轻轻碰了一下，它便裂出了一条能让人重新发问的缝。`,
@@ -267,22 +275,31 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
     black_humor: `到最后，真正被拆开的也许不是剧情，而是那套每个人都假装深信不疑的解释。等壳一碎，故事反倒显得比原来更诚实。`,
     folklore: `最后故事没有把一切说透，只留下旧风俗仍在、夜色还没散，而我已经知道那条更古老的暗线被轻轻改写了一点。`,
     growth: `等这一段走完，真正变了的未必只是结局，还有“我”看待自己和世界的方式。故事因此没有停在漂亮收束上，而是像真的把人往前推了一步。`,
-    lyrical: `等故事真正收束时，很多话仍然没有被大声说出来，但它们已经在回声里换了形状。我带走的，不是结论，而是一种被轻轻照亮后的余韵。`
+    lyrical: `等故事真正收束时，很多话仍然没有被大声说出来，但它们已经在回声里换了形状。我带走的，不是结论，而是一种被轻轻照亮后的余韵。`,
+    classical_poetic: `最后谁也没有把结局写得太满，只是风景和心意都换了一层质地。等故事停下时，人已经在古意里慢慢走到了另一种答案。`,
+    realist: `最后没有奇迹般的大转折，但人物终于面对了真正的问题。也正因如此，这个版本比原来更像会发生在人身上。`,
+    magic_realism: `最后并没有谁站出来解释一切，可每个人都知道，现实已经被那点异样轻轻改写过了。故事因此更荒诞，也更真实。`,
+    sci_future: `最后真正被改写的，不只是这一章剧情，而是人物和未来规则之间的关系。等装置停下、界面熄灭，故事也终于换成了新的运行方式。`,
+    hotblooded: `到最后，真正让这一版《${book.title}》亮起来的，不是胜负本身，而是有人终于在命运面前大声说出了“这一次我不退”。`,
+    meta_roast: `到最后，故事没有彻底否定旧套路，只是终于有人不肯再照着它继续走。那一点清醒，让整个结局都变得更有劲。`,
+    absurd_comedy: `等局面终于勉强落地时，没有人能认真复盘到底是哪一步开始失控的。但所有人都知道，这一版故事已经离原来的旧结局很远了。`
   };
+
+  const opening = openingByStyle[styleKey] ?? `我走进《${book.title}》时，先看见的不是标准答案，而是这个故事在${styleLabel}里重新长出的另一种入口。`;
+  const middle = middleByStyle[styleKey] ?? `${persona.mappingReason}于是我没有照着旧剧情往前推，而是让人物先在原地多看了一眼，故事也就从这里开始偏航。`;
+  const ending = endingByStyle[styleKey] ?? `等这一版《${book.title}》真正收束时，人物和我都已经不在原来那个位置上了。被改写的不是标签，而是一种真正发生过的选择。`;
 
   return {
     title: `如果《${book.title}》里多了我`,
-    excerpt: `${book.title}不再沿着原来的命运继续，而是被我用${getStyleName(styleKey)}轻轻推开了一道新的缝隙。`,
-    content: normalizeStoryContentLength(
-      `${openingByStyle[styleKey]}\n\n${middleByStyle[styleKey]}\n\n${endingByStyle[styleKey]}`,
-      styleKey
-    )
+    excerpt: `${book.title}不再沿着原来的命运继续，而是被我用${styleLabel}轻轻推开了一道新的缝隙。`,
+    content: normalizeStoryContentLength(`${opening}\n\n${middle}\n\n${ending}`, styleKey)
   };
 }
 
 function buildEpisode(book: StoryBook, persona: AnimalPersona, episodeNo: number, bridge: string, styleKey: StoryStyleKey) {
   const title = `${formatEpisodeOrdinal(episodeNo)} · ${book.title}里的另一种说法`;
-  const excerptByStyle: Record<StoryStyleKey, string> = {
+  const styleLabel = getStyleName(styleKey);
+  const excerptByStyle: Partial<Record<StoryStyleKey, string>> = {
     fairy: `我带着同一种温柔的视角，继续走进《${book.title}》，让这个故事也开始偏离旧结局。`,
     fable: `从上一个世界带来的问题没有消失，它在《${book.title}》里继续逼近每个角色的判断。`,
     epic: `命运并没有因为换了故事世界就停下。我把同一条更大的问题线带进了《${book.title}》。`,
@@ -295,9 +312,16 @@ function buildEpisode(book: StoryBook, persona: AnimalPersona, episodeNo: number
     black_humor: `同一股冷面幽默继续推进，到了《${book.title}》，我先看见的还是那些一本正经却摇摇欲坠的解释。`,
     folklore: `夜色和旧规矩一起延续到了《${book.title}》。这一章里，我先听见的是传闻，比剧情先一步开口。`,
     growth: `同一条成长线继续往前走，到了《${book.title}》，我先面对的是这一次必须跨过去的那一步。`,
-    lyrical: `同一种回声感继续落在《${book.title}》里，这一章里，我先听见风和光替故事说了第一句旁白。`
+    lyrical: `同一种回声感继续落在《${book.title}》里，这一章里，我先听见风和光替故事说了第一句旁白。`,
+    classical_poetic: `我把同一种古典意境带进《${book.title}》，让这一章也像旧卷续写出的新答案。`,
+    realist: `到了《${book.title}》，我继续把目光放在更真实的处境和更难回避的人心上。`,
+    magic_realism: `《${book.title}》这一章仍然让现实和异样并排存在，我只是顺着那层纹理继续往前走。`,
+    sci_future: `我把未来背景、系统规则和装置故障一起带进《${book.title}》，这一章的故事从第一秒就有了新的坐标。`,
+    hotblooded: `《${book.title}》这一章里，真正往前推故事的是更强的宣言感、出手时刻和燃起来的命运压力。`,
+    meta_roast: `到了《${book.title}》，我继续把剧情里最老套的那条路拆开，让这一章也带着聪明的反转感。`,
+    absurd_comedy: `我把同一种荒诞节奏带进《${book.title}》，于是这一章从开场起就有一种认真失控的好笑感。`
   };
-  const contentByStyle: Record<StoryStyleKey, string> = {
+  const contentByStyle: Partial<Record<StoryStyleKey, string>> = {
     fairy: `${bridge}\n\n当故事走到《${book.title}》时，${persona.animalName}没有急着改变谁，而是先让角色意识到，他们其实不一定只能照着原剧情行动。于是新的一章像翻开一页新绘本那样展开了。`,
     fable: `${bridge}\n\n到了《${book.title}》，我没有先给结论，而是把问题摆得更近了一点。角色越想按老习惯回答，越会暴露出自己真正忽略掉的那一处。`,
     epic: `${bridge}\n\n《${book.title}》看上去仍被更大的命运推着前行，可${persona.animalName}并没有退开。它把上一章的追问继续往前送，于是这一次，连预言都像要多迟疑一下。`,
@@ -310,13 +334,25 @@ function buildEpisode(book: StoryBook, persona: AnimalPersona, episodeNo: number
     black_humor: `${bridge}\n\n《${book.title}》这一章里，最有意思的并不是谁突然聪明起来，而是每个人越想把局面讲圆，越把荒诞暴露得更清楚。我就在这种裂缝里把故事轻轻掰向了另一边。`,
     folklore: `${bridge}\n\n到了《${book.title}》，我先问的不是“接下来怎么办”，而是“这里的人一直把什么当成不能碰的规矩”。当旧说法和新犹豫碰上，故事里的暗线也开始自己发声。`,
     growth: `${bridge}\n\n《${book.title}》这一章真正重要的，是有人终于愿意往前迈出那一步。我没有替他们做决定，只是在最该犹豫的地方陪着多走了一点，于是故事和人一起都长出了新的方向。`,
-    lyrical: `${bridge}\n\n《${book.title}》这一章没有急着追着答案跑，而是先让回声、目光和停顿把情绪慢慢推近。等这一层层水波落稳，故事改写的方向也就自然显出来了。`
+    lyrical: `${bridge}\n\n《${book.title}》这一章没有急着追着答案跑，而是先让回声、目光和停顿把情绪慢慢推近。等这一层层水波落稳，故事改写的方向也就自然显出来了。`,
+    classical_poetic: `${bridge}\n\n到了《${book.title}》，我没有急着争辩是非，而是先把景、声、步态和旧心事摆在一起。等人物终于停下来重新看一眼，故事就在古意里改了路数。`,
+    realist: `${bridge}\n\n《${book.title}》这一章里，我继续把问题拉回最真实的位置：人为什么迟疑，为什么嘴上说着没关系，心里却已经知道事情不对。等这一层被看见，剧情也就开始真正往前动。`,
+    magic_realism: `${bridge}\n\n《${book.title}》这一章没有刻意解释那些异样从哪儿来。我只是顺着它们继续走，让现实表面在不动声色里慢慢裂出另一层光。`,
+    sci_future: `${bridge}\n\n到了《${book.title}》，我先处理的不是情绪，而是那块失效的界面、那套未来城市的通行规则和一台正在悄悄偏航的装置。等设定内部被重新拨正，人物才真正拥有了新的选择。`,
+    hotblooded: `${bridge}\n\n《${book.title}》这一章里，我没有退到旁边分析局势，而是在最该出手的时候把信念和行动一起推了出去。等人物跟着往前冲，故事也终于重新亮了起来。`,
+    meta_roast: `${bridge}\n\n到了《${book.title}》，我还是先拆那条最像旧套路的路。角色越想照着惯性演下去，越会暴露出剧情原本最偷懒的地方，而我正是从这里把它掰开。`,
+    absurd_comedy: `${bridge}\n\n《${book.title}》这一章真正厉害的地方，是所有离谱的小事都碰巧同时发生了。我没有阻止它失控，只是顺手把这场认真又混乱的偏航推到了最妙的位置。`
   };
+  const excerpt =
+    excerptByStyle[styleKey] ?? `我把${styleLabel}继续带进《${book.title}》，让这个故事也沿着新的节奏往前长。`;
+  const content =
+    contentByStyle[styleKey] ??
+    `${bridge}\n\n到了《${book.title}》，我继续用${styleLabel}的方式靠近这个世界。人物没有再照着旧版本往下滑，而是在一个真正的选择面前重新看见了自己。`;
 
   return {
     title,
-    excerpt: excerptByStyle[styleKey],
-    content: normalizeStoryContentLength(contentByStyle[styleKey], styleKey)
+    excerpt,
+    content: normalizeStoryContentLength(content, styleKey)
   };
 }
 
@@ -459,7 +495,6 @@ async function ensureDemoContext(): Promise<AppUserContext> {
       defaultPersona.expressionStyle,
       toJson(defaultPersona.dimensionScores),
       toJson({
-        categories: defaultPersona.recommendedCategories,
         styles: defaultPersona.recommendedStyles
       }),
       defaultPersona.mappingReason,
@@ -634,7 +669,7 @@ async function ensureSerialDataForContext(context: AppUserContext, seedSource: "
       feedStoryId,
       context.userId,
       context.animalProfileId,
-      styleIds.get(resolvePersistableStyleKey(styleIds, [getCommentStyleKey(plan.book), "light_web", "fairy"]) ?? "fairy") ?? null,
+      styleIds.get(resolvePersistableStyleKey(styleIds, [getCommentStyleKey(context.persona), "light_web", "fairy"]) ?? "fairy") ?? null,
       buildComment(plan.book.title, context.persona)
     );
   }
@@ -730,10 +765,7 @@ async function pickNextSerialBook(params: {
   episodeNo: number;
   currentBookId: string | null;
 }) {
-  const categories = await getCategoriesWithBooks();
-  const allBooks = categories.flatMap((category) => category.books);
-  const preferredBooks = allBooks.filter((book) => params.persona.recommendedCategories.includes(book.categoryName));
-  const candidateBooks = preferredBooks.length > 0 ? preferredBooks : allBooks;
+  const candidateBooks = await getRecommendedBooksForPersona(params.persona, 120);
 
   if (candidateBooks.length === 0) {
     return null;
@@ -908,7 +940,7 @@ async function ensureSerialProgress(context: AppUserContext, force = false) {
     styleId
   });
 
-  const commentStyleKey = resolvePersistableStyleKey(styleIds, [getCommentStyleKey(nextBook), "light_web", "fairy"]) ?? "fairy";
+  const commentStyleKey = resolvePersistableStyleKey(styleIds, [getCommentStyleKey(context.persona), "light_web", "fairy"]) ?? "fairy";
   const commentStyleId = styleIds.get(commentStyleKey) ?? null;
   await ensureFeedStoryComment(
     feedStoryId,
@@ -1067,13 +1099,7 @@ export async function createShortStoryForBookSlug(slug: string) {
       styleIds
     }) ?? "fairy";
   const styleId = styleIds.get(styleKey) ?? null;
-  const triggerScene =
-    book.keyScenes[0] ??
-    (book.categoryKey === "fairy_tale"
-      ? "我在命运转弯前先开口"
-      : book.categoryKey === "fable"
-        ? "我在角色做出惯性反应前提出另一个问题"
-        : "我在命运看似已定时插入一个新的选择");
+  const triggerScene = book.keyScenes[0] ?? "我在故事准备照旧发生前先开口";
   const jobId = await createGenerationJob({
     jobType: "short_story_generate",
     payload: {
@@ -1165,7 +1191,7 @@ export async function createShortStoryForBookSlug(slug: string) {
       storyTitle: story.title,
       storyExcerpt: story.excerpt,
       persona: context.persona,
-      styleKey: getCommentStyleKey(book)
+      styleKey: getCommentStyleKey(context.persona)
     });
     await markGenerationJobFinished(commentJobId, "succeeded");
   } catch (error) {
@@ -1181,7 +1207,7 @@ export async function createShortStoryForBookSlug(slug: string) {
     feedStoryId,
     context.userId,
     context.animalProfileId,
-    styleIds.get(resolvePersistableStyleKey(styleIds, [getCommentStyleKey(book), "light_web", "fairy"]) ?? "fairy") ?? null,
+    styleIds.get(resolvePersistableStyleKey(styleIds, [getCommentStyleKey(context.persona), "light_web", "fairy"]) ?? "fairy") ?? null,
     commentContent
   );
 

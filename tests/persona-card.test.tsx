@@ -57,11 +57,19 @@ describe("PersonaCard", () => {
   it("shows only style tags in the recommendation section", () => {
     render(<PersonaCard persona={persona} showArchiveButton={false} />);
 
+    expect(screen.getByText("治愈日常风")).toBeInTheDocument();
     expect(screen.getByText("童话风")).toBeInTheDocument();
-    expect(screen.getByText("神话史诗风")).toBeInTheDocument();
-    expect(screen.getByText("轻喜剧网感风")).toBeInTheDocument();
+    expect(screen.getByText("现实主义风")).toBeInTheDocument();
     expect(screen.queryByText("童话")).not.toBeInTheDocument();
     expect(screen.queryByText("寓言")).not.toBeInTheDocument();
     expect(screen.queryByText("神话")).not.toBeInTheDocument();
+  });
+
+  it("renders style tags for newly added personas as well", () => {
+    render(<PersonaCard persona={{ ...animalPersonas.otter, mappingReason: "测试画像" }} showArchiveButton={false} />);
+
+    expect(screen.getByText("沙雕搞笑风")).toBeInTheDocument();
+    expect(screen.getByText("轻喜剧网感风")).toBeInTheDocument();
+    expect(screen.getByText("治愈日常风")).toBeInTheDocument();
   });
 });

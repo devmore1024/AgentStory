@@ -1,4 +1,4 @@
-import { createAnimalPersona, type AnimalPersona } from "@/lib/animal-personas";
+import { animalTypes as animalTypeList, createAnimalPersona, type AnimalPersona } from "@/lib/animal-personas";
 
 type SecondMeShade = {
   shadeName?: string;
@@ -58,7 +58,7 @@ type MbtiInference = {
   source: "explicit" | "semantic" | "none";
 };
 
-const animalTypes: AnimalType[] = ["bear", "deer", "fox", "owl", "wolf", "cat", "rabbit", "raven"];
+const animalTypes: AnimalType[] = [...animalTypeList];
 const mbtiTypes: MbtiType[] = [
   "INTJ",
   "INTP",
@@ -174,6 +174,150 @@ const animalKeywordWeights: Record<AnimalType, Array<[string, number]>> = {
     ["reflect", 3],
     ["distance", 2],
     ["dark humor", 2]
+  ],
+  lion: [
+    ["担当", 3],
+    ["统领", 3],
+    ["荣耀", 2],
+    ["勇毅", 2],
+    ["主将", 2],
+    ["威压", 2],
+    ["leader", 3],
+    ["glory", 2],
+    ["command", 2],
+    ["courageous", 2]
+  ],
+  dog: [
+    ["忠诚", 3],
+    ["热情", 3],
+    ["真诚", 2],
+    ["陪你", 2],
+    ["照顾", 2],
+    ["靠近", 2],
+    ["loyal", 3],
+    ["warm", 2],
+    ["friendly", 2],
+    ["companion", 2]
+  ],
+  dolphin: [
+    ["流动", 3],
+    ["灵感", 3],
+    ["跳跃", 2],
+    ["海", 2],
+    ["异样", 2],
+    ["自由", 2],
+    ["fluid", 3],
+    ["ocean", 2],
+    ["spark", 2],
+    ["playful", 2]
+  ],
+  swan: [
+    ["优雅", 3],
+    ["姿态", 3],
+    ["留白", 2],
+    ["古典", 2],
+    ["意境", 2],
+    ["体面", 2],
+    ["elegant", 3],
+    ["grace", 3],
+    ["poised", 2],
+    ["classic", 2]
+  ],
+  otter: [
+    ["机灵", 3],
+    ["好笑", 3],
+    ["接梗", 2],
+    ["缓和", 2],
+    ["轻巧", 2],
+    ["活力", 2],
+    ["funny", 3],
+    ["playful", 2],
+    ["nimble", 2],
+    ["witty", 2]
+  ],
+  squirrel: [
+    ["灵机", 3],
+    ["忙碌", 2],
+    ["收集", 3],
+    ["反应快", 2],
+    ["新鲜感", 2],
+    ["多线程", 2],
+    ["quick", 3],
+    ["collect", 2],
+    ["curiosity", 2],
+    ["agile", 2]
+  ],
+  horse: [
+    ["向前", 3],
+    ["旅途", 3],
+    ["奔跑", 3],
+    ["方向", 2],
+    ["耐力", 2],
+    ["成长", 2],
+    ["journey", 3],
+    ["run", 3],
+    ["endurance", 2],
+    ["forward", 2]
+  ],
+  hedgehog: [
+    ["慢热", 3],
+    ["自我保护", 3],
+    ["认真", 2],
+    ["边界", 2],
+    ["安静", 2],
+    ["真实", 2],
+    ["guarded", 3],
+    ["quiet", 2],
+    ["careful", 2],
+    ["honest", 2]
+  ],
+  elephant: [
+    ["记忆", 3],
+    ["厚重", 2],
+    ["稳稳", 2],
+    ["长线", 3],
+    ["承载", 2],
+    ["耐心", 2],
+    ["memory", 3],
+    ["steady", 2],
+    ["long-term", 2],
+    ["grounded", 2]
+  ],
+  crane: [
+    ["古意", 3],
+    ["旧规矩", 3],
+    ["清冷", 2],
+    ["异样", 2],
+    ["传闻", 2],
+    ["留白", 2],
+    ["ritual", 3],
+    ["mist", 2],
+    ["distant", 2],
+    ["eerie", 2]
+  ],
+  whale: [
+    ["深海", 3],
+    ["回声", 3],
+    ["沉静", 2],
+    ["深度", 3],
+    ["宽阔", 2],
+    ["慢慢", 2],
+    ["deep", 3],
+    ["echo", 3],
+    ["vast", 2],
+    ["calm", 2]
+  ],
+  falcon: [
+    ["精准", 3],
+    ["锁定", 3],
+    ["目标", 3],
+    ["高压", 2],
+    ["俯冲", 2],
+    ["执行", 2],
+    ["precise", 3],
+    ["target", 3],
+    ["strike", 2],
+    ["focus", 2]
   ]
 };
 
@@ -287,75 +431,107 @@ const mbtiDimensionSignals: Record<"EI" | "SN" | "TF" | "JP", MbtiSignalSet> = {
 const exactMbtiAnimalBoosts: Record<string, Array<[AnimalType, number]>> = {
   NF: [
     ["deer", 14],
-    ["rabbit", 12]
+    ["rabbit", 12],
+    ["swan", 11],
+    ["dolphin", 10]
   ],
   NT: [
     ["owl", 14],
-    ["raven", 12]
+    ["raven", 12],
+    ["falcon", 11]
   ],
   SJ: [
-    ["bear", 14]
+    ["bear", 14],
+    ["elephant", 12],
+    ["whale", 10]
   ],
   SP: [
     ["cat", 12],
-    ["fox", 10]
+    ["fox", 10],
+    ["otter", 10],
+    ["horse", 9],
+    ["squirrel", 8]
   ],
   NJ: [
     ["owl", 12],
-    ["wolf", 10]
+    ["crane", 11],
+    ["elephant", 10]
   ],
   TP: [
     ["fox", 12],
-    ["raven", 10]
+    ["falcon", 11],
+    ["raven", 10],
+    ["squirrel", 9]
   ],
   FJ: [
     ["deer", 12],
+    ["dog", 11],
     ["bear", 10]
   ],
   TJ: [
     ["wolf", 12],
-    ["owl", 10]
+    ["lion", 11],
+    ["falcon", 10]
   ]
 };
 
 const letterAnimalBoosts: Record<string, Array<[AnimalType, number]>> = {
   E: [
     ["fox", 3],
-    ["wolf", 3]
+    ["wolf", 3],
+    ["dog", 2],
+    ["lion", 2],
+    ["horse", 2]
   ],
   I: [
     ["owl", 3],
     ["cat", 2],
-    ["raven", 2]
+    ["raven", 2],
+    ["whale", 2]
   ],
   S: [
     ["bear", 3],
-    ["cat", 2]
+    ["cat", 2],
+    ["dog", 2],
+    ["horse", 2],
+    ["elephant", 2]
   ],
   N: [
     ["owl", 2],
     ["rabbit", 2],
-    ["raven", 2]
+    ["raven", 2],
+    ["dolphin", 2],
+    ["whale", 2],
+    ["crane", 2]
   ],
   T: [
     ["owl", 3],
     ["raven", 3],
-    ["wolf", 2]
+    ["falcon", 3],
+    ["wolf", 2],
+    ["lion", 2]
   ],
   F: [
     ["deer", 3],
     ["bear", 2],
-    ["rabbit", 3]
+    ["rabbit", 3],
+    ["dog", 3],
+    ["swan", 2]
   ],
   J: [
     ["bear", 2],
     ["wolf", 3],
-    ["owl", 2]
+    ["owl", 2],
+    ["lion", 2],
+    ["elephant", 2]
   ],
   P: [
     ["fox", 3],
     ["cat", 2],
-    ["rabbit", 2]
+    ["rabbit", 2],
+    ["otter", 3],
+    ["squirrel", 2],
+    ["dolphin", 2]
   ]
 };
 
@@ -693,7 +869,7 @@ export function mapSecondMeProfileToPersona(input: {
   return {
     persona,
     confidenceScore,
-    mappingVersion: "secondme-v3",
+    mappingVersion: "secondme-v4",
     mappingReason,
     mbtiCandidate: mbti.candidate,
     mbtiConfidence: mbti.confidence,
@@ -701,7 +877,7 @@ export function mapSecondMeProfileToPersona(input: {
     rawSecondMeProfile: {
       ...input,
       _agentstory: {
-        mappingVersion: "secondme-v3",
+        mappingVersion: "secondme-v4",
         mbtiCandidate: mbti.candidate,
         mbtiConfidence: mbti.confidence,
         mbtiEvidence: mbti.evidence,

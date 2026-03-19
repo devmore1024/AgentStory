@@ -1,7 +1,7 @@
 # AgentStory 接口草案
 
 > 面向前后端协作的首版接口草案
-> 更新日期：2026-03-15
+> 更新日期：2026-03-19
 
 ---
 
@@ -10,6 +10,13 @@
 本草案用于统一 AgentStory 首版前后端接口边界，覆盖登录后用户读取、首页推荐、故事系统、发现页互动和我的页沉淀等核心链路。
 
 当前以能力边界和输入输出形状为主，不绑定具体框架实现。
+
+当前实现补充说明：
+
+- 动物人格已扩展到 20 个固定枚举
+- `storyPreferences` 已收敛为只保存 `styles`
+- `mappingVersion` 当前实现为 `secondme-v4`
+- 书籍分类仍保留，但不再参与动物人格和文风自动分配
 
 建议接口风格：
 
@@ -96,7 +103,7 @@
     "animalName": "狐狸",
     "summary": "你会先观察，再决定什么时候进入故事。",
     "mappingReason": "你更擅长先观察局势，再判断什么时候靠近，所以你的分身更像一只狐狸。",
-    "mappingVersion": "v1",
+    "mappingVersion": "secondme-v4",
     "confidenceScore": 86,
     "displayLabel": "动物人格",
     "tendencies": ["机敏", "好奇", "会判断"],
@@ -109,10 +116,7 @@
       "expression": 66
     },
     "storyPreferences": {
-      "preferredCategories": ["fable", "fairy_tale"],
-      "preferredStyles": ["zhihu", "fable", "light_web"],
-      "preferredRoleTypes": ["观察者", "试探者"],
-      "preferredConflictTypes": ["规则博弈", "误解反转"]
+      "styles": ["反套路吐槽风", "寓言风", "黑色幽默风"]
     }
   }
 }

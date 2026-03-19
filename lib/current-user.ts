@@ -64,7 +64,6 @@ function normalizeDimensionScores(value: unknown, fallback: AnimalPersona["dimen
 function normalizeStoryPreferences(value: unknown, fallback: AnimalPersona) {
   if (!value || typeof value !== "object") {
     return {
-      categories: fallback.recommendedCategories,
       styles: fallback.recommendedStyles
     };
   }
@@ -72,9 +71,6 @@ function normalizeStoryPreferences(value: unknown, fallback: AnimalPersona) {
   const candidate = value as Record<string, unknown>;
 
   return {
-    categories: normalizeStringArray(candidate.categories).length
-      ? normalizeStringArray(candidate.categories)
-      : fallback.recommendedCategories,
     styles: normalizeStringArray(candidate.styles).length
       ? normalizeStringArray(candidate.styles)
       : fallback.recommendedStyles
@@ -94,7 +90,6 @@ function buildPersonaFromRow(row: UserProfileRow) {
     expressionStyle: row.expression_style ?? basePersona.expressionStyle,
     tendencies: normalizeStringArray(row.tendencies).length ? normalizeStringArray(row.tendencies) : basePersona.tendencies,
     values: normalizeStringArray(row.values).length ? normalizeStringArray(row.values) : basePersona.values,
-    recommendedCategories: preferences.categories,
     recommendedStyles: preferences.styles,
     dimensionScores: normalizeDimensionScores(row.dimension_scores, basePersona.dimensionScores),
     mappingReason: row.mapping_reason ?? basePersona.mappingReason
@@ -254,7 +249,6 @@ export async function upsertAuthenticatedViewer(params: {
       params.persona.expressionStyle,
       toJson(params.persona.dimensionScores),
       toJson({
-        categories: params.persona.recommendedCategories,
         styles: params.persona.recommendedStyles
       }),
       params.mappingVersion,

@@ -6,15 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest run",
-    "generate:fairy-covers": "node --experimental-strip-types scripts/generate-fairy-covers.ts",
-    "sync:fairy-books": "node --experimental-strip-types scripts/sync-source-backed-fairy-books.ts",
-    "sync:fairy-books:from-local": "bash scripts/sync-local-fairy-books-to-aliyun.sh",
-    "import:zhihu-refs": "node --experimental-strip-types scripts/import-zhihu-story-references.ts"
+    "test": "vitest run"
   },
   "dependencies": {
     "next": "^15.2.4",
-    "openai": "^4.104.0",
+    "openai": "file:../AgentTravel/node_modules/openai",
     "pg": "^8.13.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
