@@ -65,7 +65,7 @@ export function getPersonalLineListNotice(params: {
 
   if (params.todayGenerated) {
     return params.generatedTimeLabel
-      ? `今日 ${params.generatedTimeLabel} 已更新，冒险线每天只会继续一章，明天再来看下一章。`
+      ? `今日已更新，冒险线每天只会继续一章，明天再来看下一章。`
       : "今天这一章已经更新，冒险线每天只会继续一章，明天再来看下一章。";
   }
 
@@ -90,7 +90,7 @@ export function getPersonalLineDetailRuleNotice(params: {
   }
 
   return params.generatedTimeLabel
-    ? `今日 ${params.generatedTimeLabel} 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。`
+    ? `今日已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。`
     : "今天这一章已经更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。";
 }
 

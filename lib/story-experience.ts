@@ -75,6 +75,15 @@ export type AdventureThreadView = {
   actionLabel: string;
   originPersonalThreadId: string | null;
   originEpisodeId: string | null;
+  participants: AdventureParticipantPreview[];
+};
+
+export type AdventureParticipantPreview = {
+  userId: string;
+  displayName: string;
+  avatar: string | null;
+  role: "owner" | "participant";
+  joinedAt: string;
 };
 
 export type AdventureEpisodeView = {
@@ -85,6 +94,7 @@ export type AdventureEpisodeView = {
   content: string;
   generatedAt: string | null;
   authorDisplayName: string;
+  authorAvatar: string | null;
   styleName: string | null;
 };
 
@@ -207,7 +217,17 @@ type AdventureEpisodeRow = {
   content: string | null;
   generated_at: string | null;
   author_display_name: string;
+  author_avatar: string | null;
   style_name: string | null;
+};
+
+type AdventureParticipantRow = {
+  thread_id: string;
+  user_id: string;
+  display_name: string;
+  avatar: string | null;
+  role: "owner" | "participant";
+  joined_at: string;
 };
 
 type GenerationJobRow = {
@@ -680,7 +700,76 @@ async function addTimelineItem(params: {
   );
 }
 
-function mapAdventureThreadRow(row: AdventureThreadRow): AdventureThreadView {
+function sortAdventureParticipants(participants: AdventureParticipantPreview[]) {
+  return [...participants].sort((a, b) => {
+    const roleDiff = (a.role === "owner" ? 0 : 1) - (b.role === "owner" ? 0 : 1);
+
+    if (roleDiff !== 0) {
+      return roleDiff;
+    }
+
+    return a.joinedAt.localeCompare(b.joinedAt);
+  });
+}
+
+async function getAdventureParticipantsByThreadIds(threadIds: readonly string[]) {
+  const uniqueThreadIds = Array.from(new Set(threadIds.filter(Boolean)));
+
+  if (uniqueThreadIds.length === 0) {
+    return new Map<string, AdventureParticipantPreview[]>();
+  }
+
+  const placeholders = uniqueThreadIds.map((_, index) => `$${index + 1}`).join(", ");
+  const { rows } = await sql<AdventureParticipantRow>(
+    `
+      SELECT
+        sp.thread_id,
+        u.id AS user_id,
+        u.display_name,
+        u.avatar,
+        sp.role,
+        sp.joined_at
+      FROM story_thread_participants sp
+      JOIN users u ON u.id = sp.user_id
+      WHERE sp.thread_id IN (${placeholders})
+      ORDER BY
+        CASE WHEN sp.role = 'owner' THEN 0 ELSE 1 END ASC,
+        sp.joined_at ASC
+    `,
+    uniqueThreadIds
+  );
+
+  const participantsByThreadId = new Map<string, AdventureParticipantPreview[]>(
+    uniqueThreadIds.map((threadId) => [threadId, []])
+  );
+
+  for (const row of rows) {
+    const participants = participantsByThreadId.get(row.thread_id);
+
+    if (!participants) {
+      continue;
+    }
+
+    participants.push({
+      userId: row.user_id,
+      displayName: row.display_name,
+      avatar: row.avatar,
+      role: row.role,
+      joinedAt: row.joined_at
+    });
+  }
+
+  for (const [threadId, participants] of participantsByThreadId) {
+    participantsByThreadId.set(threadId, sortAdventureParticipants(participants));
+  }
+
+  return participantsByThreadId;
+}
+
+function mapAdventureThreadRow(
+  row: AdventureThreadRow,
+  participants: AdventureParticipantPreview[] = []
+): AdventureThreadView {
   const participantCount = row.participant_count ?? 0;
   const episodeCount = row.episode_count ?? 0;
   const participantLimit = row.participant_limit ?? 5;
@@ -726,7 +815,8 @@ function mapAdventureThreadRow(row: AdventureThreadRow): AdventureThreadView {
     actionState,
     actionLabel: getCompanionActionLabel(actionState),
     originPersonalThreadId: row.origin_personal_thread_id,
-    originEpisodeId: row.origin_episode_id
+    originEpisodeId: row.origin_episode_id,
+    participants: sortAdventureParticipants(participants)
   };
 }
 
@@ -1002,6 +1092,7 @@ async function getThreadEpisodes(threadId: string) {
         e.content,
         e.generated_at,
         u.display_name AS author_display_name,
+        u.avatar AS author_avatar,
         ss.name AS style_name
       FROM story_episodes e
       JOIN users u ON u.id = e.user_id
@@ -1022,6 +1113,7 @@ async function getThreadEpisodes(threadId: string) {
       content: row.content ?? "",
       generatedAt: row.generated_at,
       authorDisplayName: row.author_display_name,
+      authorAvatar: row.author_avatar,
       styleName: row.style_name
     })
   );
@@ -1962,8 +2054,10 @@ export async function getAdventureThreads() {
     [currentContext?.userId ?? null]
   );
 
+  const participantsByThreadId = await getAdventureParticipantsByThreadIds(rows.map((row) => row.id));
+
   return rows
-    .map((row) => mapAdventureThreadRow(row))
+    .map((row) => mapAdventureThreadRow(row, participantsByThreadId.get(row.id) ?? []))
     .filter((thread) => !thread.isCompleted && (thread.isJoinable || thread.isOwner || thread.isParticipant));
 }
 
@@ -1987,7 +2081,11 @@ export async function getAdventureThreadDetail(threadId: string) {
     return null;
   }
 
-  const [thread, episodes] = await Promise.all([Promise.resolve(mapAdventureThreadRow(row)), getThreadEpisodes(threadId)]);
+  const [participantsByThreadId, episodes] = await Promise.all([
+    getAdventureParticipantsByThreadIds([threadId]),
+    getThreadEpisodes(threadId)
+  ]);
+  const thread = mapAdventureThreadRow(row, participantsByThreadId.get(threadId) ?? []);
 
   return {
     ...thread,
@@ -2603,7 +2701,9 @@ export async function getMyCompanionThreads() {
     [context.userId]
   );
 
-  return rows.map((row) => mapAdventureThreadRow(row));
+  const participantsByThreadId = await getAdventureParticipantsByThreadIds(rows.map((row) => row.id));
+
+  return rows.map((row) => mapAdventureThreadRow(row, participantsByThreadId.get(row.id) ?? []));
 }
 
 export async function ensureTodayBedtimeMemory() {

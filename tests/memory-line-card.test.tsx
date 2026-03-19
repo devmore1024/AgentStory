@@ -85,7 +85,7 @@ describe("MemoryLineCard", () => {
     expect(screen.getByText("今日已更新")).toBeInTheDocument();
     expect(screen.getByText("共 三 章")).toBeInTheDocument();
     expect(screen.getByText("第 一 次冒险 · 《小红帽》")).toBeInTheDocument();
-    expect(screen.getByText("今日 18:30 已更新，冒险线每天只会继续一章，明天再来看下一章。")).toBeInTheDocument();
+    expect(screen.getByText("今日已更新，冒险线每天只会继续一章，明天再来看下一章。")).toBeInTheDocument();
     expect(screen.getByText("查看今天这章")).toBeInTheDocument();
     expect(screen.getByTestId("memory-line-mobile-book-heading")).toHaveTextContent("《小红帽》");
     expect(screen.getByTestId("memory-line-book-panel-mobile-inline")).toHaveAttribute(

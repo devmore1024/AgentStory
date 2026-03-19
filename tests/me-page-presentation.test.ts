@@ -57,7 +57,16 @@ describe("me-page footprint presentation", () => {
           actionState: "continue",
           actionLabel: "继续同行",
           originPersonalThreadId: "personal-1",
-          originEpisodeId: "episode-1"
+          originEpisodeId: "episode-1",
+          participants: [
+            {
+              userId: "user-1",
+              displayName: "迪西",
+              avatar: null,
+              role: "owner",
+              joinedAt: "2026-03-18T09:00:00.000Z"
+            }
+          ]
         },
         {
           id: "joined-companion-1",
@@ -89,7 +98,23 @@ describe("me-page footprint presentation", () => {
           actionState: "continue",
           actionLabel: "继续同行",
           originPersonalThreadId: "personal-2",
-          originEpisodeId: "episode-2"
+          originEpisodeId: "episode-2",
+          participants: [
+            {
+              userId: "user-2",
+              displayName: "拉拉",
+              avatar: null,
+              role: "owner",
+              joinedAt: "2026-03-18T09:00:00.000Z"
+            },
+            {
+              userId: "user-1",
+              displayName: "迪西",
+              avatar: null,
+              role: "participant",
+              joinedAt: "2026-03-18T10:00:00.000Z"
+            }
+          ]
         }
       ]
     });

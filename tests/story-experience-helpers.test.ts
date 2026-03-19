@@ -77,8 +77,8 @@ describe("story-experience helpers", () => {
 
   it("maps story states to companion labels", () => {
     expect(getCompanionActionLabel("continue")).toBe("继续同行");
-    expect(getCompanionActionLabel("join")).toBe("加入同行");
-    expect(getCompanionActionLabel("watch")).toBe("阅读");
+    expect(getCompanionActionLabel("join")).toBe("当前连载");
+    expect(getCompanionActionLabel("watch")).toBe("阅读原故事");
   });
 
   it("maps episode and job statuses into a generation state", () => {
@@ -178,13 +178,13 @@ describe("story-experience helpers", () => {
     expect(formatChineseNumber(105)).toBe("一百零五");
     expect(formatEpisodeOrdinal(3)).toBe("第 三 章");
     expect(formatEpisodeCountLabel(12)).toBe("共 十二 章");
-    expect(formatEpisodeProgressLabel(2, 10)).toBe("二/十 章");
+    expect(formatEpisodeProgressLabel(2, 10)).toBe("共 二 章");
   });
 
   it("rewrites episode sequence text into Chinese numerals", () => {
     expect(replaceEpisodeSequenceNumbersWithChinese("第 03 次冒险 · 《小红帽》")).toBe("第 三 次冒险 · 《小红帽》");
     expect(replaceEpisodeSequenceNumbersWithChinese("共 #12 章")).toBe("共 十二 章");
-    expect(replaceEpisodeSequenceNumbersWithChinese("2/10 章")).toBe("二/十 章");
+    expect(replaceEpisodeSequenceNumbersWithChinese("2/10 章")).toBe("共 二 章");
   });
 
   it("hides bedtime memories from the active story timeline", () => {

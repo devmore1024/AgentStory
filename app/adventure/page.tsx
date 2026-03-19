@@ -2,16 +2,17 @@ import React from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { joinAdventureAction } from "@/app/actions";
+import { AdventureThreadBookThumb } from "@/components/adventure-thread-book-thumb";
 import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
 import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
+import { getBooksBySlugs } from "@/lib/story-data";
 import {
   getAdventureThreads,
   getAuthenticatedAppContext,
   getStoryExperienceSchemaStatus,
   type AdventureThreadView
 } from "@/lib/story-experience";
-import { getStyleBadgeClass } from "@/lib/story-style";
 
 export const dynamic = "force-dynamic";
 
@@ -19,22 +20,56 @@ function isCurrentSerialThread(thread: AdventureThreadView) {
   return thread.isOwner;
 }
 
-function getThreadDescription(thread: AdventureThreadView) {
-  if (isCurrentSerialThread(thread)) {
-    const roleLead = thread.isOwner ? "这是你当前正在推进的同行连载。" : "这是你当前正在参与的同行连载。";
+function getParticipantDisplayNames(thread: AdventureThreadView) {
+  const names = thread.participants.map((participant) => participant.displayName).filter(Boolean);
 
-    if (thread.lockedStyleName) {
-      return `${roleLead} 这段同行已经定下整体气质，接下来会沿着同一种感觉继续走。`;
-    }
-
-    return `${roleLead} 第一段同行还在等它自己的语气慢慢落下来。`;
+  if (names.length > 0) {
+    return names;
   }
 
-  return `${thread.ownerDisplayName} 先走了进去。${
-    thread.lockedStyleName
-      ? " 这段同行已经定下整体气质，后面的人会沿着同一种感觉继续走。"
-      : " 第一段同行还在等它自己的语气慢慢落下来。"
-  }`;
+  return [thread.ownerDisplayName];
+}
+
+function getParticipantPresenceLead(thread: AdventureThreadView) {
+  const [firstName, secondName] = getParticipantDisplayNames(thread);
+
+  if (thread.participantCount <= 1) {
+    return `${firstName ?? thread.ownerDisplayName} 正在等下一位同行者加入。`;
+  }
+
+  if (thread.participantCount === 2) {
+    return `${firstName ?? thread.ownerDisplayName} 和 ${secondName ?? "另一位同行者"}已经在里面一起推进。`;
+  }
+
+  return `${firstName ?? thread.ownerDisplayName}、${secondName ?? "另一位同行者"}和另外 ${
+    thread.participantCount - 2
+  } 位同行者已经在里面一起推进。`;
+}
+
+function getAdventureListHeadline(thread: AdventureThreadView) {
+  return `${thread.ownerDisplayName}的分身正在`;
+}
+
+function getThreadDescription(thread: AdventureThreadView) {
+  if (thread.generationState === "queued" || thread.generationState === "running") {
+    return "新的章节正在生成中，等一下就会落下来。";
+  }
+
+  if (thread.generationState === "failed") {
+    return "这一段冒险暂时卡住了，进详情后可以继续把它接上。";
+  }
+
+  if (thread.participantCount <= 1) {
+    return `${thread.ownerDisplayName} 正在等下一位同行者加入。`;
+  }
+
+  if (thread.participantCount === 2) {
+    const [firstName, secondName] = getParticipantDisplayNames(thread);
+
+    return `${firstName ?? thread.ownerDisplayName}和${secondName ?? "另一位同行者"}正在一起推进这段故事。`;
+  }
+
+  return `已经有 ${thread.participantCount} 位同行者在里面一起推进。`;
 }
 
 function getThreadExcerpt(thread: AdventureThreadView) {
@@ -61,6 +96,7 @@ export default async function AdventurePage() {
     getAuthenticatedAppContext(),
     getStoryExperienceSchemaStatus()
   ]);
+  const booksBySlug = await getBooksBySlugs(threads.map((thread) => thread.sourceBookSlug ?? ""));
 
   return (
     <AppShell activeTab="adventure">
@@ -97,6 +133,7 @@ export default async function AdventurePage() {
               const isCurrentSerial = isCurrentSerialThread(thread);
               const detailHref = `/adventure/${thread.id}` as Route;
               const originalStoryHref = thread.sourceBookSlug ? (`/books/${thread.sourceBookSlug}/read` as Route) : null;
+              const sourceBook = thread.sourceBookSlug ? (booksBySlug.get(thread.sourceBookSlug) ?? null) : null;
 
               return (
                 <article
@@ -108,35 +145,40 @@ export default async function AdventurePage() {
                     isOwner={thread.isOwner}
                     isCompleted={thread.isCompleted}
                     generationState={thread.generationState}
+                    participants={thread.participants}
                     participantCount={thread.participantCount}
                     participantLimit={thread.participantLimit}
                     episodeCount={thread.episodeCount}
                     episodeLimit={thread.episodeLimit}
+                    lockedStyleName={thread.lockedStyleName}
+                    variant="listCompact"
                   />
 
-                  <div className="mt-4">
-                    <p className="text-s font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                      《{thread.sourceBookTitle}》
-                    </p>
-                    <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">{thread.title}</h2>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
-                        {thread.ownerDisplayName} 发起
-                      </span>
-                      {thread.lockedStyleName ? (
-                        <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(thread.lockedStyleName)}`}>
-                          {thread.lockedStyleName}
-                        </span>
-                      ) : null}
+                  <div className="mt-4 flex items-start gap-4">
+                    {sourceBook && originalStoryHref ? (
+                      <AdventureThreadBookThumb book={sourceBook} href={originalStoryHref} />
+                    ) : null}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <h2
+                          className="display-font text-[1.4rem] leading-[1.16] text-[var(--text-primary)] sm:text-[1.5rem]"
+                          data-testid={`adventure-thread-headline-${thread.id}`}
+                        >
+                          {getAdventureListHeadline(thread)}
+                            《{thread.sourceBookTitle}》
+                          中冒险
+                        </h2>
+                      </div>
+                      <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{getThreadDescription(thread)}</p>
                     </div>
-                    <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{getThreadDescription(thread)}</p>
                   </div>
 
-                  <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.72)] p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  <div className="mt-3 rounded-[24px] bg-[rgba(255,255,255,0.76)] p-5 shadow-[var(--shadow-small)]">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
                       {thread.latestEpisodeTitle ?? "第一段同行即将落下"}
                     </p>
-                    <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{getThreadExcerpt(thread)}</p>
+                    <p className="mt-2 text-[15px] leading-8 text-[var(--text-secondary)]">{getThreadExcerpt(thread)}</p>
                   </div>
 
                   <div className="mt-5 flex flex-wrap gap-3">
@@ -182,14 +224,14 @@ export default async function AdventurePage() {
                           阅读原故事
                         </Link>
                       ) : null
-                    ) : (
+                    ) : originalStoryHref ? (
                       <Link
                         href={originalStoryHref}
                         className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
                       >
                         阅读原故事
                       </Link>
-                    )}
+                    ) : null}
                   </div>
                 </article>
               );

@@ -19,13 +19,7 @@ export type ZhihuSearchCandidate = {
 };
 
 export type ZhihuSearchRequestOptions = {
-  token?: string | null;
-  apiKey?: string | null;
-  tokenHeader?: string | null;
-  apiKeyHeader?: string | null;
-  authScheme?: string | null;
-  tokenQueryParam?: string | null;
-  apiKeyQueryParam?: string | null;
+  accessToken?: string | null;
   searchQueryParam?: string;
   searchLimitParam?: string;
   searchLimit?: string | number;
@@ -118,36 +112,18 @@ export function buildZhihuSearchRequest(
   options: ZhihuSearchRequestOptions = {}
 ) {
   const url = new URL(searchUrl);
-  const token = options.token?.trim() ?? "";
-  const apiKey = options.apiKey?.trim() ?? "";
-  const tokenHeader = options.tokenHeader?.trim() ?? "Authorization";
-  const apiKeyHeader = options.apiKeyHeader?.trim() ?? "X-API-Key";
-  const authScheme = options.authScheme?.trim() ?? "Bearer";
-  const tokenQueryParam = options.tokenQueryParam?.trim() ?? "";
-  const apiKeyQueryParam = options.apiKeyQueryParam?.trim() ?? "";
+  const accessToken = options.accessToken?.trim() ?? "";
 
   url.searchParams.set(options.searchQueryParam ?? "keyword", queryKeyword);
   url.searchParams.set(options.searchLimitParam ?? "limit", String(options.searchLimit ?? "10"));
-
-  if (token && tokenQueryParam) {
-    url.searchParams.set(tokenQueryParam, token);
-  }
-
-  if (apiKey && apiKeyQueryParam) {
-    url.searchParams.set(apiKeyQueryParam, apiKey);
-  }
 
   const headers: Record<string, string> = {
     Accept: "application/json",
     "User-Agent": options.userAgent ?? ZHIHU_IMPORT_USER_AGENT
   };
 
-  if (token && tokenHeader) {
-    headers[tokenHeader] = authScheme ? `${authScheme} ${token}` : token;
-  }
-
-  if (apiKey && apiKeyHeader) {
-    headers[apiKeyHeader] = apiKey;
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
   }
 
   return {

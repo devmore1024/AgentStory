@@ -53,7 +53,7 @@ describe("MemoryDetailHero", () => {
       <MemoryDetailHero
         line={createLineFixture()}
         generatedTimeLabel="18:30"
-        dailyRuleNotice="今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。"
+        dailyRuleNotice="今日已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。"
         actions={<div>今日故事</div>}
       />
     );
@@ -61,7 +61,7 @@ describe("MemoryDetailHero", () => {
     expect(screen.getByText("今日 18:30 更新")).toBeInTheDocument();
     expect(screen.getByText("共 三 章")).toBeInTheDocument();
     expect(screen.getByText("第 一 次冒险 · 《小红帽》")).toBeInTheDocument();
-    expect(screen.getByText("今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。")).toBeInTheDocument();
+    expect(screen.getByText("今日已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。")).toBeInTheDocument();
     expect(screen.getByText("今日故事")).toBeInTheDocument();
     expect(screen.getByText("童话风")).toHaveClass("text-[#9D6A17]");
   });

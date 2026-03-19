@@ -352,7 +352,7 @@ export function formatEpisodeCountLabel(value: number, unit: "章" | "篇" | "�
 }
 
 export function formatEpisodeProgressLabel(current: number, total: number, unit: "章" | "篇" | "次" = "章") {
-  return `${formatChineseNumber(current)}/${formatChineseNumber(total)} ${unit}`;
+  return formatEpisodeCountLabel(current, unit);
 }
 
 export function replaceEpisodeSequenceNumbersWithChinese(text: string) {

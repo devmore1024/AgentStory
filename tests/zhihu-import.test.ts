@@ -19,43 +19,32 @@ describe("zhihu import helpers", () => {
     ).toEqual(["小红帽", "Little Red Riding Hood", "little red riding hood"]);
   });
 
-  it("builds a configurable zhihu search request for both headers and query params", () => {
-    const headerRequest = buildZhihuSearchRequest(
-      "https://openapi.zhihu.com/openapi/search/global",
-      "小红帽",
-      {
-        token: "token-1",
-        apiKey: "api-key-1"
-      }
-    );
-    const headerUrl = new URL(headerRequest.url);
+  it("builds a configurable zhihu search request with bearer auth", () => {
+    const request = buildZhihuSearchRequest("https://openapi.zhihu.com/openapi/search/global", "小红帽", {
+      accessToken: "access-token-1"
+    });
+    const requestUrl = new URL(request.url);
 
-    expect(headerUrl.searchParams.get("keyword")).toBe("小红帽");
-    expect(headerUrl.searchParams.get("limit")).toBe("10");
-    expect(headerRequest.headers.Authorization).toBe("Bearer token-1");
-    expect(headerRequest.headers["X-API-Key"]).toBe("api-key-1");
+    expect(requestUrl.searchParams.get("keyword")).toBe("小红帽");
+    expect(requestUrl.searchParams.get("limit")).toBe("10");
+    expect(request.headers.Authorization).toBe("Bearer access-token-1");
+    expect(request.headers["X-API-Key"]).toBeUndefined();
+  });
 
-    const queryRequest = buildZhihuSearchRequest(
-      "https://openapi.zhihu.com/openapi/search/global",
-      "小红帽",
-      {
-        token: "token-2",
-        apiKey: "api-key-2",
-        tokenHeader: "",
-        apiKeyHeader: "",
-        tokenQueryParam: "access_token",
-        apiKeyQueryParam: "api_key",
-        searchLimit: 5
-      }
-    );
-    const queryUrl = new URL(queryRequest.url);
+  it("keeps search query configuration customizable without query-param auth", () => {
+    const request = buildZhihuSearchRequest("https://openapi.zhihu.com/openapi/search/global", "小红帽", {
+      accessToken: "access-token-2",
+      searchQueryParam: "q",
+      searchLimitParam: "page_size",
+      searchLimit: 5
+    });
+    const requestUrl = new URL(request.url);
 
-    expect(queryUrl.searchParams.get("keyword")).toBe("小红帽");
-    expect(queryUrl.searchParams.get("limit")).toBe("5");
-    expect(queryUrl.searchParams.get("access_token")).toBe("token-2");
-    expect(queryUrl.searchParams.get("api_key")).toBe("api-key-2");
-    expect(queryRequest.headers.Authorization).toBeUndefined();
-    expect(queryRequest.headers["X-API-Key"]).toBeUndefined();
+    expect(requestUrl.searchParams.get("q")).toBe("小红帽");
+    expect(requestUrl.searchParams.get("page_size")).toBe("5");
+    expect(requestUrl.searchParams.get("keyword")).toBeNull();
+    expect(requestUrl.searchParams.get("access_token")).toBeNull();
+    expect(request.headers.Authorization).toBe("Bearer access-token-2");
   });
 
   it("normalizes flexible search payloads into candidates", () => {

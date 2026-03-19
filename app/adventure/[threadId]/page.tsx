@@ -5,6 +5,7 @@ import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
 import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
 import { AppShell } from "@/components/app-shell";
 import { PageBackButton } from "@/components/page-back-button";
+import { ParticipantAvatar, ParticipantAvatarStack } from "@/components/participant-avatar-stack";
 import { StateCard } from "@/components/state-card";
 import { StoryDetailBookSidebar } from "@/components/story-detail-book-sidebar";
 import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
@@ -14,6 +15,27 @@ import { getBookBySlug } from "@/lib/story-data";
 import { getStyleBadgeClass } from "@/lib/story-style";
 
 export const dynamic = "force-dynamic";
+
+function getThreadParticipantSummary(thread: Awaited<ReturnType<typeof getAdventureThreadDetail>>) {
+  if (!thread) {
+    return "";
+  }
+
+  const names = thread.participants.map((participant) => participant.displayName).filter(Boolean);
+  const [firstName, secondName] = names.length > 0 ? names : [thread.ownerDisplayName];
+
+  if (thread.participantCount <= 1) {
+    return `${firstName ?? thread.ownerDisplayName} 先走了进去，正在等下一位同行者加入。`;
+  }
+
+  if (thread.participantCount === 2) {
+    return `${firstName ?? thread.ownerDisplayName} 和 ${secondName ?? "另一位同行者"}已经一起把这段故事往前推了一步。`;
+  }
+
+  return `${firstName ?? thread.ownerDisplayName}、${secondName ?? "另一位同行者"}和另外 ${
+    thread.participantCount - 2
+  } 位同行者已经一起把这段故事推进到这里。`;
+}
 
 export default async function AdventureThreadPage({
   params
@@ -32,6 +54,8 @@ export default async function AdventureThreadPage({
   const hasFailedGeneration = thread.generationState === "failed";
   const shouldShowWaitingState = thread.episodes.length === 0 && !isGenerating && !hasFailedGeneration;
   const hasBookSidebar = Boolean(sourceBook);
+  const latestEpisodeAuthor = thread.episodes.at(-1)?.authorDisplayName ?? thread.ownerDisplayName;
+  const remainingParticipantSlots = Math.max(thread.participantLimit - thread.participantCount, 0);
 
   return (
     <AppShell activeTab="adventure">
@@ -48,6 +72,7 @@ export default async function AdventureThreadPage({
                 isOwner={thread.isOwner}
                 isCompleted={thread.isCompleted}
                 generationState={thread.generationState}
+                participants={thread.participants}
                 participantCount={thread.participantCount}
                 participantLimit={thread.participantLimit}
                 episodeCount={thread.episodeCount}
@@ -65,6 +90,36 @@ export default async function AdventureThreadPage({
                   ? `这段同行已经定下 ${thread.lockedStyleName} 的气质。后面的人会沿着同一种感觉继续走，直到故事自然走完。`
                   : "这段同行还在等第一篇替它慢慢定下整体气质。"}
               </p>
+
+              <div
+                className="mt-5 rounded-[24px] bg-[rgba(255,255,255,0.72)] px-4 py-4 shadow-[var(--shadow-small)] sm:px-5"
+                data-testid="adventure-participant-rail"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">正在同行的分身</p>
+                <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <ParticipantAvatarStack
+                      participants={thread.participants}
+                      maxVisible={5}
+                      size="md"
+                      testId="adventure-detail-avatar-stack"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[var(--text-primary)] sm:text-base">
+                        {thread.participantCount}/{thread.participantLimit} 位同行者
+                      </p>
+                      <p className="text-sm leading-7 text-[var(--text-secondary)]">
+                        {thread.episodes.length > 0
+                          ? `${getThreadParticipantSummary(thread)} 最近一段由 ${latestEpisodeAuthor} 继续写下。`
+                          : getThreadParticipantSummary(thread)}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-[rgba(245,241,235,0.9)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+                    {remainingParticipantSlots > 0 ? `还差 ${remainingParticipantSlots} 位同行者` : "同行席位已满"}
+                  </span>
+                </div>
+              </div>
 
               <div className="mt-5 flex flex-wrap gap-3">
                 {currentContext ? (
@@ -143,9 +198,18 @@ export default async function AdventureThreadPage({
                       <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
                         {formatEpisodeOrdinal(episode.episodeNo)}
                       </span>
-                      <span className="rounded-full bg-[rgba(255,255,255,0.75)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
-                        由 {episode.authorDisplayName} 继续写下去
-                      </span>
+                      <div
+                        className="flex items-center gap-2 rounded-full bg-[rgba(255,255,255,0.75)] px-2.5 py-1.5 text-xs font-semibold text-[var(--text-secondary)]"
+                        data-testid={`adventure-episode-author-${episode.id}`}
+                      >
+                        <ParticipantAvatar
+                          displayName={episode.authorDisplayName}
+                          avatar={episode.authorAvatar}
+                          size="sm"
+                          testId={`adventure-episode-author-avatar-${episode.id}`}
+                        />
+                        <span>由 {episode.authorDisplayName} 继续写下去</span>
+                      </div>
                       {episode.styleName ? (
                         <span
                           className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(

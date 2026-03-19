@@ -97,13 +97,16 @@ npm run import:zhihu-refs -- --dry-run --book-limit 5
 Environment:
 
 - database: loaded from `.env.local` -> `DATABASE_URL_UNPOOLED` by default
-- Zhihu token: `ZHIHU_OPENAPI_TOKEN`
-- Zhihu API key: `ZHIHU_OPENAPI_API_KEY`
+- Zhihu search access token: `ZHIHU_OPENAPI_ACCESS_TOKEN`
 - search endpoint override: `ZHIHU_OPENAPI_SEARCH_URL`
-- default auth transport: `Authorization: Bearer <token>` + `X-API-Key: <apiKey>`
-- optional auth query params: `ZHIHU_OPENAPI_TOKEN_QUERY_PARAM`, `ZHIHU_OPENAPI_API_KEY_QUERY_PARAM`
-- optional header overrides: `ZHIHU_OPENAPI_TOKEN_HEADER`, `ZHIHU_OPENAPI_API_KEY_HEADER`
-- set header vars to empty strings if the upstream only accepts query-param auth
+- optional query param override: `ZHIHU_OPENAPI_SEARCH_QUERY_PARAM`
+- optional limit config: `ZHIHU_OPENAPI_SEARCH_LIMIT`, `ZHIHU_OPENAPI_SEARCH_LIMIT_PARAM`
+
+Notes:
+
+- the import script only calls Zhihu `GET /openapi/search/global` and writes the results into `zhihu_story_references`
+- the import script does not handle OAuth or token exchange; `ZHIHU_OPENAPI_ACCESS_TOKEN` must be obtained outside this repo
+- deprecated app credential vars such as `ZHIHU_OPENAPI_TOKEN` and `ZHIHU_OPENAPI_API_KEY` are no longer accepted because the search endpoint expects a real access token
 
 Behavior:
 

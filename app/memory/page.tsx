@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 const MEMORY_COPY = {
   eyebrow: "冒险",
-  title: "我在童话里的冒险",
+  title: "我的分身在童话里的冒险",
   description: "每本童话都有一条只属于你的冒险主线。分身会在你重新打开它时，按这本书自己的节奏继续往前走。",
   schemaTitle: "冒险线的数据表还没准备好",
   authTitle: "登录 SecondMe 后，分身才会开始替你在童话里冒险",

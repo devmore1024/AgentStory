@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 
 type ZhihuImportModule = typeof import("../lib/zhihu-import");
 type ZhihuSearchCandidate = import("../lib/zhihu-import").ZhihuSearchCandidate;
+type ZhihuImportRuntimeModule = typeof import("../lib/zhihu-import-runtime");
 
 const {
   ZHIHU_IMPORT_USER_AGENT,
@@ -15,6 +16,11 @@ const {
   normalizeZhihuSearchCandidates,
   scoreZhihuSearchCandidate
 } = (await import(new URL("../lib/zhihu-import.ts", import.meta.url).href)) as ZhihuImportModule;
+const {
+  ZHIHU_OPENAPI_RUNTIME_ENV_KEYS,
+  buildZhihuSearchFailureMessage,
+  resolveZhihuSearchAccessToken
+} = (await import(new URL("../lib/zhihu-import-runtime.ts", import.meta.url).href)) as ZhihuImportRuntimeModule;
 
 const require = createRequire(import.meta.url);
 
@@ -207,15 +213,9 @@ function trimHttpErrorBody(value: string) {
   return value.replace(/\s+/gu, " ").trim().slice(0, 240);
 }
 
-async function fetchZhihuSearchPayload(searchUrl: string, queryKeyword: string) {
+async function fetchZhihuSearchPayload(searchUrl: string, accessToken: string, queryKeyword: string) {
   const request = buildZhihuSearchRequest(searchUrl, queryKeyword, {
-    token: process.env.ZHIHU_OPENAPI_TOKEN,
-    apiKey: process.env.ZHIHU_OPENAPI_API_KEY,
-    tokenHeader: process.env.ZHIHU_OPENAPI_TOKEN_HEADER ?? "Authorization",
-    apiKeyHeader: process.env.ZHIHU_OPENAPI_API_KEY_HEADER ?? "X-API-Key",
-    authScheme: process.env.ZHIHU_OPENAPI_AUTH_SCHEME ?? "Bearer",
-    tokenQueryParam: process.env.ZHIHU_OPENAPI_TOKEN_QUERY_PARAM,
-    apiKeyQueryParam: process.env.ZHIHU_OPENAPI_API_KEY_QUERY_PARAM,
+    accessToken,
     searchQueryParam: process.env.ZHIHU_OPENAPI_SEARCH_QUERY_PARAM ?? "keyword",
     searchLimitParam: process.env.ZHIHU_OPENAPI_SEARCH_LIMIT_PARAM ?? "limit",
     searchLimit: process.env.ZHIHU_OPENAPI_SEARCH_LIMIT ?? "10"
@@ -227,9 +227,7 @@ async function fetchZhihuSearchPayload(searchUrl: string, queryKeyword: string) 
 
   if (!response.ok) {
     const details = trimHttpErrorBody(await response.text());
-    throw new Error(
-      `Zhihu search failed for "${queryKeyword}": ${response.status}${details ? ` ${details}` : ""}`
-    );
+    throw new Error(buildZhihuSearchFailureMessage({ queryKeyword, status: response.status, details }));
   }
 
   return response.json();
@@ -279,7 +277,7 @@ async function loadFairyBooks(client: DatabaseClient, args: ParsedArgs) {
   return rows;
 }
 
-async function selectReferencesForBook(searchUrl: string, book: FairyBookRow) {
+async function selectReferencesForBook(searchUrl: string, accessToken: string, book: FairyBookRow) {
   const previews: SearchPreview[] = [];
   const collected: PersistedReference[] = [];
 
@@ -291,7 +289,10 @@ async function selectReferencesForBook(searchUrl: string, book: FairyBookRow) {
     let candidates: ZhihuSearchCandidate[] = [];
 
     try {
-      candidates = normalizeZhihuSearchCandidates(await fetchZhihuSearchPayload(searchUrl, queryKeyword), queryKeyword);
+      candidates = normalizeZhihuSearchCandidates(
+        await fetchZhihuSearchPayload(searchUrl, accessToken, queryKeyword),
+        queryKeyword
+      );
     } catch (error) {
       previews.push({
         queryKeyword,
@@ -467,26 +468,13 @@ async function writePreviewReport(payload: unknown) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const runtimeEnvKeys = [
-    "ZHIHU_OPENAPI_TOKEN",
-    "ZHIHU_OPENAPI_API_KEY",
-    "ZHIHU_OPENAPI_SEARCH_URL",
-    "ZHIHU_OPENAPI_SEARCH_QUERY_PARAM",
-    "ZHIHU_OPENAPI_SEARCH_LIMIT",
-    "ZHIHU_OPENAPI_SEARCH_LIMIT_PARAM",
-    "ZHIHU_OPENAPI_TOKEN_HEADER",
-    "ZHIHU_OPENAPI_API_KEY_HEADER",
-    "ZHIHU_OPENAPI_AUTH_SCHEME",
-    "ZHIHU_OPENAPI_TOKEN_QUERY_PARAM",
-    "ZHIHU_OPENAPI_API_KEY_QUERY_PARAM"
-  ];
-
-  for (const key of runtimeEnvKeys) {
+  for (const key of ZHIHU_OPENAPI_RUNTIME_ENV_KEYS) {
     assignOptionalRuntimeEnv(key);
   }
 
-  const connectionString = readEnvValue(args.envFile, args.envKey);
+  const accessToken = resolveZhihuSearchAccessToken(process.env);
   const searchUrl = getZhihuSearchUrl(args);
+  const connectionString = readEnvValue(args.envFile, args.envKey);
   const client = new Client({ connectionString });
 
   await client.connect();
@@ -496,7 +484,7 @@ async function main() {
     const preview = [];
 
     for (const book of books) {
-      const result = await selectReferencesForBook(searchUrl, book);
+      const result = await selectReferencesForBook(searchUrl, accessToken, book);
 
       preview.push({
         slug: book.slug,

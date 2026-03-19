@@ -186,6 +186,7 @@ function createMemoryLine() {
         content: "故事内容",
         generatedAt: "2026-03-18T10:00:00.000Z",
         authorDisplayName: "迪西",
+        authorAvatar: null,
         styleName: "童话风"
       }
     ]
@@ -203,7 +204,7 @@ function createAdventureThread() {
     lockedStyleName: "童话风",
     episodeCount: 1,
     episodeLimit: 10,
-    participantCount: 1,
+    participantCount: 2,
     participantLimit: 5,
     ownerDisplayName: "迪西",
     latestEpisodeTitle: "新的同行已经开始",
@@ -224,6 +225,22 @@ function createAdventureThread() {
     actionLabel: "继续同行",
     originPersonalThreadId: null,
     originEpisodeId: null,
+    participants: [
+      {
+        userId: "user-1",
+        displayName: "迪西",
+        avatar: null,
+        role: "owner",
+        joinedAt: "2026-03-18T09:00:00.000Z"
+      },
+      {
+        userId: "user-2",
+        displayName: "安宁",
+        avatar: null,
+        role: "participant",
+        joinedAt: "2026-03-18T10:00:00.000Z"
+      }
+    ],
     episodes: [
       {
         id: "episode-1",
@@ -233,6 +250,7 @@ function createAdventureThread() {
         content: "故事内容",
         generatedAt: "2026-03-18T10:00:00.000Z",
         authorDisplayName: "迪西",
+        authorAvatar: null,
         styleName: "童话风"
       }
     ]
@@ -293,6 +311,8 @@ describe("secondary pages", () => {
 
     expect(screen.getByTestId("page-back-button")).toHaveTextContent("同行故事:/adventure");
     expect(screen.getByTestId("story-detail-book-sidebar")).toHaveTextContent("睡美人");
+    expect(screen.getByTestId("adventure-participant-rail")).toHaveTextContent("2/5 位同行者");
+    expect(screen.getByTestId("adventure-episode-author-episode-1")).toHaveTextContent("由 迪西 继续写下去");
     expect(
       screen.getByTestId("page-back-button").compareDocumentPosition(screen.getByTestId("story-detail-book-sidebar")) &
         Node.DOCUMENT_POSITION_FOLLOWING

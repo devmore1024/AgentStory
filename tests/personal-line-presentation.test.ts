@@ -118,14 +118,14 @@ describe("personal-line presentation helpers", () => {
         generationState: "idle",
         generatedTimeLabel: "18:30"
       })
-    ).toBe("今日 18:30 已更新，冒险线每天只会继续一章，明天再来看下一章。");
+    ).toBe("今日已更新，冒险线每天只会继续一章，明天再来看下一章。");
 
     expect(
       getPersonalLineDetailRuleNotice({
         todayGenerated: true,
         generatedTimeLabel: "18:30"
       })
-    ).toBe("今日 18:30 已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。");
+    ).toBe("今日已更新。冒险线每天只会继续一章，明天再回来，会看到下一章继续长出来。");
 
     expect(
       getPersonalLineListNotice({
