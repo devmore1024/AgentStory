@@ -68,6 +68,12 @@ vi.mock("@/components/book-cover", () => ({
   BookCover: () => <div>cover</div>
 }));
 
+vi.mock("@/components/story-detail-book-sidebar", () => ({
+  StoryDetailBookSidebar: ({ book }: { book: { title: string } }) => (
+    <div data-testid="story-detail-book-sidebar">{book.title}</div>
+  )
+}));
+
 vi.mock("@/components/submit-button", () => ({
   SubmitButton: ({ idleLabel }: { idleLabel: string }) => <button type="submit">{idleLabel}</button>
 }));
@@ -267,6 +273,11 @@ describe("secondary pages", () => {
     render(await MemoryDetailPage({ params: Promise.resolve({ slug: "fairy-sleeping-beauty" }) }));
 
     expect(screen.getByTestId("page-back-button")).toHaveTextContent("冒险故事:/memory");
+    expect(screen.getByTestId("story-detail-book-sidebar")).toHaveTextContent("睡美人");
+    expect(
+      screen.getByTestId("page-back-button").compareDocumentPosition(screen.getByTestId("story-detail-book-sidebar")) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
     expect(screen.getAllByText("童话风")[0]).toHaveClass("text-[#9D6A17]");
   });
 
@@ -281,6 +292,11 @@ describe("secondary pages", () => {
     render(await AdventureThreadPage({ params: Promise.resolve({ threadId: "adventure-1" }) }));
 
     expect(screen.getByTestId("page-back-button")).toHaveTextContent("同行故事:/adventure");
+    expect(screen.getByTestId("story-detail-book-sidebar")).toHaveTextContent("睡美人");
+    expect(
+      screen.getByTestId("page-back-button").compareDocumentPosition(screen.getByTestId("story-detail-book-sidebar")) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
     expect(screen.getAllByText("童话风")[0]).toHaveClass("text-[#9D6A17]");
   });
 
@@ -327,5 +343,18 @@ describe("secondary pages", () => {
 
     expect(screen.getByText("第一篇同行正在路上")).toBeInTheDocument();
     expect(screen.queryByText("这段同行还没有真正落下第一篇")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the original single-column story layout when the adventure source book cannot be resolved", async () => {
+    mocks.getAdventureThreadDetail.mockResolvedValueOnce({
+      ...createAdventureThread(),
+      sourceBookSlug: null
+    });
+
+    render(await AdventureThreadPage({ params: Promise.resolve({ threadId: "adventure-1" }) }));
+
+    expect(screen.queryByTestId("story-detail-book-sidebar")).not.toBeInTheDocument();
+    expect(mocks.getBookBySlug).not.toHaveBeenCalledWith(null);
+    expect(screen.getByText("新的同行已经开始")).toBeInTheDocument();
   });
 });
