@@ -5,6 +5,7 @@ import { PageBackButton } from "@/components/page-back-button";
 
 const back = vi.fn();
 const push = vi.fn();
+const beginNavigation = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -13,10 +14,17 @@ vi.mock("next/navigation", () => ({
   })
 }));
 
+vi.mock("@/components/navigation-transition-provider", () => ({
+  useNavigationTransition: () => ({
+    beginNavigation
+  })
+}));
+
 afterEach(() => {
   cleanup();
   back.mockReset();
   push.mockReset();
+  beginNavigation.mockReset();
 });
 
 describe("PageBackButton", () => {
@@ -34,6 +42,7 @@ describe("PageBackButton", () => {
 
     expect(back).not.toHaveBeenCalled();
     expect(push).toHaveBeenCalledWith("/memory");
+    expect(beginNavigation).toHaveBeenCalledWith({ href: "/memory" });
     expect(screen.getByText("冒险详情")).toBeInTheDocument();
   });
 
@@ -49,5 +58,6 @@ describe("PageBackButton", () => {
 
     expect(back).toHaveBeenCalledTimes(1);
     expect(push).not.toHaveBeenCalled();
+    expect(beginNavigation).toHaveBeenCalledWith({ label: "正在返回上一页..." });
   });
 });

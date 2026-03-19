@@ -19,6 +19,7 @@ describe("secondary page loading shells", () => {
     render(<BookLoading />);
 
     expect(screen.getByTestId("secondary-loading-back")).toHaveTextContent("童话故事");
+    expect(screen.getByTestId("secondary-loading-notice")).toHaveTextContent("正在打开童话故事");
     expect(screen.getByTestId("secondary-loading-shell-book")).toBeInTheDocument();
   });
 
@@ -26,11 +27,13 @@ describe("secondary page loading shells", () => {
     const { rerender } = render(<MemoryDetailLoading />);
 
     expect(screen.getByTestId("secondary-loading-back")).toHaveTextContent("冒险故事");
+    expect(screen.getByTestId("secondary-loading-notice")).toHaveTextContent("这一页正在落下来");
     expect(screen.getByTestId("secondary-loading-shell-story-detail")).toBeInTheDocument();
 
     rerender(<AdventureThreadLoading />);
 
     expect(screen.getByTestId("secondary-loading-back")).toHaveTextContent("同行故事");
+    expect(screen.getByTestId("secondary-loading-notice")).toHaveTextContent("这一页正在落下来");
     expect(screen.getByTestId("secondary-loading-shell-story-detail")).toBeInTheDocument();
   });
 
@@ -38,6 +41,7 @@ describe("secondary page loading shells", () => {
     render(<ShareLoading />);
 
     expect(screen.getByTestId("secondary-loading-back")).toHaveTextContent("分享详情");
+    expect(screen.getByTestId("secondary-loading-notice")).toHaveTextContent("分享页正在准备");
     expect(screen.getByTestId("secondary-loading-shell-share")).toBeInTheDocument();
   });
 });

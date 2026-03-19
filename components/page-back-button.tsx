@@ -2,6 +2,8 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { useNavigationTransition } from "@/components/navigation-transition-provider";
+import { getNavigationPendingLabel } from "@/lib/app-navigation";
 
 type PageBackButtonProps = {
   fallbackHref: string;
@@ -11,13 +13,34 @@ type PageBackButtonProps = {
 
 export function PageBackButton({ fallbackHref, title, label = "返回上一页" }: PageBackButtonProps) {
   const router = useRouter();
+  const { beginNavigation } = useNavigationTransition();
 
   const handleClick = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
+      let referrer: URL | null = null;
+
+      try {
+        referrer = document.referrer ? new URL(document.referrer, window.location.href) : null;
+      } catch {
+        referrer = null;
+      }
+
+      if (referrer && referrer.origin === window.location.origin) {
+        beginNavigation({
+          href: referrer.pathname + referrer.search,
+          label: getNavigationPendingLabel(referrer.pathname)
+        });
+      } else {
+        beginNavigation({
+          label: "正在返回上一页..."
+        });
+      }
+
       router.back();
       return;
     }
 
+    beginNavigation({ href: fallbackHref });
     router.push(fallbackHref as never);
   };
 

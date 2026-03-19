@@ -1,4 +1,5 @@
 import React from "react";
+import { LoadingNotice } from "@/components/loading-notice";
 
 type SecondaryPageLoadingLayout = "book" | "story-detail" | "share";
 
@@ -6,6 +7,31 @@ type SecondaryPageLoadingShellProps = {
   activeTab: "home" | "memory" | "adventure" | "me";
   title: string;
   layout: SecondaryPageLoadingLayout;
+};
+
+const loadingCopyByLayout: Record<
+  SecondaryPageLoadingLayout,
+  {
+    eyebrow: string;
+    title: string;
+    description: string;
+  }
+> = {
+  book: {
+    eyebrow: "正在打开童话故事",
+    title: "这一页正在翻开",
+    description: "封面、简介和进入方式正在准备中，请稍等一下。"
+  },
+  "story-detail": {
+    eyebrow: "正在打开故事详情",
+    title: "这一页正在落下来",
+    description: "当前章节、分身信息和操作入口正在准备中，请稍等一下。"
+  },
+  share: {
+    eyebrow: "正在打开分享详情",
+    title: "分享页正在准备",
+    description: "分享文案和可展示的人格卡正在整理中，请稍等一下。"
+  }
 };
 
 function LoadingBackHeader({ title }: { title: string }) {
@@ -67,6 +93,8 @@ export function SecondaryPageLoadingShell({
   title,
   layout
 }: SecondaryPageLoadingShellProps) {
+  const loadingCopy = loadingCopyByLayout[layout];
+
   return (
     <div className="relative min-h-screen overflow-x-hidden pb-28">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[26rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.7),transparent_58%)]" />
@@ -78,6 +106,12 @@ export function SecondaryPageLoadingShell({
         <main className="flex-1">
           <div className="grid gap-6">
             <LoadingBackHeader title={title} />
+            <LoadingNotice
+              eyebrow={loadingCopy.eyebrow}
+              title={loadingCopy.title}
+              description={loadingCopy.description}
+              testId="secondary-loading-notice"
+            />
             {layout === "book" ? <BookPageSkeleton /> : null}
             {layout === "story-detail" ? <StoryDetailSkeleton /> : null}
             {layout === "share" ? <SharePageSkeleton /> : null}

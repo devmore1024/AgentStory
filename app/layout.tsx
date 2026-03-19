@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { NavigationTransitionProvider } from "@/components/navigation-transition-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="min-h-screen text-[var(--text-primary)] antialiased">{children}</body>
+      <body className="min-h-screen text-[var(--text-primary)] antialiased">
+        <NavigationTransitionProvider>{children}</NavigationTransitionProvider>
+      </body>
     </html>
   );
 }

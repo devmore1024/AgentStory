@@ -1,21 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
+import { PrimaryNav } from "@/components/primary-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { getAuthSession, isAuthSessionExpired } from "@/lib/auth";
 import { getCurrentViewerContext } from "@/lib/current-user";
+import type { AppTab } from "@/lib/app-navigation";
 
 type AppShellProps = {
-  activeTab: "home" | "memory" | "adventure" | "me";
+  activeTab: AppTab;
   children: React.ReactNode;
 };
-
-const desktopNavItems = [
-  { href: "/", label: "首页" },
-  { href: "/memory", label: "冒险" },
-  { href: "/adventure", label: "同行" },
-  { href: "/me", label: "我的" }
-] as const;
 
 export async function AppShell({ activeTab, children }: AppShellProps) {
   const [viewer, session] = await Promise.all([getCurrentViewerContext(), getAuthSession()]);
@@ -43,29 +38,7 @@ export async function AppShell({ activeTab, children }: AppShellProps) {
           </div>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <nav className="flex items-center gap-2 rounded-full border border-[var(--border-light)] bg-[rgba(255,255,255,0.5)] p-1">
-              {desktopNavItems.map((item) => {
-                const isActive =
-                  (item.href === "/" && activeTab === "home") ||
-                  (item.href === "/memory" && activeTab === "memory") ||
-                  (item.href === "/adventure" && activeTab === "adventure") ||
-                  (item.href === "/me" && activeTab === "me");
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                      isActive
-                        ? "bg-[var(--accent-moss)] text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
-                        : "text-[var(--text-secondary)] hover:bg-[rgba(95,127,98,0.08)]"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <PrimaryNav activeTab={activeTab} />
             {viewer ? (
               <div className="flex items-center gap-2 rounded-full border border-[var(--border-light)] bg-[rgba(255,255,255,0.62)] px-3 py-2 shadow-[var(--shadow-small)]">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--apricot-light)] text-sm font-semibold text-[var(--apricot)]">
