@@ -9,6 +9,7 @@ import { ParticipantAvatar, ParticipantAvatarStack } from "@/components/particip
 import { StateCard } from "@/components/state-card";
 import { StoryDetailBookSidebar } from "@/components/story-detail-book-sidebar";
 import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
+import { SubmitButton } from "@/components/submit-button";
 import { formatEpisodeOrdinal, replaceEpisodeSequenceNumbersWithChinese } from "@/lib/story-experience-helpers";
 import { getAdventureThreadDetail, getAuthenticatedAppContext } from "@/lib/story-experience";
 import { getBookBySlug } from "@/lib/story-data";
@@ -126,28 +127,21 @@ export default async function AdventureThreadPage({
                   thread.actionState === "continue" ? (
                     isGenerating ? (
                       <div className="inline-flex min-h-11 items-center rounded-full bg-[rgba(95,127,98,0.14)] px-5 py-3 text-sm font-semibold text-[var(--accent-moss)]">
-                        这一章正在生成中
+                        {thread.generationState === "queued" ? "这一章已经进入队列" : "这一章正在写作中"}
                       </div>
                     ) : (
                       <form action={continueAdventureAction}>
                         <input type="hidden" name="threadId" value={thread.id} />
-                        <button
-                          type="submit"
-                          className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
-                        >
-                          {hasFailedGeneration ? "重新生成这一段" : "继续同行"}
-                        </button>
+                        <SubmitButton
+                          idleLabel={hasFailedGeneration ? "重新生成这一段" : "继续同行"}
+                          pendingLabel={hasFailedGeneration ? "正在重新生成这一段..." : "正在继续这段同行..."}
+                        />
                       </form>
                     )
                   ) : thread.actionState === "join" ? (
                     <form action={joinAdventureAction}>
                       <input type="hidden" name="threadId" value={thread.id} />
-                      <button
-                        type="submit"
-                        className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
-                      >
-                        当前连载
-                      </button>
+                      <SubmitButton idleLabel={thread.actionLabel} pendingLabel="正在进入这段同行..." />
                     </form>
                   ) : null
                 ) : (
@@ -168,13 +162,24 @@ export default async function AdventureThreadPage({
               </div>
             </section>
 
-            {isGenerating ? (
+            {thread.generationState === "queued" ? (
               <StateCard
-                eyebrow="生成中"
+                eyebrow="已进入队列"
+                title={replaceEpisodeSequenceNumbersWithChinese(thread.latestEpisodeTitle ?? "新的篇章已经入队")}
+                description={
+                  thread.latestEpisodeExcerpt ??
+                  "这一段冒险已经进入队列，页面会自动刷新。你可以先留在这里等它写完，也可以稍后回来。"
+                }
+              />
+            ) : null}
+
+            {thread.generationState === "running" ? (
+              <StateCard
+                eyebrow="正在写这一章"
                 title={replaceEpisodeSequenceNumbersWithChinese(thread.latestEpisodeTitle ?? "新的篇章正在生成")}
                 description={
                   thread.latestEpisodeExcerpt ??
-                  "这一段冒险已经入队，页面会自动刷新。你可以先留在这里等它写完，也可以稍后回来。"
+                  "这一段冒险已经开始落笔了。页面会自动刷新，你可以先留在这里等它写完，也可以稍后回来。"
                 }
               />
             ) : null}

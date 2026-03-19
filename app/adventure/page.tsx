@@ -6,6 +6,7 @@ import { AdventureThreadBookThumb } from "@/components/adventure-thread-book-thu
 import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
 import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
+import { SubmitButton } from "@/components/submit-button";
 import { getBooksBySlugs } from "@/lib/story-data";
 import {
   getAdventureThreads,
@@ -51,8 +52,12 @@ function getAdventureListHeadline(thread: AdventureThreadView) {
 }
 
 function getThreadDescription(thread: AdventureThreadView) {
-  if (thread.generationState === "queued" || thread.generationState === "running") {
-    return "新的章节正在生成中，等一下就会落下来。";
+  if (thread.generationState === "queued") {
+    return "新的章节已经进入队列，等一下就会轮到它落下来。";
+  }
+
+  if (thread.generationState === "running") {
+    return "新的章节已经开始写了，等一下就会落下来。";
   }
 
   if (thread.generationState === "failed") {
@@ -77,8 +82,12 @@ function getThreadExcerpt(thread: AdventureThreadView) {
     return thread.latestEpisodeExcerpt;
   }
 
-  if (thread.generationState === "queued" || thread.generationState === "running") {
-    return "新的冒险已经入队，故事正在把这一段慢慢写出来。";
+  if (thread.generationState === "queued") {
+    return "新的冒险已经入队，正在等待轮到它开始写。";
+  }
+
+  if (thread.generationState === "running") {
+    return "故事已经开始写这一段了，新的内容很快会落下来。";
   }
 
   if (thread.generationState === "failed") {
@@ -193,12 +202,7 @@ export default async function AdventurePage() {
                       ) : thread.actionState === "join" ? (
                         <form action={joinAdventureAction}>
                           <input type="hidden" name="threadId" value={thread.id} />
-                          <button
-                            type="submit"
-                            className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
-                          >
-                            {thread.actionLabel}
-                          </button>
+                          <SubmitButton idleLabel={thread.actionLabel} pendingLabel="正在进入这段同行..." />
                         </form>
                       ) : <Link
                           href={detailHref}

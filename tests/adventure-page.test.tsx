@@ -44,6 +44,10 @@ vi.mock("@/components/state-card", () => ({
   StateCard: ({ title }: { title: string }) => <div>{title}</div>
 }));
 
+vi.mock("@/components/submit-button", () => ({
+  SubmitButton: ({ idleLabel }: { idleLabel: string }) => <button type="submit">{idleLabel}</button>
+}));
+
 vi.mock("@/lib/story-experience", () => ({
   getAdventureThreads: mocks.getAdventureThreads,
   getAuthenticatedAppContext: mocks.getAuthenticatedAppContext,
@@ -138,7 +142,7 @@ describe("AdventurePage", () => {
     expect(screen.queryByText("迪西发起")).not.toBeInTheDocument();
     expect(screen.getByText("1/5")).toBeInTheDocument();
     expect(screen.getByText("位同行者")).toHaveClass("hidden", "sm:inline");
-    expect(screen.getByText("《睡美人》")).toHaveClass("bg-[rgba(248,241,224,0.92)]");
+    expect(screen.getByTestId("adventure-thread-headline-adventure-1")).toHaveTextContent(/睡美人/);
     expect(screen.getByTestId("adventure-thread-badges").children[3]).toHaveAttribute("data-testid", "adventure-badge-style");
     expect(screen.getByTestId("adventure-thread-book-thumb")).toHaveAttribute("href", "/books/fairy-sleeping-beauty/read");
     expect(screen.getByAltText("睡美人 封面")).toBeInTheDocument();
@@ -152,7 +156,7 @@ describe("AdventurePage", () => {
     expect(screen.getByRole("link", { name: "当前连载" })).toHaveAttribute("href", "/adventure/adventure-1");
     expect(screen.getByRole("link", { name: "阅读原故事" })).toHaveAttribute("href", "/books/fairy-sleeping-beauty/read");
     expect(screen.queryByRole("button", { name: "继续同行" })).not.toBeInTheDocument();
-    expect(screen.getByTestId("adventure-thread-headline-adventure-1")).toHaveTextContent("迪西的分身正在《睡美人》中冒险");
+    expect(screen.getByTestId("adventure-thread-headline-adventure-1")).toHaveTextContent(/迪西的分身正在《睡美人》\s*中冒险/);
     expect(screen.getByTestId("adventure-thread-headline-adventure-1")).toHaveClass("text-[1.4rem]", "sm:text-[1.5rem]");
     expect(screen.queryByText("在《睡美人》里重新相遇")).not.toBeInTheDocument();
     expect(screen.getByText(/迪西 正在等下一位同行者加入/)).toBeInTheDocument();
@@ -192,7 +196,7 @@ describe("AdventurePage", () => {
     expect(screen.getByRole("button", { name: "加入同行" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "阅读原故事" })).toHaveAttribute("href", "/books/fairy-sleeping-beauty/read");
     expect(screen.queryByRole("link", { name: "当前连载" })).not.toBeInTheDocument();
-    expect(screen.getByTestId("adventure-thread-headline-adventure-2")).toHaveTextContent("安宁的分身正在《睡美人》中冒险");
+    expect(screen.getByTestId("adventure-thread-headline-adventure-2")).toHaveTextContent(/安宁的分身正在《睡美人》\s*中冒险/);
     expect(screen.getByText(/安宁和迪西正在一起推进这段故事/)).toBeInTheDocument();
   });
 
@@ -230,7 +234,7 @@ describe("AdventurePage", () => {
     expect(screen.getByRole("link", { name: "当前连载" })).toHaveAttribute("href", "/adventure/adventure-4");
     expect(screen.getByRole("link", { name: "阅读原故事" })).toHaveAttribute("href", "/books/fairy-sleeping-beauty/read");
     expect(screen.queryByRole("button", { name: "加入同行" })).not.toBeInTheDocument();
-    expect(screen.getByTestId("adventure-thread-headline-adventure-4")).toHaveTextContent("迪西的分身正在《睡美人》中冒险");
+    expect(screen.getByTestId("adventure-thread-headline-adventure-4")).toHaveTextContent(/迪西的分身正在《睡美人》\s*中冒险/);
   });
 
   it("hides the book-detail secondary action when a current serial thread has no source book slug", async () => {

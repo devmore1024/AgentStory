@@ -6,6 +6,7 @@ import { publishCompanionFromPersonalAction, startOrOpenPersonalLineAction } fro
 import { AppShell } from "@/components/app-shell";
 import { MemoryDetailHero } from "@/components/memory-detail-hero";
 import { PageBackButton } from "@/components/page-back-button";
+import { PersonalLineEnsureTodayController } from "@/components/personal-line-ensure-today-controller";
 import { StateCard } from "@/components/state-card";
 import { StoryDetailBookSidebar } from "@/components/story-detail-book-sidebar";
 import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
@@ -30,7 +31,7 @@ export default async function MemoryDetailPage({
 }) {
   const { slug } = await params;
   const [line, currentContext, book] = await Promise.all([
-    getPersonalLineDetail(slug, { ensureToday: true }),
+    getPersonalLineDetail(slug),
     getAuthenticatedAppContext(),
     getBookBySlug(slug)
   ]);
@@ -44,10 +45,11 @@ export default async function MemoryDetailPage({
   }
 
   const latestPublishedEpisode = line.episodes.at(-1) ?? null;
+  const shouldAutoEnsureToday = !line.isCompleted && !line.todayGenerated && line.generationState === "idle";
   const canPublishCompanion = Boolean(latestPublishedEpisode?.id) && !line.activeCompanionThreadId;
   const isGenerating = isPersonalLineGenerating(line.generationState);
   const hasFailedGeneration = hasPersonalLineFailed(line.generationState);
-  const shouldShowWaitingState = line.episodes.length === 0 && !isGenerating && !hasFailedGeneration;
+  const shouldShowWaitingState = line.episodes.length === 0 && !isGenerating && !hasFailedGeneration && !shouldAutoEnsureToday;
   const generatedTimeLabel = line.todayGenerated ? formatAppTime(line.latestEpisodeGeneratedAt) : null;
   const dailyRuleNotice = getPersonalLineDetailRuleNotice({
     todayGenerated: line.todayGenerated,
@@ -119,13 +121,30 @@ export default async function MemoryDetailPage({
               }
             />
 
-            {isGenerating ? (
+            <PersonalLineEnsureTodayController
+              slug={slug}
+              active={shouldAutoEnsureToday}
+              hasEpisodes={line.episodes.length > 0}
+            />
+
+            {line.generationState === "queued" ? (
               <StateCard
-                eyebrow="生成中"
+                eyebrow="已进入队列"
+                title={replaceEpisodeSequenceNumbersWithChinese(line.latestEpisodeTitle ?? "今天的这一章已经入队")}
+                description={
+                  line.latestEpisodeExcerpt ??
+                  "今天的这一章已经进入队列，页面会自动刷新。你可以先留在这里等它写完，也可以稍后回来。"
+                }
+              />
+            ) : null}
+
+            {line.generationState === "running" ? (
+              <StateCard
+                eyebrow="正在写这一章"
                 title={replaceEpisodeSequenceNumbersWithChinese(line.latestEpisodeTitle ?? "这一章正在生成中")}
                 description={
                   line.latestEpisodeExcerpt ??
-                  "新的冒险已经入队，页面会自动刷新。你可以先留在这里等它写完，也可以稍后回来。"
+                  "故事已经开始写今天的这一章了。页面会自动刷新，你可以先留在这里等它写完，也可以稍后回来。"
                 }
               />
             ) : null}

@@ -83,11 +83,29 @@ vi.mock("@/components/adventure-thread-badges", () => ({
 }));
 
 vi.mock("@/components/state-card", () => ({
-  StateCard: ({ title }: { title: string }) => <div>{title}</div>
+  StateCard: ({
+    eyebrow,
+    title,
+    description
+  }: {
+    eyebrow: string;
+    title: string;
+    description: string;
+  }) => (
+    <div>
+      <span>{eyebrow}</span>
+      <span>{title}</span>
+      <span>{description}</span>
+    </div>
+  )
 }));
 
 vi.mock("@/components/story-generation-watcher", () => ({
   StoryGenerationWatcher: () => null
+}));
+
+vi.mock("@/components/personal-line-ensure-today-controller", () => ({
+  PersonalLineEnsureTodayController: () => null
 }));
 
 vi.mock("@/components/memory-detail-hero", () => ({
@@ -342,8 +360,45 @@ describe("secondary pages", () => {
 
     render(await MemoryDetailPage({ params: Promise.resolve({ slug: "fairy-sleeping-beauty" }) }));
 
+    expect(screen.getByText("已进入队列")).toBeInTheDocument();
     expect(screen.getByText("第 一 章正在生成")).toBeInTheDocument();
     expect(screen.queryByText("第一章正在路上")).not.toBeInTheDocument();
+  });
+
+  it("shows a running-stage card on the memory detail page while today's chapter is being written", async () => {
+    mocks.getPersonalLineDetail.mockResolvedValueOnce({
+      ...createMemoryLine(),
+      latestEpisodeTitle: "第 02 次冒险 · 《睡美人》",
+      latestEpisodeExcerpt: "故事已经开始把今天这一章慢慢写下来。",
+      latestEpisodeGeneratedAt: null,
+      latestEpisodeStatus: "generating",
+      latestEpisodeJobStatus: "running",
+      generationState: "running",
+      todayGenerated: false
+    });
+
+    render(await MemoryDetailPage({ params: Promise.resolve({ slug: "fairy-sleeping-beauty" }) }));
+
+    expect(screen.getByText("正在写这一章")).toBeInTheDocument();
+    expect(screen.getByText("第 二 次冒险 · 《睡美人》")).toBeInTheDocument();
+  });
+
+  it("shows a failed-stage card on the memory detail page when today's chapter failed", async () => {
+    mocks.getPersonalLineDetail.mockResolvedValueOnce({
+      ...createMemoryLine(),
+      latestEpisodeTitle: "第 02 次冒险 · 《睡美人》",
+      latestEpisodeExcerpt: "这次生成没有成功落下来。",
+      latestEpisodeGeneratedAt: null,
+      latestEpisodeStatus: "failed",
+      latestEpisodeJobStatus: "failed",
+      generationState: "failed",
+      todayGenerated: false
+    });
+
+    render(await MemoryDetailPage({ params: Promise.resolve({ slug: "fairy-sleeping-beauty" }) }));
+
+    expect(screen.getByText("生成失败")).toBeInTheDocument();
+    expect(screen.getByText("第 二 次冒险 · 《睡美人》")).toBeInTheDocument();
   });
 
   it("shows only one generating card on the adventure detail page before the first episode is published", async () => {
@@ -361,8 +416,43 @@ describe("secondary pages", () => {
 
     render(await AdventureThreadPage({ params: Promise.resolve({ threadId: "adventure-1" }) }));
 
+    expect(screen.getByText("已进入队列")).toBeInTheDocument();
     expect(screen.getByText("第一篇同行正在路上")).toBeInTheDocument();
     expect(screen.queryByText("这段同行还没有真正落下第一篇")).not.toBeInTheDocument();
+  });
+
+  it("shows a running-stage card on the adventure detail page while a new episode is being written", async () => {
+    mocks.getAdventureThreadDetail.mockResolvedValueOnce({
+      ...createAdventureThread(),
+      latestEpisodeTitle: "第二篇同行 · 荆棘外的火光",
+      latestEpisodeExcerpt: "故事已经开始把这一段新的同行写下来。",
+      latestEpisodeGeneratedAt: null,
+      latestEpisodeStatus: "generating",
+      latestEpisodeJobStatus: "running",
+      generationState: "running"
+    });
+
+    render(await AdventureThreadPage({ params: Promise.resolve({ threadId: "adventure-1" }) }));
+
+    expect(screen.getByText("正在写这一章")).toBeInTheDocument();
+    expect(screen.getByText("第二篇同行 · 荆棘外的火光")).toBeInTheDocument();
+  });
+
+  it("shows a failed-stage card on the adventure detail page when generation stalls", async () => {
+    mocks.getAdventureThreadDetail.mockResolvedValueOnce({
+      ...createAdventureThread(),
+      latestEpisodeTitle: "第二篇同行 · 荆棘外的火光",
+      latestEpisodeExcerpt: "这次生成没有成功落下来。",
+      latestEpisodeGeneratedAt: null,
+      latestEpisodeStatus: "failed",
+      latestEpisodeJobStatus: "failed",
+      generationState: "failed"
+    });
+
+    render(await AdventureThreadPage({ params: Promise.resolve({ threadId: "adventure-1" }) }));
+
+    expect(screen.getByText("生成失败")).toBeInTheDocument();
+    expect(screen.getByText("第二篇同行 · 荆棘外的火光")).toBeInTheDocument();
   });
 
   it("falls back to the original single-column story layout when the adventure source book cannot be resolved", async () => {

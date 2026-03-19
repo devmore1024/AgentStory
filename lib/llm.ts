@@ -348,6 +348,7 @@ async function createChatCompletion(
   messages: Array<{ role: "system" | "user"; content: string }>,
   options?: { temperature?: number; maxTokens?: number }
 ) {
+  const startedAt = Date.now();
   const baseURL = getOpenAIBaseUrl();
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_MODEL ?? "qwen3.5-plus";
@@ -395,7 +396,8 @@ async function createChatCompletion(
 
     console.log("[AgentStory][LLM] request succeeded", {
       model,
-      contentLength: content.length
+      contentLength: content.length,
+      durationMs: Date.now() - startedAt
     });
 
     return content;
@@ -403,6 +405,7 @@ async function createChatCompletion(
     console.error("[AgentStory][LLM] request failed", {
       baseURL,
       model,
+      durationMs: Date.now() - startedAt,
       error: error instanceof Error ? error.message : String(error)
     });
     throw error;

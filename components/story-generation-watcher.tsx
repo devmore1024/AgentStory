@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { startTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type StoryGenerationWatcherProps = {
@@ -17,9 +17,35 @@ export function StoryGenerationWatcher({ threadId, active }: StoryGenerationWatc
     }
 
     let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    let requestTimer: ReturnType<typeof setTimeout> | null = null;
+    let progressTimer: ReturnType<typeof setTimeout> | null = null;
+    let activeController: AbortController | null = null;
+
+    const refreshPage = () => {
+      if (cancelled) {
+        return;
+      }
+
+      startTransition(() => {
+        router.refresh();
+      });
+    };
+
+    const scheduleProgressRefresh = () => {
+      progressTimer = setTimeout(() => {
+        refreshPage();
+        scheduleProgressRefresh();
+      }, 1500);
+    };
 
     const tick = async () => {
+      activeController = new AbortController();
+
+      progressTimer = setTimeout(() => {
+        refreshPage();
+        scheduleProgressRefresh();
+      }, 250);
+
       try {
         await fetch("/api/story-jobs/process", {
           method: "POST",
@@ -29,19 +55,25 @@ export function StoryGenerationWatcher({ threadId, active }: StoryGenerationWatc
           body: JSON.stringify({
             threadId
           }),
-          cache: "no-store"
+          cache: "no-store",
+          signal: activeController.signal
         });
       } catch {
         // Swallow client-side polling failures; the next refresh can retry.
+      } finally {
+        if (progressTimer) {
+          clearTimeout(progressTimer);
+          progressTimer = null;
+        }
       }
 
       if (cancelled) {
         return;
       }
 
-      router.refresh();
+      refreshPage();
 
-      timer = setTimeout(() => {
+      requestTimer = setTimeout(() => {
         void tick();
       }, 4000);
     };
@@ -51,9 +83,15 @@ export function StoryGenerationWatcher({ threadId, active }: StoryGenerationWatc
     return () => {
       cancelled = true;
 
-      if (timer) {
-        clearTimeout(timer);
+      if (requestTimer) {
+        clearTimeout(requestTimer);
       }
+
+      if (progressTimer) {
+        clearTimeout(progressTimer);
+      }
+
+      activeController?.abort();
     };
   }, [active, router, threadId]);
 

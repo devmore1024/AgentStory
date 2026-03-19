@@ -1211,6 +1211,7 @@ async function enqueueAdventureEpisodeGeneration(params: {
   existingEpisodeId?: string | null;
   existingJobId?: string | null;
 }) {
+  const startedAt = Date.now();
   const placeholder = buildAdventureGenerationPlaceholder(params.episodeNo);
   const payload = {
     threadId: params.threadId,
@@ -1261,6 +1262,17 @@ async function enqueueAdventureEpisodeGeneration(params: {
     threadId: params.threadId,
     episodeId,
     bookId: params.bookId
+  });
+
+  console.log("[AgentStory][GenerationQueue] episode enqueued", {
+    threadId: params.threadId,
+    mode: params.mode,
+    episodeNo: params.episodeNo,
+    jobId,
+    episodeId,
+    reusedEpisode: Boolean(params.existingEpisodeId),
+    reusedJob: Boolean(params.existingJobId),
+    durationMs: Date.now() - startedAt
   });
 
   return {
@@ -2111,6 +2123,52 @@ export async function getPersonalLineForBookSlug(slug: string) {
   }
 
   return mapPersonalLineBookRow(row);
+}
+
+export async function ensureTodayPersonalLine(slug: string) {
+  await requireStoryExperienceSchema();
+  const context = await requireAuthenticatedStoryContext();
+  await expireStaleEpisodeGenerationJobs();
+
+  let row = await getPersonalThreadRowBySlug(slug, context.userId);
+
+  if (!row) {
+    return null;
+  }
+
+  const line = mapPersonalLineBookRow(row);
+
+  if (!line.isCompleted && !line.todayGenerated && line.generationState === "idle") {
+    await requireSecondMeStoryContext();
+
+    const startedAt = Date.now();
+    const ensureResult = await ensurePersonalThreadEpisode({
+      thread: row,
+      context
+    });
+
+    console.log("[AgentStory][EnsureToday] personal line ensured", {
+      slug,
+      threadId: ensureResult.threadId,
+      episodeId: ensureResult.episodeId,
+      created: ensureResult.created,
+      durationMs: Date.now() - startedAt
+    });
+
+    row = await getPersonalThreadRowBySlug(slug, context.userId);
+  }
+
+  if (!row) {
+    return null;
+  }
+
+  const updatedLine = mapPersonalLineBookRow(row);
+
+  return {
+    threadId: updatedLine.threadId,
+    episodeId: updatedLine.latestEpisodeId,
+    generationState: updatedLine.generationState
+  };
 }
 
 export async function getOwnedAdventureForBookSlug(slug: string) {

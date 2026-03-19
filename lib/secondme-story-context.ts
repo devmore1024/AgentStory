@@ -330,6 +330,7 @@ async function fetchLiveSecondMeStoryContext(accessToken: string) {
 }
 
 export async function getCachedSecondMeStoryContext() {
+  const startedAt = Date.now();
   const session = await getAuthSession();
 
   if (!session) {
@@ -341,6 +342,12 @@ export async function getCachedSecondMeStoryContext() {
 
   if (cachedContext && hasFreshSecondMeCache(cachedContext.expiresAt)) {
     await touchContextCache(session.secondMeUserId);
+
+    console.log("[AgentStory][SecondMeContext] cache hit", {
+      secondMeUserId: session.secondMeUserId,
+      durationMs: Date.now() - startedAt
+    });
+
     return {
       ...cachedContext,
       source: "cache" as const
@@ -348,15 +355,35 @@ export async function getCachedSecondMeStoryContext() {
   }
 
   try {
-    return await fetchLiveSecondMeStoryContext(session.accessToken);
+    const liveContext = await fetchLiveSecondMeStoryContext(session.accessToken);
+
+    console.log("[AgentStory][SecondMeContext] live sync succeeded", {
+      secondMeUserId: session.secondMeUserId,
+      durationMs: Date.now() - startedAt
+    });
+
+    return liveContext;
   } catch (error) {
     if (cachedContext) {
       await markContextCacheStale(session.secondMeUserId);
+
+      console.warn("[AgentStory][SecondMeContext] live sync failed, using stale cache", {
+        secondMeUserId: session.secondMeUserId,
+        durationMs: Date.now() - startedAt,
+        error: error instanceof Error ? error.message : String(error)
+      });
+
       return {
         ...cachedContext,
         source: "stale" as const
       };
     }
+
+    console.error("[AgentStory][SecondMeContext] live sync failed with no cache", {
+      secondMeUserId: session.secondMeUserId,
+      durationMs: Date.now() - startedAt,
+      error: error instanceof Error ? error.message : String(error)
+    });
 
     throw error;
   }

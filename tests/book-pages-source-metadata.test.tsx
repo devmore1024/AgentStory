@@ -26,7 +26,11 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  notFound: vi.fn()
+  notFound: vi.fn(),
+  useRouter: () => ({
+    back: vi.fn(),
+    push: vi.fn()
+  })
 }));
 
 vi.mock("@/components/app-shell", () => ({
