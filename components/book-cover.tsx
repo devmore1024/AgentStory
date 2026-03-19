@@ -59,16 +59,6 @@ export function BookCover({ book, variant = "default" }: BookCoverProps) {
               : "bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(67,47,34,0.16))]"
           }`}
         />
-        <div className="relative z-10 flex h-full flex-col justify-between p-4">
-          {isHomeFairy ? <div className="pointer-events-none h-8 w-8 rounded-full bg-[rgba(255,243,228,0.42)]" /> : null}
-          {!isHomeFairy ? (
-            <span
-              className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] ${categoryAccent[book.categoryKey]}`}
-            >
-              {book.categoryName}
-            </span>
-          ) : null}
-        </div>
       </div>
 
       <div className="mb-2 mt-1 px-1">
