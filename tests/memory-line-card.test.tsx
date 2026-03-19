@@ -1,8 +1,25 @@
 import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryLineCard } from "@/components/memory-line-card";
 import type { PersonalLineBookView } from "@/lib/story-experience";
+import type { StoryBook } from "@/lib/story-data";
+
+vi.mock("next/link", () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: ReactNode;
+  } & Omit<ComponentPropsWithoutRef<"a">, "href" | "children">) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  )
+}));
 
 afterEach(() => {
   cleanup();
@@ -32,11 +49,33 @@ function createLineFixture(overrides: Partial<PersonalLineBookView> = {}): Perso
   };
 }
 
+function createBookFixture(overrides: Partial<StoryBook> = {}): StoryBook {
+  return {
+    id: "book-1",
+    title: "小红帽",
+    slug: "fairy-little-red-riding-hood",
+    summary: "一条穿过树林的小路，会在这里重新长出新的分岔。",
+    originalSynopsis: null,
+    coverImage: null,
+    categoryKey: "fairy_tale",
+    categoryName: "童话",
+    keyScenes: [],
+    storyContent: null,
+    sourceSite: null,
+    sourceTitle: null,
+    sourceUrl: null,
+    sourceLicense: null,
+    popularityRank: null,
+    ...overrides
+  };
+}
+
 describe("MemoryLineCard", () => {
   it("shows the daily update notice and view-today action when today's chapter already exists", () => {
     render(
       <MemoryLineCard
         line={createLineFixture()}
+        book={createBookFixture()}
         generatedTimeLabel="18:30"
         primaryAction={<button type="button">查看今天这章</button>}
         secondaryAction={<a href="/books/fairy-little-red-riding-hood">阅读原故事</a>}
@@ -44,8 +83,20 @@ describe("MemoryLineCard", () => {
     );
 
     expect(screen.getByText("今日已更新")).toBeInTheDocument();
+    expect(screen.getByText("共 三 章")).toBeInTheDocument();
+    expect(screen.getByText("第 一 次冒险 · 《小红帽》")).toBeInTheDocument();
     expect(screen.getByText("今日 18:30 已更新，冒险线每天只会继续一章，明天再来看下一章。")).toBeInTheDocument();
     expect(screen.getByText("查看今天这章")).toBeInTheDocument();
+    expect(screen.getByTestId("memory-line-mobile-book-heading")).toHaveTextContent("《小红帽》");
+    expect(screen.getByTestId("memory-line-book-panel-mobile-inline")).toHaveAttribute(
+      "href",
+      "/books/fairy-little-red-riding-hood"
+    );
+    expect(screen.getByTestId("memory-line-book-panel")).toHaveAttribute("href", "/books/fairy-little-red-riding-hood");
+    expect(screen.getByTestId("memory-line-story-title")).toHaveClass(
+      "text-[clamp(1.95rem,7vw,2.45rem)]",
+      "sm:text-[clamp(2.35rem,2vw,3.15rem)]"
+    );
     expect(screen.getByText("童话风")).toHaveClass("text-[#9D6A17]");
   });
 
@@ -73,6 +124,25 @@ describe("MemoryLineCard", () => {
     expect(screen.getByText("生成中")).toBeInTheDocument();
     expect(screen.getByText("这一章已经开始生成，进入后会自动刷新。")).toBeInTheDocument();
     expect(screen.getByText("查看生成进度")).toBeInTheDocument();
+  });
+
+  it("keeps rendering the content card even when the source book cover is unavailable", () => {
+    render(
+      <MemoryLineCard
+        line={createLineFixture({ latestEpisodeExcerpt: null })}
+        book={null}
+        emptyExcerpt="这本童话还在等你的分身真正走进去。"
+        primaryAction={<button type="button">继续冒险</button>}
+        secondaryAction={<a href="/books/fairy-little-red-riding-hood">阅读原故事</a>}
+      />
+    );
+
+    expect(screen.queryByTestId("memory-line-book-panel")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("memory-line-book-panel-mobile-inline")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("memory-line-mobile-book-heading")).not.toBeInTheDocument();
+    expect(screen.getByText("这本童话还在等你的分身真正走进去。")).toBeInTheDocument();
+    expect(screen.getByText("继续冒险")).toBeInTheDocument();
+    expect(screen.getByText("阅读原故事")).toBeInTheDocument();
   });
 
   it("shows a completed badge and read-only notice for finished adventures", () => {

@@ -20,6 +20,7 @@ import { getBookBySlug, type StoryBook } from "@/lib/story-data";
 import { persistZhihuThreadMeta, resolveZhihuReferencePack } from "@/lib/zhihu-references";
 import {
   EPISODE_GENERATION_TIMEOUT_MINUTES,
+  formatEpisodeOrdinal,
   getAdventureActionState,
   getCompanionActionLabel,
   getCurrentAppDate,
@@ -29,6 +30,7 @@ import {
   isEpisodeGenerationMode,
   isVisibleStoryTimelineSource,
   planPersonalEpisodeEnqueue,
+  replaceEpisodeSequenceNumbersWithChinese,
   sanitizeCompanionThreadTitle,
   sanitizePersonalAdventureTitle,
   wasGeneratedOnAppDate,
@@ -287,7 +289,7 @@ function isUuid(value: string) {
 }
 
 function sanitizeDisplayTitle(title: string) {
-  return stripStyleDisplayTitleAffixes(title);
+  return replaceEpisodeSequenceNumbersWithChinese(stripStyleDisplayTitleAffixes(title));
 }
 
 function getGenerationLabel(status: "queued" | "running" | "succeeded" | "failed" | null) {
@@ -325,10 +327,10 @@ function buildAdventureFallbackEpisode(params: {
     ? `上一回《${params.previousEpisodeTitle}》留下的余波还在，我再次回到《${params.book.title}》时，先看见故事已经悄悄偏离了原来的轨道。`
     : `第一次踏进《${params.book.title}》时，我没有急着争抢主角的位置，而是先站在命运最容易被忽略的缝隙旁边。`;
   const middle = `我带着${params.persona.animalName}式的判断和迟疑往前走，让这个故事里原本应该照旧发生的一幕，忽然多出了一种别的可能。`;
-  const ending = `于是第 ${params.episodeNo} 篇冒险没有把结局说死，只把一道新的门缝留在月光里，等下一位参与者或者未来的我继续把它推开。`;
+  const ending = `于是${formatEpisodeOrdinal(params.episodeNo, "篇")}冒险没有把结局说死，只把一道新的门缝留在月光里，等下一位参与者或者未来的我继续把它推开。`;
 
   return {
-    title: `第 ${String(params.episodeNo).padStart(2, "0")} 篇 · 《${params.book.title}》里的再相遇`,
+    title: `${formatEpisodeOrdinal(params.episodeNo, "篇")} · 《${params.book.title}》里的再相遇`,
     excerpt: `我沿着${getStyleName(params.styleKey)}继续靠近《${params.book.title}》，让这段同行里的故事再一次慢慢偏离原作。`,
     content: normalizeStoryContentLength(`${previousLead}\n\n${middle}\n\n${ending}`, params.styleKey)
   };
@@ -345,10 +347,10 @@ function buildPersonalFallbackEpisode(params: {
     ? `昨天留在《${params.book.title}》里的那一点回声还没有散去，我带着《${params.previousEpisodeTitle}》留下的余韵，又慢慢回到故事里，沿着同一条路继续冒险。`
     : `第一次回到《${params.book.title}》里冒险时，我没有急着改写谁的命运，只是想看看长大后的自己，会怎样再次靠近这个故事。`;
   const middle = `我带着${params.persona.animalName}式的直觉和迟疑往前走，让那些小时候读过去的情节，在今天这一次靠近里露出了新的纹理。`;
-  const ending = `于是第 ${params.episodeNo} 次冒险没有急着把答案说完，只把一个新的停顿轻轻留在夜里，等明天的我再回来续上。`;
+  const ending = `于是${formatEpisodeOrdinal(params.episodeNo, "次")}冒险没有急着把答案说完，只把一个新的停顿轻轻留在夜里，等明天的我再回来续上。`;
 
   return {
-    title: `第 ${String(params.episodeNo).padStart(2, "0")} 次冒险 · 《${params.book.title}》`,
+    title: `${formatEpisodeOrdinal(params.episodeNo, "次")}冒险 · 《${params.book.title}》`,
     excerpt: `我沿着${getStyleName(params.styleKey)}回到《${params.book.title}》里继续冒险，让这本童话和现在的自己再靠近一点。`,
     content: normalizeStoryContentLength(`${previousLead}\n\n${middle}\n\n${ending}`, params.styleKey)
   };
@@ -520,8 +522,10 @@ function parseEpisodeGenerationPayload(payload: Record<string, unknown>): Episod
 }
 
 function buildAdventureGenerationPlaceholder(episodeNo: number) {
+  const chapterLabel = episodeNo > 0 ? formatEpisodeOrdinal(episodeNo) : "这一章";
+
   return {
-    title: `第 ${String(episodeNo).padStart(2, "0")} 章正在生成`,
+    title: `${chapterLabel}正在生成`,
     excerpt: "新的冒险已经被触发，故事正在把这一章慢慢写出来。"
   };
 }
@@ -564,8 +568,10 @@ export async function expireStaleEpisodeGenerationJobs(now = new Date()) {
 }
 
 function buildAdventureGenerationFailure(episodeNo: number) {
+  const chapterLabel = episodeNo > 0 ? formatEpisodeOrdinal(episodeNo) : "这一章";
+
   return {
-    title: `第 ${String(episodeNo).padStart(2, "0")} 章暂时卡住了`,
+    title: `${chapterLabel}暂时卡住了`,
     excerpt: "这一章冒险暂时生成失败了，你可以再试一次，让故事从这里继续往前走。"
   };
 }
@@ -2182,6 +2188,7 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
     locked_style_id: string | null;
     locked_style_key: StoryStyleKey | null;
     origin_episode_id: string;
+    origin_episode_style_id: string | null;
     origin_episode_title: string | null;
     origin_episode_excerpt: string | null;
     origin_episode_generated_at: string | null;
@@ -2196,6 +2203,7 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
         t.locked_style_id,
         ls.key AS locked_style_key,
         e.id AS origin_episode_id,
+        e.style_id AS origin_episode_style_id,
         e.title AS origin_episode_title,
         e.excerpt AS origin_episode_excerpt,
         e.generated_at AS origin_episode_generated_at
@@ -2226,9 +2234,10 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
   }
 
   const styleIds = await getStyleIds();
+  const inheritedStyleId = origin.locked_style_id ?? origin.origin_episode_style_id;
   const lockedStyleKey =
     origin.locked_style_key ??
-    getStyleKeyFromId(styleIds, origin.locked_style_id) ??
+    getStyleKeyFromId(styleIds, inheritedStyleId) ??
     pickPersistableThreadPrimaryStyleKey({
       userId: context.userId,
       persona: context.persona,
@@ -2237,13 +2246,14 @@ export async function publishCompanionFromPersonal(originEpisodeId: string) {
     });
   const persistedStyleKey =
     (lockedStyleKey ? resolvePersistableStyleKey(styleIds, [lockedStyleKey]) : null) ??
+    getStyleKeyFromId(styleIds, inheritedStyleId) ??
     pickPersistableThreadPrimaryStyleKey({
       userId: context.userId,
       persona: context.persona,
       seedBook: book,
       styleIds
     });
-  const styleId = (persistedStyleKey ? styleIds.get(persistedStyleKey) : null) ?? origin.locked_style_id;
+  const styleId = (persistedStyleKey ? styleIds.get(persistedStyleKey) : null) ?? inheritedStyleId;
   const threadTitle = buildAdventureThreadTitle(book, context.displayName);
   const { rows: threadRows } = await sql<IdRow>(
     `

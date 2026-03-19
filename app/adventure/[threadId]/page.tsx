@@ -8,6 +8,7 @@ import { PageBackButton } from "@/components/page-back-button";
 import { StateCard } from "@/components/state-card";
 import { StoryDetailBookSidebar } from "@/components/story-detail-book-sidebar";
 import { StoryGenerationWatcher } from "@/components/story-generation-watcher";
+import { formatEpisodeOrdinal, replaceEpisodeSequenceNumbersWithChinese } from "@/lib/story-experience-helpers";
 import { getAdventureThreadDetail, getAuthenticatedAppContext } from "@/lib/story-experience";
 import { getBookBySlug } from "@/lib/story-data";
 import { getStyleBadgeClass } from "@/lib/story-style";
@@ -90,7 +91,7 @@ export default async function AdventureThreadPage({
                         type="submit"
                         className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                       >
-                        加入同行
+                        当前连载
                       </button>
                     </form>
                   ) : null
@@ -115,7 +116,7 @@ export default async function AdventureThreadPage({
             {isGenerating ? (
               <StateCard
                 eyebrow="生成中"
-                title={thread.latestEpisodeTitle ?? "新的篇章正在生成"}
+                title={replaceEpisodeSequenceNumbersWithChinese(thread.latestEpisodeTitle ?? "新的篇章正在生成")}
                 description={
                   thread.latestEpisodeExcerpt ??
                   "这一段冒险已经入队，页面会自动刷新。你可以先留在这里等它写完，也可以稍后回来。"
@@ -126,7 +127,7 @@ export default async function AdventureThreadPage({
             {hasFailedGeneration ? (
               <StateCard
                 eyebrow="生成失败"
-                title={thread.latestEpisodeTitle ?? "这一段冒险暂时卡住了"}
+                title={replaceEpisodeSequenceNumbersWithChinese(thread.latestEpisodeTitle ?? "这一段冒险暂时卡住了")}
                 description={thread.latestEpisodeExcerpt ?? "这次生成没有成功落下来，你可以立刻再试一次。"}
               />
             ) : null}
@@ -140,7 +141,7 @@ export default async function AdventureThreadPage({
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                        第 {episode.episodeNo} 章
+                        {formatEpisodeOrdinal(episode.episodeNo)}
                       </span>
                       <span className="rounded-full bg-[rgba(255,255,255,0.75)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
                         由 {episode.authorDisplayName} 继续写下去
@@ -155,7 +156,9 @@ export default async function AdventureThreadPage({
                         </span>
                       ) : null}
                     </div>
-                    <h2 className="display-font mt-4 text-3xl text-[var(--text-primary)]">{episode.title}</h2>
+                    <h2 className="display-font mt-4 text-3xl text-[var(--text-primary)]">
+                      {replaceEpisodeSequenceNumbersWithChinese(episode.title)}
+                    </h2>
                     <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">{episode.excerpt}</p>
                     <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">
                       <p className="text-sm leading-7 whitespace-pre-line text-[var(--text-secondary)]">{episode.content}</p>

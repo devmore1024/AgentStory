@@ -1,5 +1,5 @@
 import React from "react";
-import type { EpisodeGenerationState } from "@/lib/story-experience-helpers";
+import { formatEpisodeProgressLabel, type EpisodeGenerationState } from "@/lib/story-experience-helpers";
 
 type AdventureThreadBadgesProps = {
   isOwner: boolean;
@@ -46,7 +46,7 @@ export function AdventureThreadBadges({
         {participantCount}/{participantLimit} 人
       </span>
       <span className="rounded-full bg-[var(--apricot-light)] px-3 py-1.5 text-xs font-semibold text-[var(--apricot)]">
-        {episodeCount}/{episodeLimit} 章
+        {formatEpisodeProgressLabel(episodeCount, episodeLimit)}
       </span>
     </div>
   );

@@ -322,7 +322,7 @@ describe("secondary pages", () => {
 
     render(await MemoryDetailPage({ params: Promise.resolve({ slug: "fairy-sleeping-beauty" }) }));
 
-    expect(screen.getByText("第 01 章正在生成")).toBeInTheDocument();
+    expect(screen.getByText("第 一 章正在生成")).toBeInTheDocument();
     expect(screen.queryByText("第一章正在路上")).not.toBeInTheDocument();
   });
 

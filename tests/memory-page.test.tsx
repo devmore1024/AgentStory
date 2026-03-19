@@ -6,6 +6,7 @@ import MemoryPage from "@/app/memory/page";
 
 const mocks = vi.hoisted(() => ({
   getAuthenticatedAppContext: vi.fn(),
+  getBooksBySlugs: vi.fn(),
   getPersonalLineBooks: vi.fn(),
   getStoryExperienceSchemaStatus: vi.fn()
 }));
@@ -47,13 +48,29 @@ vi.mock("@/components/submit-button", () => ({
 }));
 
 vi.mock("@/components/memory-line-card", () => ({
-  MemoryLineCard: ({ line, primaryAction }: { line: { sourceBookTitle: string; isCompleted: boolean }; primaryAction: ReactNode }) => (
+  MemoryLineCard: ({
+    line,
+    book,
+    primaryAction,
+    secondaryAction
+  }: {
+    line: { sourceBookTitle: string; isCompleted: boolean };
+    book?: { title: string } | null;
+    primaryAction: ReactNode;
+    secondaryAction?: ReactNode;
+  }) => (
     <div>
       <span>{line.isCompleted ? "已结束卡片" : "进行中卡片"}</span>
       <span>{line.sourceBookTitle}</span>
+      <span>{book ? `书封:${book.title}` : "书封:缺失"}</span>
       {primaryAction}
+      {secondaryAction}
     </div>
   )
+}));
+
+vi.mock("@/lib/story-data", () => ({
+  getBooksBySlugs: mocks.getBooksBySlugs
 }));
 
 vi.mock("@/lib/story-experience", () => ({
@@ -88,6 +105,22 @@ function createLine(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   mocks.getAuthenticatedAppContext.mockResolvedValue({ userId: "user-1" });
+  mocks.getBooksBySlugs.mockResolvedValue(
+    new Map([
+      [
+        "fairy-little-red-riding-hood",
+        {
+          title: "小红帽"
+        }
+      ],
+      [
+        "fairy-sleeping-beauty",
+        {
+          title: "睡美人"
+        }
+      ]
+    ])
+  );
   mocks.getStoryExperienceSchemaStatus.mockResolvedValue({ ready: true });
 });
 
@@ -102,6 +135,16 @@ describe("MemoryPage", () => {
     expect(headings).toContain("已结束");
     expect(screen.getByText("进行中卡片")).toBeInTheDocument();
     expect(screen.getByText("已结束卡片")).toBeInTheDocument();
+    expect(screen.getByText("书封:小红帽")).toBeInTheDocument();
+    expect(screen.getByText("书封:睡美人")).toBeInTheDocument();
     expect(screen.getByText("阅读冒险")).toBeInTheDocument();
+    const readOriginalLinks = screen.getAllByRole("link", { name: "阅读原故事" });
+    expect(readOriginalLinks).toHaveLength(2);
+    expect(readOriginalLinks[0]).toHaveAttribute("href", "/books/fairy-little-red-riding-hood/read");
+    expect(readOriginalLinks[1]).toHaveAttribute("href", "/books/fairy-sleeping-beauty/read");
+    expect(mocks.getBooksBySlugs).toHaveBeenCalledWith([
+      "fairy-little-red-riding-hood",
+      "fairy-sleeping-beauty"
+    ]);
   });
 });

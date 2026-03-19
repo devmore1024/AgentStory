@@ -19,8 +19,17 @@ export type StoryStyleKey =
 export type RegularStoryStyleKey = Exclude<StoryStyleKey, "zhihu">;
 
 type StoryMode = "short" | "serial" | "comment";
+type StyleSourceBucket = "persona" | "category" | "fallback";
+type StableWeightedStylePools<T> = {
+  personaPool: readonly T[];
+  categoryPool: readonly T[];
+  fallbackPool: readonly T[];
+  seed: string;
+};
 
 export const ZHIHU_STYLE_BUCKET_PERCENT = 0;
+export const AUTHOR_PERSONA_STYLE_BUCKET_PERCENT = 80;
+export const BOOK_CATEGORY_STYLE_BUCKET_PERCENT = 20;
 
 export const regularStoryStyleKeys: RegularStoryStyleKey[] = [
   "fairy",
@@ -163,7 +172,7 @@ function hashToInt(input: string) {
   return hash;
 }
 
-function uniqueStyleKeys(keys: StoryStyleKey[]) {
+function uniqueStyleKeys<T>(keys: readonly T[]) {
   return Array.from(new Set(keys));
 }
 
@@ -310,14 +319,82 @@ export function getPersonaRecommendedStyleKeys(persona: AnimalPersona) {
 export function getEligibleShortStoryStyleKeys(book: StoryBook, persona: AnimalPersona) {
   const preferred = getPersonaRecommendedStyleKeys(persona).filter(isRegularStoryStyleKey);
   const categoryPool = categoryStylePools[book.categoryKey];
-  const matchingPreferred = preferred.filter((styleKey) => categoryPool.includes(styleKey));
-  const fallbackPool = categoryPool.slice(0, 5);
 
   return uniqueStyleKeys([
-    ...matchingPreferred,
-    ...fallbackPool,
-    ...preferred
+    ...preferred,
+    ...categoryPool
   ]) as RegularStoryStyleKey[];
+}
+
+function getRotatedCandidates<T>(candidates: readonly T[], seed: string) {
+  if (candidates.length === 0) {
+    return [] as T[];
+  }
+
+  return rotateCandidates(candidates, hashToInt(seed) % candidates.length);
+}
+
+function pickStableStyleSourceBucket<T>(params: StableWeightedStylePools<T>): StyleSourceBucket {
+  const hasPersonaPool = params.personaPool.length > 0;
+  const hasCategoryPool = params.categoryPool.length > 0;
+
+  if (!hasPersonaPool && !hasCategoryPool) {
+    return "fallback";
+  }
+
+  if (!hasPersonaPool) {
+    return "category";
+  }
+
+  if (!hasCategoryPool) {
+    return "persona";
+  }
+
+  return hashToInt(`${params.seed}:bucket`) % (AUTHOR_PERSONA_STYLE_BUCKET_PERCENT + BOOK_CATEGORY_STYLE_BUCKET_PERCENT) <
+    AUTHOR_PERSONA_STYLE_BUCKET_PERCENT
+    ? "persona"
+    : "category";
+}
+
+function buildStableWeightedCandidateOrder<T>(params: StableWeightedStylePools<T>) {
+  const personaPool = uniqueStyleKeys(params.personaPool);
+  const categoryPool = uniqueStyleKeys(params.categoryPool);
+  const fallbackPool = uniqueStyleKeys(params.fallbackPool);
+  const sourceBucket = pickStableStyleSourceBucket({
+    ...params,
+    personaPool,
+    categoryPool,
+    fallbackPool
+  });
+
+  if (sourceBucket === "fallback") {
+    return getRotatedCandidates(fallbackPool, `${params.seed}:fallback`);
+  }
+
+  const primaryPool = sourceBucket === "persona" ? personaPool : categoryPool;
+  const secondaryPool = sourceBucket === "persona" ? categoryPool : personaPool;
+
+  return uniqueStyleKeys([
+    ...getRotatedCandidates(primaryPool, `${params.seed}:${sourceBucket}`),
+    ...getRotatedCandidates(secondaryPool, `${params.seed}:${sourceBucket === "persona" ? "category" : "persona"}`),
+    ...getRotatedCandidates(fallbackPool, `${params.seed}:fallback`)
+  ]);
+}
+
+function getShortStorySelectionSeed(book: StoryBook, seedText: string) {
+  return `short:${book.slug}:${seedText}`;
+}
+
+function getShortStoryStyleCandidates(book: StoryBook, persona: AnimalPersona, seedText: string) {
+  const personaPool = getPersonaRecommendedStyleKeys(persona).filter(isRegularStoryStyleKey);
+  const categoryPool = categoryStylePools[book.categoryKey];
+
+  return buildStableWeightedCandidateOrder<RegularStoryStyleKey>({
+    personaPool,
+    categoryPool,
+    fallbackPool: uniqueStyleKeys([...personaPool, ...categoryPool, ...regularStoryStyleKeys]) as RegularStoryStyleKey[],
+    seed: getShortStorySelectionSeed(book, seedText)
+  }) as RegularStoryStyleKey[];
 }
 
 export function pickRandomShortStoryStyleKey(book: StoryBook, persona: AnimalPersona, seedText: string) {
@@ -325,8 +402,35 @@ export function pickRandomShortStoryStyleKey(book: StoryBook, persona: AnimalPer
     return "zhihu";
   }
 
-  const pool = getEligibleShortStoryStyleKeys(book, persona);
-  return pool[hashToInt(`short:${book.slug}:${seedText}`) % pool.length];
+  return getShortStoryStyleCandidates(book, persona, seedText)[0] ?? "fairy";
+}
+
+function getThreadSelectionSeed(params: {
+  userId: string;
+  persona: AnimalPersona;
+  seedBook?: StoryBook | null;
+}) {
+  return `serial:${params.userId}:${params.seedBook?.slug ?? "seedless"}:${params.persona.animalType}`;
+}
+
+function getThreadPrimaryStyleCandidates(params: {
+  userId: string;
+  persona: AnimalPersona;
+  seedBook?: StoryBook | null;
+}) {
+  const personaPool = getPersonaRecommendedStyleKeys(params.persona)
+    .filter(isRegularStoryStyleKey)
+    .filter((styleKey) => serialSafeStyleKeys.includes(styleKey));
+  const categoryPool = params.seedBook
+    ? categoryStylePools[params.seedBook.categoryKey].filter((styleKey) => serialSafeStyleKeys.includes(styleKey))
+    : [];
+
+  return buildStableWeightedCandidateOrder<RegularStoryStyleKey>({
+    personaPool,
+    categoryPool,
+    fallbackPool: uniqueStyleKeys([...personaPool, ...categoryPool, ...serialSafeStyleKeys, ...regularStoryStyleKeys]) as RegularStoryStyleKey[],
+    seed: getThreadSelectionSeed(params)
+  }) as RegularStoryStyleKey[];
 }
 
 export function pickThreadPrimaryStyleKey(params: {
@@ -338,12 +442,7 @@ export function pickThreadPrimaryStyleKey(params: {
     return "zhihu";
   }
 
-  const preferred = getPersonaRecommendedStyleKeys(params.persona)
-    .filter(isRegularStoryStyleKey)
-    .filter((styleKey) => serialSafeStyleKeys.includes(styleKey));
-  const seedPool = params.seedBook ? categoryStylePools[params.seedBook.categoryKey].filter((styleKey) => serialSafeStyleKeys.includes(styleKey)) : [];
-  const pool = uniqueStyleKeys([...preferred, ...seedPool, "fairy", "growth", "epic", "suspense"]);
-  return pool[hashToInt(`serial:${params.userId}:${params.persona.animalType}`) % pool.length];
+  return getThreadPrimaryStyleCandidates(params)[0] ?? "fairy";
 }
 
 function rotateCandidates<T>(candidates: readonly T[], startIndex: number) {
@@ -373,11 +472,8 @@ export function pickPersistableShortStoryStyleKey(params: {
     return "zhihu" as const;
   }
 
-  const pool = getEligibleShortStoryStyleKeys(params.book, params.persona);
-  const rotatedPool = rotateCandidates(pool, hashToInt(`short:${params.book.slug}:${params.seedText}`) % pool.length);
-
   return (
-    resolvePersistableStyleKey(params.styleIds, rotatedPool) ??
+    resolvePersistableStyleKey(params.styleIds, getShortStoryStyleCandidates(params.book, params.persona, params.seedText)) ??
     resolvePersistableStyleKey(params.styleIds, regularStoryStyleKeys) ??
     null
   );
@@ -393,17 +489,8 @@ export function pickPersistableThreadPrimaryStyleKey(params: {
     return "zhihu" as const;
   }
 
-  const preferred = getPersonaRecommendedStyleKeys(params.persona)
-    .filter(isRegularStoryStyleKey)
-    .filter((styleKey) => serialSafeStyleKeys.includes(styleKey));
-  const seedPool = params.seedBook
-    ? categoryStylePools[params.seedBook.categoryKey].filter((styleKey) => serialSafeStyleKeys.includes(styleKey))
-    : [];
-  const pool = uniqueStyleKeys([...preferred, ...seedPool, "fairy", "growth", "epic", "suspense"]);
-  const rotatedPool = rotateCandidates(pool, hashToInt(`serial:${params.userId}:${params.persona.animalType}`) % pool.length);
-
   return (
-    resolvePersistableStyleKey(params.styleIds, rotatedPool) ??
+    resolvePersistableStyleKey(params.styleIds, getThreadPrimaryStyleCandidates(params)) ??
     resolvePersistableStyleKey(params.styleIds, serialSafeStyleKeys) ??
     resolvePersistableStyleKey(params.styleIds, regularStoryStyleKeys) ??
     null

@@ -105,7 +105,7 @@ export default async function BookDetailPage({
               <section className="rounded-[32px] border border-[var(--border-light)] bg-[linear-gradient(135deg,rgba(255,248,239,0.96),rgba(231,239,230,0.92))] p-6 shadow-[var(--shadow-medium)]">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">走进前的分身提示</p>
                 <h2 className="display-font mt-3 text-3xl text-[var(--text-primary)]">
-                  你的分身会以{currentContext.persona.animalName}出现
+                  你的分身会以{currentContext.persona.animalName}人格出现
                 </h2>
                 <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">{currentContext.persona.mappingReason}</p>
                 <div className="mt-5 flex flex-wrap gap-2">

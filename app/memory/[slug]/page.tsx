@@ -16,7 +16,7 @@ import {
   hasPersonalLineFailed,
   isPersonalLineGenerating
 } from "@/lib/personal-line-presentation";
-import { formatAppTime } from "@/lib/story-experience-helpers";
+import { formatAppTime, formatEpisodeOrdinal, replaceEpisodeSequenceNumbersWithChinese } from "@/lib/story-experience-helpers";
 import { getAuthenticatedAppContext, getPersonalLineDetail } from "@/lib/story-experience";
 import { getBookBySlug } from "@/lib/story-data";
 import { getStyleBadgeClass } from "@/lib/story-style";
@@ -122,7 +122,7 @@ export default async function MemoryDetailPage({
             {isGenerating ? (
               <StateCard
                 eyebrow="生成中"
-                title={line.latestEpisodeTitle ?? "这一章正在生成中"}
+                title={replaceEpisodeSequenceNumbersWithChinese(line.latestEpisodeTitle ?? "这一章正在生成中")}
                 description={
                   line.latestEpisodeExcerpt ??
                   "新的冒险已经入队，页面会自动刷新。你可以先留在这里等它写完，也可以稍后回来。"
@@ -133,7 +133,7 @@ export default async function MemoryDetailPage({
             {hasFailedGeneration ? (
               <StateCard
                 eyebrow="生成失败"
-                title={line.latestEpisodeTitle ?? "这一章暂时卡住了"}
+                title={replaceEpisodeSequenceNumbersWithChinese(line.latestEpisodeTitle ?? "这一章暂时卡住了")}
                 description={line.latestEpisodeExcerpt ?? "这次生成没有成功落下来，你可以立刻重新试一次。"}
               />
             ) : null}
@@ -151,7 +151,7 @@ export default async function MemoryDetailPage({
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-[var(--accent-moss-light)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-moss)]">
-                          第 {episode.episodeNo} 章
+                          {formatEpisodeOrdinal(episode.episodeNo)}
                         </span>
                         <span className="rounded-full bg-[rgba(255,255,255,0.75)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
                           由 {episode.authorDisplayName} 写下
@@ -166,7 +166,9 @@ export default async function MemoryDetailPage({
                           </span>
                         ) : null}
                       </div>
-                      <h2 className="display-font mt-4 text-3xl text-[var(--text-primary)]">{episode.title}</h2>
+                      <h2 className="display-font mt-4 text-3xl text-[var(--text-primary)]">
+                        {replaceEpisodeSequenceNumbersWithChinese(episode.title)}
+                      </h2>
                       <p className="mt-3 text-base leading-8 text-[var(--text-secondary)]">{episode.excerpt}</p>
                       <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.68)] p-4">
                         <p className="whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">{episode.content}</p>

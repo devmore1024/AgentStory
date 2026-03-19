@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import type { AnimalPersona } from "@/lib/animal-personas";
 import type { SecondMeStoryContext } from "@/lib/secondme-story-context";
 import type { StoryBook } from "@/lib/story-data";
+import { formatEpisodeOrdinal } from "@/lib/story-experience-helpers";
 import {
   getStyleInstruction,
   getStyleName,
@@ -531,7 +532,7 @@ export async function generateSerialEpisodeWithLlm(params: {
       role: "user",
       content: [
         `连载主线：${params.threadTitle}`,
-        `章节序号：第 ${params.episodeNo} 章`,
+        `章节序号：${formatEpisodeOrdinal(params.episodeNo)}`,
         `进入的故事书：${params.book.title}`,
         `故事分类：${params.book.categoryName}`,
         `动物人格：${params.persona.animalName}`,
@@ -607,7 +608,7 @@ export async function generateAdventureEpisodeWithLlm(params: {
         role: "user",
         content: [
           `冒险主线：${params.threadTitle}`,
-          `章节序号：第 ${params.episodeNo} 篇`,
+          `章节序号：${formatEpisodeOrdinal(params.episodeNo, "篇")}`,
           `冒险发生的故事书：${params.book.title}`,
           `故事分类：${params.book.categoryName}`,
           `当前触发者：${params.authorDisplayName}`,
@@ -684,7 +685,7 @@ export async function generatePersonalEpisodeWithLlm(params: {
         role: "user",
         content: [
           `个人主线：${params.threadTitle}`,
-          `章节序号：第 ${params.episodeNo} 次`,
+          `章节序号：${formatEpisodeOrdinal(params.episodeNo, "次")}`,
           `回去的故事书：${params.book.title}`,
           `故事分类：${params.book.categoryName}`,
           `当前作者：${params.authorDisplayName}`,

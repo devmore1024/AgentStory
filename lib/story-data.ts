@@ -441,6 +441,76 @@ export const getBookBySlug = cache(async (slug: string): Promise<StoryBook | nul
   return mergeSourceBackedFairyBook(hydrateBaseBook(row));
 });
 
+export async function getBooksBySlugs(slugs: readonly string[]) {
+  const uniqueSlugs = Array.from(new Set(slugs.map((slug) => slug.trim()).filter(Boolean)));
+
+  if (uniqueSlugs.length === 0) {
+    return new Map<string, StoryBook>();
+  }
+
+  const selectClauses = getStoryBookOptionalSelectClauses(await getStoryBookOptionalColumnAvailability());
+  const placeholders = uniqueSlugs.map((_, index) => `$${index + 1}`).join(", ");
+
+  const { rows } = await sql<RawBookRow>(
+    `
+      SELECT
+        c.id AS category_id,
+        c.key AS category_key,
+        c.name AS category_name,
+        c.sort_order,
+        b.id,
+        b.title,
+        b.slug,
+        b.summary,
+        b.original_synopsis,
+        b.cover_image,
+        b.key_scenes,
+        ${selectClauses.storyContent},
+        ${selectClauses.sourceSite},
+        ${selectClauses.sourceTitle},
+        ${selectClauses.sourceUrl},
+        ${selectClauses.sourceLicense},
+        ${selectClauses.popularityRank}
+      FROM story_books b
+      JOIN story_categories c ON c.id = b.category_id
+      WHERE b.slug IN (${placeholders})
+        AND b.is_active = TRUE
+    `,
+    uniqueSlugs
+  );
+
+  const booksBySlug = new Map<string, StoryBook>();
+
+  for (const row of rows) {
+    if (!row.slug) {
+      continue;
+    }
+
+    booksBySlug.set(row.slug, mergeSourceBackedFairyBook(hydrateBaseBook(row)));
+  }
+
+  for (const slug of uniqueSlugs) {
+    if (booksBySlug.has(slug)) {
+      continue;
+    }
+
+    const sourceBacked = createSourceBackedRuntimeBook(slug);
+
+    if (sourceBacked) {
+      booksBySlug.set(slug, sourceBacked);
+      continue;
+    }
+
+    const expanded = expandedFairyCatalogBySlug.get(slug);
+
+    if (expanded) {
+      booksBySlug.set(slug, createExpandedFairyCatalogBook(expanded));
+    }
+  }
+
+  return booksBySlug;
+}
+
 export const getCategoryTotals = cache(async () => {
   const categories = await getCategoriesWithBooks();
 

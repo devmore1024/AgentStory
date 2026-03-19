@@ -1,3 +1,4 @@
+import React from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { startOrOpenPersonalLineAction } from "@/app/actions";
@@ -6,6 +7,7 @@ import { MemoryLineCard } from "@/components/memory-line-card";
 import { StateCard } from "@/components/state-card";
 import { SubmitButton } from "@/components/submit-button";
 import { getPersonalLineListPrimaryAction } from "@/lib/personal-line-presentation";
+import { getBooksBySlugs } from "@/lib/story-data";
 import { formatAppTime } from "@/lib/story-experience-helpers";
 import {
   getAuthenticatedAppContext,
@@ -36,6 +38,7 @@ export default async function MemoryPage() {
   ]);
   const activeLines = personalLines.filter((line) => !line.isCompleted);
   const completedLines = personalLines.filter((line) => line.isCompleted);
+  const booksBySlug = await getBooksBySlugs(personalLines.map((line) => line.sourceBookSlug));
 
   function renderLineCard(line: (typeof personalLines)[number]) {
     const primaryAction = getPersonalLineListPrimaryAction({
@@ -46,11 +49,13 @@ export default async function MemoryPage() {
       isCompleted: line.isCompleted
     });
     const generatedTimeLabel = line.todayGenerated ? formatAppTime(line.latestEpisodeGeneratedAt) : null;
+    const book = booksBySlug.get(line.sourceBookSlug) ?? null;
 
     return (
       <MemoryLineCard
         key={line.threadId}
         line={line}
+        book={book}
         generatedTimeLabel={generatedTimeLabel}
         emptyExcerpt={MEMORY_COPY.emptyExcerpt}
         primaryAction={
@@ -74,7 +79,7 @@ export default async function MemoryPage() {
         }
         secondaryAction={
           <Link
-            href={`/books/${line.sourceBookSlug}` as Route}
+            href={`/books/${line.sourceBookSlug}/read` as Route}
             className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
           >
             阅读原故事
@@ -89,7 +94,7 @@ export default async function MemoryPage() {
       <div className="grid gap-6">
         <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-5 shadow-[var(--shadow-medium)]">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">{MEMORY_COPY.eyebrow}</p>
-          <h1 className="display-font mt-2 text-3xl text-[var(--text-primary)]">{MEMORY_COPY.title}</h1>
+          <h1 className="display-font mt-2 text-2xl text-[var(--text-primary)]">{MEMORY_COPY.title}</h1>
           <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
             {MEMORY_COPY.description}
           </p>
@@ -119,7 +124,7 @@ export default async function MemoryPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">冒险状态</p>
                   <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">进行中</h2>
                 </div>
-                <div className="grid gap-5 xl:grid-cols-2">{activeLines.map(renderLineCard)}</div>
+                <div className="grid gap-5">{activeLines.map(renderLineCard)}</div>
               </section>
             ) : null}
 
@@ -129,7 +134,7 @@ export default async function MemoryPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">冒险状态</p>
                   <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">已结束</h2>
                 </div>
-                <div className="grid gap-5 xl:grid-cols-2">{completedLines.map(renderLineCard)}</div>
+                <div className="grid gap-5">{completedLines.map(renderLineCard)}</div>
               </section>
             ) : null}
           </div>

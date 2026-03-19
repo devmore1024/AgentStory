@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   filterAdventureThreadsByFootprint,
   formatAppTime,
+  formatChineseNumber,
+  formatEpisodeCountLabel,
+  formatEpisodeOrdinal,
+  formatEpisodeProgressLabel,
   getAdventureActionState,
   getCompanionActionLabel,
   getCurrentAppDate,
@@ -12,6 +16,7 @@ import {
   isVisibleStoryTimelineSource,
   normalizeStoryFootprintFilter,
   planPersonalEpisodeEnqueue,
+  replaceEpisodeSequenceNumbersWithChinese,
   sanitizeCompanionThreadTitle,
   sanitizePersonalAdventureTitle
 } from "@/lib/story-experience-helpers";
@@ -166,6 +171,22 @@ describe("story-experience helpers", () => {
     expect(formatAppTime("invalid")).toBeNull();
   });
 
+  it("formats chapter numbers into Chinese numerals", () => {
+    expect(formatChineseNumber(0)).toBe("零");
+    expect(formatChineseNumber(10)).toBe("十");
+    expect(formatChineseNumber(21)).toBe("二十一");
+    expect(formatChineseNumber(105)).toBe("一百零五");
+    expect(formatEpisodeOrdinal(3)).toBe("第 三 章");
+    expect(formatEpisodeCountLabel(12)).toBe("共 十二 章");
+    expect(formatEpisodeProgressLabel(2, 10)).toBe("二/十 章");
+  });
+
+  it("rewrites episode sequence text into Chinese numerals", () => {
+    expect(replaceEpisodeSequenceNumbersWithChinese("第 03 次冒险 · 《小红帽》")).toBe("第 三 次冒险 · 《小红帽》");
+    expect(replaceEpisodeSequenceNumbersWithChinese("共 #12 章")).toBe("共 十二 章");
+    expect(replaceEpisodeSequenceNumbersWithChinese("2/10 章")).toBe("二/十 章");
+  });
+
   it("hides bedtime memories from the active story timeline", () => {
     expect(isVisibleStoryTimelineSource("adventure_episode")).toBe(true);
     expect(isVisibleStoryTimelineSource("episode")).toBe(true);
@@ -188,7 +209,7 @@ describe("story-experience helpers", () => {
 
   it("rewrites legacy personal titles into adventure wording", () => {
     expect(sanitizePersonalAdventureTitle("新的回去正在展开")).toBe("新的冒险正在展开");
-    expect(sanitizePersonalAdventureTitle("第 03 次回去 · 《小红帽》")).toBe("第 03 次冒险 · 《小红帽》");
+    expect(sanitizePersonalAdventureTitle("第 03 次回去 · 《小红帽》")).toBe("第 三 次冒险 · 《小红帽》");
     expect(sanitizePersonalAdventureTitle("我回到《海的女儿》里", "海的女儿")).toBe("我在《海的女儿》里的冒险");
     expect(sanitizePersonalAdventureTitle("准备回去")).toBe("准备冒险");
   });

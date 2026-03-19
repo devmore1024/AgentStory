@@ -5,6 +5,7 @@ import { sql } from "@/lib/db";
 import { isSourceBackedPrimaryEntryFairySlug } from "@/lib/fairy-source-backed-catalog";
 import { generateCommentWithLlm, generateSerialEpisodeWithLlm, generateShortStoryWithLlm } from "@/lib/llm";
 import { getBookBySlug, getCategoriesWithBooks, type StoryBook } from "@/lib/story-data";
+import { formatEpisodeOrdinal, replaceEpisodeSequenceNumbersWithChinese } from "@/lib/story-experience-helpers";
 import {
   getStyleKeyFromId,
   getStyleName,
@@ -181,7 +182,7 @@ function toJson(value: unknown) {
 }
 
 function sanitizeDisplayTitle(title: string) {
-  return stripStyleDisplayTitleAffixes(title);
+  return replaceEpisodeSequenceNumbersWithChinese(stripStyleDisplayTitleAffixes(title));
 }
 
 function getGenerationLabel(status: "queued" | "running" | "succeeded" | "failed" | null) {
@@ -280,7 +281,7 @@ function buildFallbackShortStory(book: StoryBook, persona: AnimalPersona, styleK
 }
 
 function buildEpisode(book: StoryBook, persona: AnimalPersona, episodeNo: number, bridge: string, styleKey: StoryStyleKey) {
-  const title = `第 ${String(episodeNo).padStart(2, "0")} 章 · ${book.title}里的另一种说法`;
+  const title = `${formatEpisodeOrdinal(episodeNo)} · ${book.title}里的另一种说法`;
   const excerptByStyle: Record<StoryStyleKey, string> = {
     fairy: `我带着同一种温柔的视角，继续走进《${book.title}》，让这个故事也开始偏离旧结局。`,
     fable: `从上一个世界带来的问题没有消失，它在《${book.title}》里继续逼近每个角色的判断。`,

@@ -40,6 +40,8 @@ type AdventureActionParams = {
   isFull: boolean;
 };
 
+const CHINESE_DIGITS = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"] as const;
+
 export function getAdventureActionState(params: AdventureActionParams): AdventureActionState {
   if (params.isCompleted) {
     return "watch";
@@ -58,10 +60,10 @@ export function getCompanionActionLabel(actionState: AdventureActionState) {
   }
 
   if (actionState === "join") {
-    return "加入同行";
+    return "当前连载";
   }
 
-  return "阅读";
+  return "阅读原故事";
 }
 
 export function normalizeStoryFootprintFilter(filter?: string | null): StoryFootprintFilter {
@@ -191,11 +193,13 @@ export function sanitizeCompanionThreadTitle(title: string, sourceBookTitle?: st
     return `在《${sourceBookTitle}》里重新相遇`;
   }
 
-  return trimmed
-    .replace(/新的冒险正在展开/g, "新的同行正在展开")
-    .replace(/开出的一条冒险线/g, "重新相遇")
-    .replace(/冒险线/g, "同行")
-    .replace(/冒险/g, "同行");
+  return replaceEpisodeSequenceNumbersWithChinese(
+    trimmed
+      .replace(/新的冒险正在展开/g, "新的同行正在展开")
+      .replace(/开出的一条冒险线/g, "重新相遇")
+      .replace(/冒险线/g, "同行")
+      .replace(/冒险/g, "同行")
+  );
 }
 
 export function sanitizePersonalAdventureTitle(title: string, sourceBookTitle?: string | null) {
@@ -205,13 +209,15 @@ export function sanitizePersonalAdventureTitle(title: string, sourceBookTitle?: 
     return `我在《${sourceBookTitle}》里的冒险`;
   }
 
-  return trimmed
-    .replace(/新的回去正在展开/g, "新的冒险正在展开")
-    .replace(/准备回去/g, "准备冒险")
-    .replace(/正在回去/g, "正在冒险")
-    .replace(/第\s*(\d+)\s*次回去/g, "第 $1 次冒险")
-    .replace(/我回到《(.+?)》里/g, "我在《$1》里的冒险")
-    .replace(/回去线/g, "冒险线");
+  return replaceEpisodeSequenceNumbersWithChinese(
+    trimmed
+      .replace(/新的回去正在展开/g, "新的冒险正在展开")
+      .replace(/准备回去/g, "准备冒险")
+      .replace(/正在回去/g, "正在冒险")
+      .replace(/第\s*(\d+)\s*次回去/g, "第 $1 次冒险")
+      .replace(/我回到《(.+?)》里/g, "我在《$1》里的冒险")
+      .replace(/回去线/g, "冒险线")
+  );
 }
 
 export function getStoryTimelineSourceLabel(sourceType: StoryTimelineSourceType) {
@@ -273,6 +279,93 @@ export function formatAppTime(timestamp: string | null, timeZone = "Asia/Shangha
     minute: "2-digit",
     hourCycle: "h23"
   }).format(date);
+}
+
+export function formatChineseNumber(value: number): string {
+  if (!Number.isFinite(value)) {
+    return String(value);
+  }
+
+  const integer = Math.trunc(value);
+
+  if (integer < 0) {
+    return `负${formatChineseNumber(Math.abs(integer))}`;
+  }
+
+  if (integer < 10) {
+    return CHINESE_DIGITS[integer];
+  }
+
+  if (integer < 20) {
+    return integer === 10 ? "十" : `十${CHINESE_DIGITS[integer % 10]}`;
+  }
+
+  if (integer < 100) {
+    const tens = Math.trunc(integer / 10);
+    const remainder = integer % 10;
+
+    return `${CHINESE_DIGITS[tens]}十${remainder === 0 ? "" : CHINESE_DIGITS[remainder]}`;
+  }
+
+  if (integer < 1000) {
+    const hundreds = Math.trunc(integer / 100);
+    const remainder = integer % 100;
+
+    if (remainder === 0) {
+      return `${CHINESE_DIGITS[hundreds]}百`;
+    }
+
+    return `${CHINESE_DIGITS[hundreds]}百${remainder < 10 ? "零" : ""}${formatChineseNumber(remainder)}`;
+  }
+
+  if (integer < 10000) {
+    const thousands = Math.trunc(integer / 1000);
+    const remainder = integer % 1000;
+
+    if (remainder === 0) {
+      return `${CHINESE_DIGITS[thousands]}千`;
+    }
+
+    return `${CHINESE_DIGITS[thousands]}千${remainder < 100 ? "零" : ""}${formatChineseNumber(remainder)}`;
+  }
+
+  if (integer < 100000000) {
+    const tenThousands = Math.trunc(integer / 10000);
+    const remainder = integer % 10000;
+
+    if (remainder === 0) {
+      return `${formatChineseNumber(tenThousands)}万`;
+    }
+
+    return `${formatChineseNumber(tenThousands)}万${remainder < 1000 ? "零" : ""}${formatChineseNumber(remainder)}`;
+  }
+
+  return String(integer);
+}
+
+export function formatEpisodeOrdinal(value: number, unit: "章" | "篇" | "次" = "章") {
+  return `第 ${formatChineseNumber(value)} ${unit}`;
+}
+
+export function formatEpisodeCountLabel(value: number, unit: "章" | "篇" | "次" = "章") {
+  return `共 ${formatChineseNumber(value)} ${unit}`;
+}
+
+export function formatEpisodeProgressLabel(current: number, total: number, unit: "章" | "篇" | "次" = "章") {
+  return `${formatChineseNumber(current)}/${formatChineseNumber(total)} ${unit}`;
+}
+
+export function replaceEpisodeSequenceNumbersWithChinese(text: string) {
+  return text
+    .replace(/第\s*0*(\d+)\s*(章|篇|次)/g, (_, value: string, unit: "章" | "篇" | "次") =>
+      formatEpisodeOrdinal(Number.parseInt(value, 10), unit)
+    )
+    .replace(/共\s*#?\s*0*(\d+)\s*(章|篇|次)/g, (_, value: string, unit: "章" | "篇" | "次") =>
+      formatEpisodeCountLabel(Number.parseInt(value, 10), unit)
+    )
+    .replace(/(\d+)\s*\/\s*(\d+)\s*(章|篇|次)/g, (_, current: string, total: string, unit: "章" | "篇" | "次") =>
+      formatEpisodeProgressLabel(Number.parseInt(current, 10), Number.parseInt(total, 10), unit)
+    );
 }
 
 export function wasGeneratedOnAppDate(

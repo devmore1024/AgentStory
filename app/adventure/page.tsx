@@ -1,17 +1,59 @@
 import React from "react";
+import type { Route } from "next";
 import Link from "next/link";
-import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
+import { joinAdventureAction } from "@/app/actions";
 import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
 import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
 import {
   getAdventureThreads,
   getAuthenticatedAppContext,
-  getStoryExperienceSchemaStatus
+  getStoryExperienceSchemaStatus,
+  type AdventureThreadView
 } from "@/lib/story-experience";
 import { getStyleBadgeClass } from "@/lib/story-style";
 
 export const dynamic = "force-dynamic";
+
+function isCurrentSerialThread(thread: AdventureThreadView) {
+  return thread.isOwner;
+}
+
+function getThreadDescription(thread: AdventureThreadView) {
+  if (isCurrentSerialThread(thread)) {
+    const roleLead = thread.isOwner ? "这是你当前正在推进的同行连载。" : "这是你当前正在参与的同行连载。";
+
+    if (thread.lockedStyleName) {
+      return `${roleLead} 这段同行已经定下整体气质，接下来会沿着同一种感觉继续走。`;
+    }
+
+    return `${roleLead} 第一段同行还在等它自己的语气慢慢落下来。`;
+  }
+
+  return `${thread.ownerDisplayName} 先走了进去。${
+    thread.lockedStyleName
+      ? " 这段同行已经定下整体气质，后面的人会沿着同一种感觉继续走。"
+      : " 第一段同行还在等它自己的语气慢慢落下来。"
+  }`;
+}
+
+function getThreadExcerpt(thread: AdventureThreadView) {
+  if (thread.latestEpisodeExcerpt) {
+    return thread.latestEpisodeExcerpt;
+  }
+
+  if (thread.generationState === "queued" || thread.generationState === "running") {
+    return "新的冒险已经入队，故事正在把这一段慢慢写出来。";
+  }
+
+  if (thread.generationState === "failed") {
+    return isCurrentSerialThread(thread)
+      ? "这一段冒险暂时生成失败了，等重新进入详情后会继续往前走。"
+      : "这一段冒险暂时生成失败了，等重新触发后会继续往前走。";
+  }
+
+  return "这段故事还在等第一位走进去的人，把它真正点亮。";
+}
 
 export default async function AdventurePage() {
   const [threads, currentContext, schemaStatus] = await Promise.all([
@@ -25,7 +67,7 @@ export default async function AdventurePage() {
       <div className="grid gap-6">
         <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-5 shadow-[var(--shadow-medium)]">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">同行广场</p>
-          <h1 className="display-font mt-2 text-3xl text-[var(--text-primary)]">在童话里，和别人的分身相遇</h1>
+          <h1 className="display-font mt-2 text-2xl text-[var(--text-primary)]">在童话里，和别人的分身相遇</h1>
           <p className="mt-2 max-w-5xl text-sm leading-7 text-[var(--text-secondary)]">
             这里收着所有已经被点亮的同行故事。有人刚走进森林，有人已经来到城堡门口；如果这段故事还留着位置，你也可以带着自己的分身进去继续走。
           </p>
@@ -51,104 +93,107 @@ export default async function AdventurePage() {
 
         {threads.length > 0 ? (
           <div className="grid gap-5 xl:grid-cols-2">
-            {threads.map((thread) => (
-              <article
-                key={thread.id}
-                id={`thread-${thread.id}`}
-                className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]"
-              >
-                <AdventureThreadBadges
-                  isOwner={thread.isOwner}
-                  isCompleted={thread.isCompleted}
-                  generationState={thread.generationState}
-                  participantCount={thread.participantCount}
-                  participantLimit={thread.participantLimit}
-                  episodeCount={thread.episodeCount}
-                  episodeLimit={thread.episodeLimit}
-                />
+            {threads.map((thread) => {
+              const isCurrentSerial = isCurrentSerialThread(thread);
+              const detailHref = `/adventure/${thread.id}` as Route;
+              const originalStoryHref = thread.sourceBookSlug ? (`/books/${thread.sourceBookSlug}/read` as Route) : null;
 
-                <div className="mt-4">
-                  <p className="text-s font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                    《{thread.sourceBookTitle}》
-                  </p>
-                  <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">{thread.title}</h2>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
-                      {thread.ownerDisplayName} 发起
-                    </span>
-                    {thread.lockedStyleName ? (
-                      <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(thread.lockedStyleName)}`}>
-                        {thread.lockedStyleName}
+              return (
+                <article
+                  key={thread.id}
+                  id={`thread-${thread.id}`}
+                  className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.86)] p-6 shadow-[var(--shadow-medium)]"
+                >
+                  <AdventureThreadBadges
+                    isOwner={thread.isOwner}
+                    isCompleted={thread.isCompleted}
+                    generationState={thread.generationState}
+                    participantCount={thread.participantCount}
+                    participantLimit={thread.participantLimit}
+                    episodeCount={thread.episodeCount}
+                    episodeLimit={thread.episodeLimit}
+                  />
+
+                  <div className="mt-4">
+                    <p className="text-s font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                      《{thread.sourceBookTitle}》
+                    </p>
+                    <h2 className="display-font mt-2 text-2xl text-[var(--text-primary)]">{thread.title}</h2>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
+                        {thread.ownerDisplayName} 发起
                       </span>
-                    ) : null}
+                      {thread.lockedStyleName ? (
+                        <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(thread.lockedStyleName)}`}>
+                          {thread.lockedStyleName}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{getThreadDescription(thread)}</p>
                   </div>
-                  <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
-                    {thread.ownerDisplayName} 先走了进去。
-                    {thread.lockedStyleName ? " 这段同行已经定下整体气质，后面的人会沿着同一种感觉继续走。" : " 第一段同行还在等它自己的语气慢慢落下来。"}
-                  </p>
-                </div>
 
-                <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.72)] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                    {thread.latestEpisodeTitle ?? "第一段同行即将落下"}
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
-                    {thread.latestEpisodeExcerpt ??
-                      (thread.generationState === "queued" || thread.generationState === "running"
-                        ? "新的冒险已经入队，故事正在把这一段慢慢写出来。"
-                        : thread.generationState === "failed"
-                          ? "这一段冒险暂时生成失败了，等重新触发后会继续往前走。"
-                          : "这段故事还在等第一位走进去的人，把它真正点亮。")}
-                  </p>
-                </div>
+                  <div className="mt-4 rounded-[22px] bg-[rgba(255,255,255,0.72)] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                      {thread.latestEpisodeTitle ?? "第一段同行即将落下"}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{getThreadExcerpt(thread)}</p>
+                  </div>
 
-                <div className="mt-5 flex flex-wrap gap-3">
-                  {currentContext ? (
-                    thread.actionState === "continue" ? (
-                      thread.generationState === "queued" || thread.generationState === "running" ? (
-                        <div className="inline-flex min-h-11 items-center rounded-full bg-[rgba(95,127,98,0.14)] px-5 py-3 text-sm font-semibold text-[var(--accent-moss)]">
-                          生成中
-                        </div>
-                      ) : (
-                        <form action={continueAdventureAction}>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    {currentContext ? (
+                      isCurrentSerial ? (
+                        <Link
+                          href={detailHref}
+                          className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                        >
+                          当前连载
+                        </Link>
+                      ) : thread.actionState === "join" ? (
+                        <form action={joinAdventureAction}>
                           <input type="hidden" name="threadId" value={thread.id} />
                           <button
                             type="submit"
                             className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                           >
-                            {thread.generationState === "failed" ? "重新生成这一段" : thread.actionLabel}
+                            {thread.actionLabel}
                           </button>
                         </form>
-                      )
-                    ) : thread.actionState === "join" ? (
-                      <form action={joinAdventureAction}>
-                        <input type="hidden" name="threadId" value={thread.id} />
-                        <button
-                          type="submit"
+                      ) : <Link
+                          href={detailHref}
                           className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
                         >
-                          {thread.actionLabel}
-                        </button>
-                      </form>
-                    ) : null
-                  ) : (
-                    <Link
-                      href="/me?auth=required"
-                      className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
-                    >
-                      登录后加入同行
-                    </Link>
-                  )}
+                          当前连载
+                        </Link>
+                    ) : (
+                      <Link
+                        href="/me?auth=required"
+                        className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent-moss)] px-5 py-3 text-sm font-semibold text-[var(--text-on-accent)] shadow-[var(--shadow-small)]"
+                      >
+                        登录后加入同行
+                      </Link>
+                    )}
 
-                  <Link
-                    href={`/adventure/${thread.id}`}
-                    className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
-                  >
-                    阅读
-                  </Link>
-                </div>
-              </article>
-            ))}
+                    {isCurrentSerial ? (
+                      originalStoryHref ? (
+                        <Link
+                          href={originalStoryHref}
+                          className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
+                        >
+                          阅读原故事
+                        </Link>
+                      ) : null
+                    ) : (
+                      <Link
+                        href={originalStoryHref}
+                        className="inline-flex min-h-11 items-center rounded-full border border-[var(--border-default)] px-5 py-3 text-sm font-semibold text-[var(--text-secondary)]"
+                      >
+                        阅读原故事
+                      </Link>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         ) : (
           <StateCard

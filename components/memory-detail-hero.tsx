@@ -1,6 +1,7 @@
 import React from "react";
 import type { ReactNode } from "react";
 import type { PersonalLineDetailView } from "@/lib/story-experience";
+import { formatEpisodeCountLabel, replaceEpisodeSequenceNumbersWithChinese } from "@/lib/story-experience-helpers";
 import {
   getPersonalLineDailyStatusLabel,
   getPersonalLineGenerationBadgeLabel
@@ -39,7 +40,7 @@ export function MemoryDetailHero({ line, actions, generatedTimeLabel, dailyRuleN
           </span>
         ) : null}
         <span className="rounded-full bg-[rgba(255,255,255,0.74)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]">
-          共 {line.episodeCount} 章
+          {formatEpisodeCountLabel(line.episodeCount)}
         </span>
         {line.lockedStyleName ? (
           <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${getStyleBadgeClass(line.lockedStyleName)}`}>
@@ -52,7 +53,7 @@ export function MemoryDetailHero({ line, actions, generatedTimeLabel, dailyRuleN
         《{line.sourceBookTitle}》
       </p>
       <h1 className="display-font mt-2 text-3xl leading-[1.16] text-[var(--text-primary)] sm:text-[2.75rem]">
-        {line.latestEpisodeTitle ?? line.title}
+        {replaceEpisodeSequenceNumbersWithChinese(line.latestEpisodeTitle ?? line.title)}
       </h1>
       <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--text-secondary)]">
         {line.latestEpisodeExcerpt ?? "你的分身已经走进这本童话，接下来会沿着这条主线继续冒险。"}

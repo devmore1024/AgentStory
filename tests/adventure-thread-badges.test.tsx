@@ -20,7 +20,7 @@ describe("AdventureThreadBadges", () => {
     expect(screen.getByText("我发起的")).toBeInTheDocument();
     expect(screen.getByText("进行中")).toBeInTheDocument();
     expect(screen.getByText("2/4 人")).toBeInTheDocument();
-    expect(screen.getByText("1/6 篇")).toBeInTheDocument();
+    expect(screen.getByText("一/六 章")).toBeInTheDocument();
 
     rerender(
       <AdventureThreadBadges

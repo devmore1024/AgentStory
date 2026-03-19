@@ -90,6 +90,65 @@ describe("story style strategy", () => {
     expect(first).not.toBe("zhihu");
   });
 
+  it("keeps the initial personal-line style stable for the same user and book", () => {
+    const book = createBook({
+      slug: "fairy-sleeping-beauty"
+    });
+
+    const first = pickThreadPrimaryStyleKey({
+      userId: "reader-1",
+      persona: animalPersonas.fox,
+      seedBook: book
+    });
+    const second = pickThreadPrimaryStyleKey({
+      userId: "reader-1",
+      persona: animalPersonas.fox,
+      seedBook: book
+    });
+
+    expect(first).toBe(second);
+    expect(first).not.toBe("zhihu");
+  });
+
+  it("biases fox fairy-tale short stories toward persona recommendations", () => {
+    const book = createBook({
+      slug: "fairy-sleeping-beauty"
+    });
+    const personaRecommended = new Set(getPersonaRecommendedStyleKeys(animalPersonas.fox).filter((styleKey) => styleKey !== "zhihu"));
+    let recommendedHits = 0;
+    let categoryOnlyHits = 0;
+
+    for (let index = 0; index < 400; index += 1) {
+      const styleKey = pickRandomShortStoryStyleKey(book, animalPersonas.fox, `reader-${index}`);
+
+      if (personaRecommended.has(styleKey)) {
+        recommendedHits += 1;
+      } else {
+        categoryOnlyHits += 1;
+      }
+    }
+
+    expect(recommendedHits).toBeGreaterThan(categoryOnlyHits * 3);
+  });
+
+  it("keeps a small category-style influence in the weighted short-story pool", () => {
+    const book = createBook({
+      slug: "fairy-sleeping-beauty"
+    });
+    const personaRecommended = new Set(getPersonaRecommendedStyleKeys(animalPersonas.fox).filter((styleKey) => styleKey !== "zhihu"));
+    const categoryOnlySelections = new Set<string>();
+
+    for (let index = 0; index < 400; index += 1) {
+      const styleKey = pickRandomShortStoryStyleKey(book, animalPersonas.fox, `reader-${index}`);
+
+      if (!personaRecommended.has(styleKey)) {
+        categoryOnlySelections.add(styleKey);
+      }
+    }
+
+    expect(categoryOnlySelections.size).toBeGreaterThan(0);
+  });
+
   it("strips newly added style names from display titles", () => {
     expect(stripStyleDisplayTitleAffixes("治愈日常风里的小王子")).toBe("小王子");
     expect(stripStyleDisplayTitleAffixes("海的女儿的黑色幽默风")).toBe("海的女儿");
@@ -102,15 +161,37 @@ describe("story style strategy", () => {
       ["light_web", "style-light-web"],
       ["suspense", "style-suspense"]
     ]);
+    const book = createBook({ slug: "fairy-sleeping-beauty" });
+    let selectedStyle: ReturnType<typeof pickThreadPrimaryStyleKey> | null = null;
+    let fallbackUserId: string | null = null;
 
-    expect(
-      pickPersistableThreadPrimaryStyleKey({
-        userId: "b261cd1a-9f53-4ab7-904d-ee50a4a7e3c2",
+    for (let index = 0; index < 500; index += 1) {
+      const userId = `thread-user-${index}`;
+      const candidate = pickThreadPrimaryStyleKey({
+        userId,
         persona: animalPersonas.fox,
-        seedBook: createBook({ slug: "fairy-sleeping-beauty" }),
-        styleIds
-      })
-    ).toBe("fairy");
+        seedBook: book
+      });
+
+      if (!styleIds.has(candidate)) {
+        selectedStyle = candidate;
+        fallbackUserId = userId;
+        break;
+      }
+    }
+
+    expect(selectedStyle).not.toBeNull();
+    expect(fallbackUserId).not.toBeNull();
+
+    const persistedStyle = pickPersistableThreadPrimaryStyleKey({
+      userId: fallbackUserId ?? "thread-user-fallback",
+      persona: animalPersonas.fox,
+      seedBook: book,
+      styleIds
+    });
+
+    expect(persistedStyle).not.toBe(selectedStyle);
+    expect(persistedStyle && styleIds.has(persistedStyle)).toBe(true);
   });
 
   it("falls back to an existing persisted short-story style when db styles lag behind the code pool", () => {
@@ -118,15 +199,33 @@ describe("story style strategy", () => {
       ["fairy", "style-fairy"],
       ["light_web", "style-light-web"]
     ]);
+    const book = createBook();
+    let selectedStyle: ReturnType<typeof pickRandomShortStoryStyleKey> | null = null;
+    let fallbackSeedText: string | null = null;
 
-    expect(
-      pickPersistableShortStoryStyleKey({
-        book: createBook(),
-        persona: animalPersonas.cat,
-        seedText: "reader-1",
-        styleIds
-      })
-    ).toBe("light_web");
+    for (let index = 0; index < 500; index += 1) {
+      const seedText = `reader-${index}`;
+      const candidate = pickRandomShortStoryStyleKey(book, animalPersonas.cat, seedText);
+
+      if (!styleIds.has(candidate)) {
+        selectedStyle = candidate;
+        fallbackSeedText = seedText;
+        break;
+      }
+    }
+
+    expect(selectedStyle).not.toBeNull();
+    expect(fallbackSeedText).not.toBeNull();
+
+    const persistedStyle = pickPersistableShortStoryStyleKey({
+      book,
+      persona: animalPersonas.cat,
+      seedText: fallbackSeedText ?? "reader-fallback",
+      styleIds
+    });
+
+    expect(persistedStyle).not.toBe(selectedStyle);
+    expect(persistedStyle && styleIds.has(persistedStyle)).toBe(true);
     expect(resolvePersistableStyleKey(styleIds, ["folklore", "light_web", "fairy"])).toBe("light_web");
   });
 });
