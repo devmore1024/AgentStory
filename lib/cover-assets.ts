@@ -1,4 +1,5 @@
 import { hashString, inferCoverMotif, type CoverCategoryKey, type CoverMotifKey } from "@/lib/cover-motifs";
+import { resolveGeneratedCoverPublicPathSync } from "@/lib/generated-cover-files";
 
 type CoverTint = {
   overlay: string;
@@ -412,7 +413,20 @@ export const coverSourceRegistry = {
 
 export function resolveCoverAsset(book: CoverResolverInput): ResolvedCoverAsset {
   const fallbackSrc = `/covers/${book.slug}`;
+  const generatedCoverSrc = resolveGeneratedCoverPublicPathSync(book.slug);
   const directCover = book.coverImage?.trim();
+
+  if (generatedCoverSrc) {
+    return {
+      src: generatedCoverSrc,
+      fallbackSrc,
+      isExternal: false,
+      sourcePage: null,
+      licenseNote: null,
+      objectPosition: "center center",
+      tint: defaultTint
+    };
+  }
 
   if (directCover) {
     return {

@@ -1,5 +1,7 @@
+import { readFile } from "node:fs/promises";
 import { getBookBySlug } from "@/lib/story-data";
 import { hashString, inferCoverMotif, type CoverCategoryKey, type CoverMotifKey } from "@/lib/cover-motifs";
+import { resolveGeneratedCoverFile } from "@/lib/generated-cover-files";
 
 export const dynamic = "force-dynamic";
 
@@ -270,6 +272,19 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
 
   if (!book) {
     return new Response("Not found", { status: 404 });
+  }
+
+  const generatedCover = await resolveGeneratedCoverFile(book.slug);
+
+  if (generatedCover) {
+    const imageBytes = await readFile(generatedCover.filePath);
+
+    return new Response(imageBytes, {
+      headers: {
+        "Content-Type": generatedCover.contentType,
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400"
+      }
+    });
   }
 
   const colors = palette[book.categoryKey];
