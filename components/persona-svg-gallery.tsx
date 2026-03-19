@@ -1,9 +1,18 @@
 import React from "react";
-import { animalPersonas } from "@/lib/animal-personas";
+import { animalPersonas, type AnimalPersona } from "@/lib/animal-personas";
 import { PersonaBadge } from "@/components/persona-badge";
 import { PersonaPortrait } from "@/components/persona-portrait";
 
 const personaCards = Object.values(animalPersonas);
+
+const badgeRecognitionNotes: Partial<Record<AnimalPersona["animalType"], string>> = {
+  lion: "识别特征：鬃毛轮廓、猫科嘴鼻、圆耳位置",
+  hedgehog: "识别特征：前伸尖鼻、背部连续刺弧、低矮体态",
+  horse: "识别特征：长脸鼻梁、鬃毛走势、马耳位置",
+  elephant: "识别特征：大扇形耳朵、长鼻、厚额头体块",
+  swan: "识别特征：S 形长颈、贴头喙线、天鹅体态",
+  crane: "识别特征：细直长颈、长直喙、清瘦站姿"
+};
 
 export function PersonaSvgGallery() {
   return (
@@ -12,8 +21,8 @@ export function PersonaSvgGallery() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">人格 SVG 图谱</p>
         <h1 className="display-font mt-3 text-4xl leading-tight text-[var(--text-primary)] sm:text-5xl">简略徽章和详细头像，现在可以放在同一页对照看了</h1>
         <p className="mt-4 max-w-4xl text-base leading-8 text-[var(--text-secondary)]">
-          这一页把 8 种动物人格的两层视觉资产放在一起展示。左侧保留小尺寸下更稳定的简略 SVG，
-          右侧换成更完整的详细 SVG，用于人物卡、分享页和后续视觉延展。
+          这一页把 20 种动物人格的两层视觉资产放在一起展示。左侧保留小尺寸下更稳定的简略 SVG，
+          右侧换成更完整的详细 SVG，用于人物卡、分享页和后续视觉延展。本轮优先补强了狮子、刺猬、马、大象、天鹅和鹤的小徽章识别度。
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -68,6 +77,12 @@ export function PersonaSvgGallery() {
                   <PersonaBadge animalType={persona.animalType} size="lg" variant="paper" />
                 </div>
                 <p className="mt-4 text-sm leading-6 text-[var(--text-secondary)]">沿用当前徽章轮廓，优先保证小尺寸识别和入口统一性。</p>
+                {badgeRecognitionNotes[persona.animalType] ? (
+                  <div className="mt-4 rounded-[18px] border border-[rgba(216,196,176,0.58)] bg-[rgba(255,250,245,0.9)] px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">识别特征</p>
+                    <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{badgeRecognitionNotes[persona.animalType]}</p>
+                  </div>
+                ) : null}
               </section>
 
               <section
