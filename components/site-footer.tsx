@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 const FOOTER_COPY = {
   brand: "AgenTales",
@@ -13,7 +14,13 @@ export function SiteFooter() {
     <footer className="mt-10 border-t border-[rgba(122,101,84,0.16)] pt-4 text-xs text-[var(--text-muted)]">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-[var(--text-secondary)]">{FOOTER_COPY.brand}</p>
+          <Image
+            src="/logo/logo.png"
+            alt="AgenTales"
+            width={2044}
+            height={528}
+            className="h-auto w-[8.5rem]"
+          />
           <p className="mt-1 max-w-xl leading-6">{FOOTER_COPY.tagline}</p>
         </div>
         <p className="leading-6">
