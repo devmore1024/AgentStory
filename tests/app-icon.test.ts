@@ -9,6 +9,6 @@ describe("app icon", () => {
 
     expect(icon).toContain("<svg");
     expect(icon).toContain("linearGradient");
-    expect(icon).toContain("📖");
+    expect(icon).toContain("🌲");
   });
 });

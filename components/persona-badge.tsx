@@ -1,3 +1,4 @@
+import React from "react";
 import { animalPersonas, type AnimalPersona } from "@/lib/animal-personas";
 
 type PersonaBadgeProps = {
@@ -90,7 +91,7 @@ export function PersonaBadge({ animalType, size = "md", variant = "soft" }: Pers
 
   return (
     <div
-      className={`relative flex items-center justify-center border border-[rgba(255,255,255,0.72)] shadow-[var(--shadow-small)] ${sizeMap[size]}`}
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden border border-[rgba(255,255,255,0.72)] shadow-[var(--shadow-small)] ${sizeMap[size]}`}
       style={{
         background:
           variant === "paper"
