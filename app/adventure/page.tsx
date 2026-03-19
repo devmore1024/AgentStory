@@ -4,7 +4,6 @@ import Link from "next/link";
 import { joinAdventureAction } from "@/app/actions";
 import { AdventureThreadBookThumb } from "@/components/adventure-thread-book-thumb";
 import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
-import { AppShell } from "@/components/app-shell";
 import { StateCard } from "@/components/state-card";
 import { SubmitButton } from "@/components/submit-button";
 import { getBooksBySlugs } from "@/lib/story-data";
@@ -108,7 +107,7 @@ export default async function AdventurePage() {
   const booksBySlug = await getBooksBySlugs(threads.map((thread) => thread.sourceBookSlug ?? ""));
 
   return (
-    <AppShell activeTab="adventure">
+    <>
       <div className="grid gap-6">
         <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-5 shadow-[var(--shadow-medium)]">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">同行广场</p>
@@ -251,6 +250,6 @@ export default async function AdventurePage() {
           />
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

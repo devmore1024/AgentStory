@@ -2,7 +2,6 @@ import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { startOrOpenPersonalLineAction } from "@/app/actions";
-import { AppShell } from "@/components/app-shell";
 import { PageBackButton } from "@/components/page-back-button";
 import { SubmitButton } from "@/components/submit-button";
 import { getAuthenticatedAppContext, getPersonalLineForBookSlug } from "@/lib/story-experience";
@@ -34,7 +33,7 @@ export default async function EnterStoryPage({
   }
 
   return (
-    <AppShell activeTab="home">
+    <>
       <div className="mx-auto grid max-w-4xl gap-6">
         <PageBackButton fallbackHref={`/books/${book.slug}`} title="走进童话" />
 
@@ -97,6 +96,6 @@ export default async function EnterStoryPage({
           </div>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }

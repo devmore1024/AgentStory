@@ -1,6 +1,5 @@
 import type { Route } from "next";
 import Link from "next/link";
-import { AppShell } from "@/components/app-shell";
 import { BookCover } from "@/components/book-cover";
 import { HomeAdventurePreview } from "@/components/home-adventure-preview";
 import { HomeFairyShelfGrid } from "@/components/home-fairy-shelf-grid";
@@ -53,7 +52,7 @@ export default async function HomePage() {
   const homepageFairyBooks = fairyShelf?.books.slice(0, 100) ?? [];
 
   return (
-    <AppShell activeTab="home">
+    <>
       <div className="grid gap-6">
         <section className="relative overflow-hidden rounded-[36px] border border-[rgba(255,244,234,0.74)] bg-[linear-gradient(135deg,rgba(255,250,245,0.96),rgba(245,232,220,0.88))] p-5 shadow-[var(--shadow-large)] sm:p-7">
           <div className="pointer-events-none absolute left-[-4rem] top-[-3rem] h-44 w-44 rounded-full bg-[rgba(255,236,201,0.3)] blur-3xl" />
@@ -103,7 +102,6 @@ export default async function HomePage() {
         >
           <div className="mb-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">可以进去冒险的童话（持续更新中）</p>
               <p className="mt-2 max-w-4xl text-sm leading-7 text-[var(--text-secondary)]">
                 {HOME_COPY.shelfDescription}
               </p>
@@ -132,6 +130,6 @@ export default async function HomePage() {
           statusLabel={previewEpisode.statusLabel}
         />
       ) : null}
-    </AppShell>
+    </>
   );
 }

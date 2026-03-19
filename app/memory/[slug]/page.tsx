@@ -3,7 +3,6 @@ import type { Route } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { publishCompanionFromPersonalAction, startOrOpenPersonalLineAction } from "@/app/actions";
-import { AppShell } from "@/components/app-shell";
 import { MemoryDetailHero } from "@/components/memory-detail-hero";
 import { PageBackButton } from "@/components/page-back-button";
 import { PersonalLineEnsureTodayController } from "@/components/personal-line-ensure-today-controller";
@@ -69,7 +68,7 @@ export default async function MemoryDetailPage({
   const hasBookSidebar = Boolean(book);
 
   return (
-    <AppShell activeTab="memory">
+    <>
       <StoryGenerationWatcher threadId={line.threadId} active={isGenerating} />
       <div className="grid gap-6">
         <PageBackButton fallbackHref="/memory" title="冒险故事" />
@@ -205,6 +204,6 @@ export default async function MemoryDetailPage({
           </div>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

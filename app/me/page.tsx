@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { AppShell } from "@/components/app-shell";
 import { PersonaCard } from "@/components/persona-card";
 import { StateCard } from "@/components/state-card";
 import { StoryFootprintTabs } from "@/components/story-footprint-tabs";
@@ -41,7 +40,7 @@ export default async function MePage({
   });
 
   return (
-    <AppShell activeTab="me">
+    <>
       <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
         <div className="space-y-6">
           {!currentContext ? (
@@ -166,6 +165,6 @@ export default async function MePage({
           </section>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

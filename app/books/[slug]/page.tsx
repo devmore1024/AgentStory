@@ -2,7 +2,6 @@ import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { startOrOpenPersonalLineAction } from "@/app/actions";
-import { AppShell } from "@/components/app-shell";
 import { BookCover } from "@/components/book-cover";
 import { PageBackButton } from "@/components/page-back-button";
 import { SubmitButton } from "@/components/submit-button";
@@ -37,7 +36,7 @@ export default async function BookDetailPage({
     .slice(0, 2);
 
   return (
-    <AppShell activeTab="home">
+    <>
       <div className="grid gap-6">
         <PageBackButton fallbackHref="/" title="童话故事" />
 
@@ -134,6 +133,6 @@ export default async function BookDetailPage({
           </section>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

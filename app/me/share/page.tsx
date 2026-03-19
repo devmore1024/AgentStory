@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { AppShell } from "@/components/app-shell";
 import { PageBackButton } from "@/components/page-back-button";
 import { PersonaCard } from "@/components/persona-card";
 import { PersonaSharePoster } from "@/components/persona-share-poster";
@@ -13,7 +12,7 @@ export default async function PersonaSharePage() {
   const currentContext = await getAuthenticatedAppContext();
 
   return (
-    <AppShell activeTab="me">
+    <>
       <div className="grid gap-6">
         <PageBackButton fallbackHref="/me" title="分享详情" />
 
@@ -73,6 +72,6 @@ export default async function PersonaSharePage() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

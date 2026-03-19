@@ -2,16 +2,19 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useNavigationTransition } from "@/components/navigation-transition-provider";
-import { primaryNavItems, type AppTab } from "@/lib/app-navigation";
+import { getAppTabForPath, primaryNavItems, type AppTab } from "@/lib/app-navigation";
 
 type PrimaryNavProps = {
-  activeTab: AppTab;
+  activeTab?: AppTab;
 };
 
 export function PrimaryNav({ activeTab }: PrimaryNavProps) {
+  const pathname = usePathname();
   const { pendingTab } = useNavigationTransition();
-  const visibleActiveTab = pendingTab ?? activeTab;
+  const baseActiveTab = activeTab ?? getAppTabForPath(pathname) ?? "home";
+  const visibleActiveTab = pendingTab ?? baseActiveTab;
 
   return (
     <nav className="flex items-center gap-2 rounded-full border border-[var(--border-light)] bg-[rgba(255,255,255,0.5)] p-1">

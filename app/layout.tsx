@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { AppShell } from "@/components/app-shell";
 import { NavigationTransitionProvider } from "@/components/navigation-transition-provider";
 import "./globals.css";
 
@@ -20,7 +21,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="min-h-screen text-[var(--text-primary)] antialiased">
-        <NavigationTransitionProvider>{children}</NavigationTransitionProvider>
+        <NavigationTransitionProvider>
+          <AppShell>{children}</AppShell>
+        </NavigationTransitionProvider>
       </body>
     </html>
   );

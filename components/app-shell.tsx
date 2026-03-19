@@ -1,3 +1,4 @@
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
@@ -8,7 +9,7 @@ import { getCurrentViewerContext } from "@/lib/current-user";
 import type { AppTab } from "@/lib/app-navigation";
 
 type AppShellProps = {
-  activeTab: AppTab;
+  activeTab?: AppTab;
   children: React.ReactNode;
 };
 

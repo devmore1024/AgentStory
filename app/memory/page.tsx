@@ -2,7 +2,6 @@ import React from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { startOrOpenPersonalLineAction } from "@/app/actions";
-import { AppShell } from "@/components/app-shell";
 import { MemoryLineCard } from "@/components/memory-line-card";
 import { StateCard } from "@/components/state-card";
 import { SubmitButton } from "@/components/submit-button";
@@ -90,7 +89,7 @@ export default async function MemoryPage() {
   }
 
   return (
-    <AppShell activeTab="memory">
+    <>
       <div className="grid gap-6">
         <section className="rounded-[30px] border border-[var(--border-light)] bg-[rgba(252,251,250,0.82)] p-5 shadow-[var(--shadow-medium)]">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">{MEMORY_COPY.eyebrow}</p>
@@ -148,6 +147,6 @@ export default async function MemoryPage() {
           />
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
 import { PageBackButton } from "@/components/page-back-button";
 import { getAuthenticatedAppContext } from "@/lib/story-experience";
 import { getBookBySlug, getResolvedStoryParagraphs } from "@/lib/story-data";
@@ -23,7 +22,7 @@ export default async function BookReadPage({
   const storyParagraphs = getResolvedStoryParagraphs(book);
 
   return (
-    <AppShell activeTab="home">
+    <>
       <div className="mx-auto grid max-w-4xl gap-6">
         <PageBackButton fallbackHref={`/books/${book.slug}`} title="原故事" />
 
@@ -71,6 +70,6 @@ export default async function BookReadPage({
           </div>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }

@@ -2,16 +2,19 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useNavigationTransition } from "@/components/navigation-transition-provider";
-import { primaryNavItems, type AppTab } from "@/lib/app-navigation";
+import { getAppTabForPath, primaryNavItems, type AppTab } from "@/lib/app-navigation";
 
 type BottomNavProps = {
-  activeTab: AppTab;
+  activeTab?: AppTab;
 };
 
 export function BottomNav({ activeTab }: BottomNavProps) {
+  const pathname = usePathname();
   const { pendingTab } = useNavigationTransition();
-  const visibleActiveTab = pendingTab ?? activeTab;
+  const baseActiveTab = activeTab ?? getAppTabForPath(pathname) ?? "home";
+  const visibleActiveTab = pendingTab ?? baseActiveTab;
 
   return (
     <nav className="fixed inset-x-0 bottom-4 z-50 px-4 lg:hidden">

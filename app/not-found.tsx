@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { AppShell } from "@/components/app-shell";
 
 export default function NotFound() {
   return (
-    <AppShell activeTab="home">
+    <>
       <div className="mx-auto grid max-w-3xl gap-6">
         <section className="rounded-[36px] border border-[var(--border-light)] bg-[rgba(255,250,243,0.86)] p-8 text-center shadow-[var(--shadow-large)]">
           <p className="accent-font text-3xl text-[var(--text-secondary)]">This page fell out of the book</p>
@@ -19,6 +18,6 @@ export default function NotFound() {
           </Link>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }

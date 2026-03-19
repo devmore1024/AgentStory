@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { continueAdventureAction, joinAdventureAction } from "@/app/actions";
 import { AdventureThreadBadges } from "@/components/adventure-thread-badges";
-import { AppShell } from "@/components/app-shell";
 import { PageBackButton } from "@/components/page-back-button";
 import { ParticipantAvatar, ParticipantAvatarStack } from "@/components/participant-avatar-stack";
 import { StateCard } from "@/components/state-card";
@@ -59,7 +58,7 @@ export default async function AdventureThreadPage({
   const remainingParticipantSlots = Math.max(thread.participantLimit - thread.participantCount, 0);
 
   return (
-    <AppShell activeTab="adventure">
+    <>
       <StoryGenerationWatcher threadId={thread.id} active={isGenerating} />
       <div className="grid gap-6">
         <PageBackButton fallbackHref="/adventure" title="同行故事" />
@@ -245,6 +244,6 @@ export default async function AdventureThreadPage({
           </div>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
