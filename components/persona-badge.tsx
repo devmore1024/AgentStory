@@ -86,9 +86,15 @@ function iconStroke(animalType: AnimalPersona["animalType"]) {
     case "lion":
       return (
         <>
-          <circle cx="64" cy="58" r="30" />
-          <path d="M36 48c4-16 20-24 28-24s24 8 28 24M36 48c-4 6-5 14-4 20m60-20c4 6 5 14 4 20M42 80c8 10 18 16 22 16s14-6 22-16" />
-          <path d="M56 68c4 4 12 4 16 0" />
+          <path
+            data-feature="lion-mane"
+            d="M64 28c7 0 13 3 18 8 10 1 18 10 18 21 0 6-2 11-6 15-1 14-13 24-30 24S35 86 34 72c-4-4-6-9-6-15 0-11 8-20 18-21 5-5 11-8 18-8z"
+          />
+          <path data-feature="lion-ears" d="M50 44l6-10 8 10m12 0l8-10 6 10" />
+          <path data-feature="lion-face" d="M48 64c0-12 7-20 16-20s16 8 16 20v10c0 8-7 14-16 14s-16-6-16-14V64z" />
+          <path data-feature="lion-muzzle" d="M53 76c4-4 8-6 11-6s7 2 11 6c0 6-5 10-11 10s-11-4-11-10z" />
+          <path d="M64 72l-4 4h8l-4-4z" />
+          <path d="M57 82c4 3 10 3 14 0" />
         </>
       );
     case "dog":
@@ -110,8 +116,10 @@ function iconStroke(animalType: AnimalPersona["animalType"]) {
     case "swan":
       return (
         <>
-          <path d="M74 30c10 0 16 8 16 18 0 8-4 14-10 18 10 2 18 8 20 18H54c4-16 14-22 24-24-6-4-10-10-10-18 0-6 2-12 6-12z" />
-          <path d="M74 30c-4 0-8 4-8 10 0 8 6 14 14 16" />
+          <path data-feature="swan-neck" d="M72 38c9 0 14 7 14 14 0 8-5 14-12 19-7 4-11 9-13 17" />
+          <path data-feature="swan-body" d="M46 84c6-10 16-14 28-14 12 0 20 5 26 14-7 4-18 8-32 8-10 0-18-2-22-8z" />
+          <path data-feature="swan-beak" d="M85 40l13-4-7 8" />
+          <path data-feature="swan-wing" d="M58 80c8-2 15 0 22 6" />
         </>
       );
     case "otter":
@@ -135,33 +143,41 @@ function iconStroke(animalType: AnimalPersona["animalType"]) {
     case "horse":
       return (
         <>
-          <path d="M44 48l16-20 8 16m12-2l16-14 6 18" />
-          <path d="M40 60c0-16 12-28 28-28 14 0 24 8 24 24v26c0 8-6 14-14 14H58c-10 0-18-8-18-18V60z" />
-          <path d="M58 78c6 3 16 3 22 0" />
+          <path data-feature="horse-head" d="M40 88V60l15-21 17 9 15-6 11 16-6 30H70l-8-7-10 7H40z" />
+          <path data-feature="horse-ears" d="M54 40l6-14 8 10m8 10l12-14 4 14" />
+          <path data-feature="horse-mane" d="M60 40c8 6 12 14 13 24 1 7 0 14-3 22" />
+          <path data-feature="horse-muzzle" d="M72 72c7 2 15 2 21-1" />
         </>
       );
     case "hedgehog":
       return (
         <>
-          <path d="M34 68l10-18 8 10 6-14 8 12 8-14 8 14 8-10 10 18" />
-          <path d="M38 72c2 14 12 24 26 24s24-10 26-24H38z" />
-          <path d="M56 82c4 4 12 4 16 0" />
+          <path
+            data-feature="hedgehog-spines"
+            d="M102 70l-8-8 10-4-10-6 10-5-11-5 8-6c-7-5-15-8-24-8-18 0-32 9-40 23"
+          />
+          <path data-feature="hedgehog-body" d="M28 72c0-12 9-21 22-21h22c18 0 30 8 30 21 0 13-12 21-30 21H50c-13 0-22-8-22-21z" />
+          <path data-feature="hedgehog-nose" d="M28 72l-12 2 10 6" />
+          <circle cx="46" cy="66" r="2" fill="currentColor" stroke="none" />
+          <path d="M58 82c7 3 15 3 22 0" />
         </>
       );
     case "elephant":
       return (
         <>
-          <circle cx="42" cy="58" r="14" />
-          <circle cx="86" cy="58" r="14" />
-          <path d="M40 66c0-20 10-32 24-32s24 12 24 32v12c0 10-8 18-18 18H58c-10 0-18-8-18-18V66z" />
-          <path d="M64 64v16c0 8 4 12 10 12" />
+          <path data-feature="elephant-ears" d="M38 58c-11 0-20-9-20-21 0-10 7-18 18-18 8 0 14 4 18 11M90 58c11 0 20-9 20-21 0-10-7-18-18-18-8 0-14 4-18 11" />
+          <path data-feature="elephant-head" d="M38 66c0-18 11-30 26-30s26 12 26 30v12c0 12-9 20-20 20H58c-11 0-20-8-20-20V66z" />
+          <path data-feature="elephant-trunk" d="M64 62v18c0 10 5 16 12 16 4 0 8-2 10-5" />
+          <path d="M54 74c3 3 17 3 20 0" />
         </>
       );
     case "crane":
       return (
         <>
-          <path d="M70 30c8 0 14 8 14 18 0 10-6 16-10 22l10 24H54l12-28c-4-4-8-10-8-18 0-10 6-18 12-18z" />
-          <path d="M84 36l20-4-10 10" />
+          <path data-feature="crane-neck" d="M62 34c8 0 12 7 12 16 0 11-5 19-10 26" />
+          <path data-feature="crane-beak" d="M74 38l24-5-14 11" />
+          <path data-feature="crane-body" d="M52 72c5-8 12-12 20-12 8 0 14 4 18 12-5 10-13 15-28 15-6 0-10-5-10-15z" />
+          <path data-feature="crane-legs" d="M60 86l-4 14m14-14l8 14" />
         </>
       );
     case "whale":
