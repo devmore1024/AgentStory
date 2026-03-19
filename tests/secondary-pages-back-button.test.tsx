@@ -6,6 +6,7 @@ import AdventureThreadPage from "@/app/adventure/[threadId]/page";
 import BookDetailPage from "@/app/books/[slug]/page";
 import EnterStoryPage from "@/app/books/[slug]/enter/page";
 import BookReadPage from "@/app/books/[slug]/read/page";
+import PersonaSvgGalleryPage from "@/app/me/personas/page";
 import PersonaSharePage from "@/app/me/share/page";
 import MemoryDetailPage from "@/app/memory/[slug]/page";
 
@@ -342,6 +343,12 @@ describe("secondary pages", () => {
     render(await PersonaSharePage());
 
     expect(screen.getByTestId("page-back-button")).toHaveTextContent("分享详情:/me");
+  });
+
+  it("shows a top back button on the persona gallery page", async () => {
+    render(await PersonaSvgGalleryPage());
+
+    expect(screen.getByTestId("page-back-button")).toHaveTextContent("人格图谱:/me");
   });
 
   it("shows only one generating card on the memory detail page before the first chapter is published", async () => {

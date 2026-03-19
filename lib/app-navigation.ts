@@ -52,6 +52,10 @@ export function getNavigationPendingLabel(pathname: string) {
     return "正在打开分享详情...";
   }
 
+  if (pathname.startsWith("/me/personas")) {
+    return "正在打开人格图谱...";
+  }
+
   if (pathname.startsWith("/me")) {
     return "正在打开我的页面...";
   }

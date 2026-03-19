@@ -1,3 +1,4 @@
+import React from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { PersonaCard } from "@/components/persona-card";
