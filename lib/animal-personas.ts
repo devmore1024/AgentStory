@@ -46,6 +46,7 @@ export type AnimalPersona = {
   badgeStyle: string;
   portraitStyle: string;
   shapeKeywords: string[];
+  recognitionFeatures: string[];
   doNotUse: string[];
 };
 
@@ -53,11 +54,13 @@ type AnimalPersonaConfig = Omit<AnimalPersona, "mappingReason"> & {
   defaultMappingReason: string;
 };
 
-function createConfig(config: AnimalPersonaConfig) {
+type AnimalPersonaBaseConfig = Omit<AnimalPersonaConfig, "recognitionFeatures">;
+
+function createConfig(config: AnimalPersonaBaseConfig) {
   return config;
 }
 
-export const animalPersonas: Record<AnimalType, AnimalPersonaConfig> = {
+const animalPersonaBaseConfigs: Record<AnimalType, AnimalPersonaBaseConfig> = {
   bear: createConfig({
     animalType: "bear",
     animalName: "熊",
@@ -559,6 +562,41 @@ export const animalPersonas: Record<AnimalType, AnimalPersonaConfig> = {
     doNotUse: ["军事徽章化", "血腥猛禽感", "过度写实猎隼羽毛"]
   })
 };
+
+const recognitionFeaturesByAnimal: Record<AnimalType, [string, string, string]> = {
+  bear: ["短圆耳", "厚脸轮廓", "宽鼻吻部"],
+  deer: ["分枝鹿角", "细长窄脸", "小而尖的口鼻"],
+  fox: ["尖耳和窄脸", "上挑口鼻", "蓬松尾感轮廓"],
+  owl: ["圆眼盘", "耳羽小角", "短三角喙"],
+  wolf: ["尖耳", "长直口鼻", "前冲脸型"],
+  cat: ["三角耳", "胡须线", "小巧猫鼻"],
+  rabbit: ["双长耳", "圆脸短口鼻", "分瓣小嘴"],
+  raven: ["厚喙", "侧头轮廓", "收紧尾翼"],
+  lion: ["鬃毛外圈", "猫科嘴鼻", "圆耳位置"],
+  dog: ["下垂耳", "圆润口鼻", "亲和大脸"],
+  dolphin: ["流线长吻", "背鳍", "跃起身体弧线"],
+  swan: ["S 形长颈", "贴头喙线", "舒展翼身"],
+  otter: ["细长脸", "短圆耳", "胡须和水感尾巴"],
+  squirrel: ["大尾巴", "竖耳", "小巧前脸"],
+  horse: ["长脸鼻梁", "鬃毛走势", "竖立马耳"],
+  hedgehog: ["前伸尖鼻", "背部刺弧", "低矮贴地体态"],
+  elephant: ["大扇耳", "长鼻", "厚额头"],
+  crane: ["细直长颈", "长直喙", "清瘦长腿"],
+  whale: ["厚体量轮廓", "尾鳍", "宽额头"],
+  falcon: ["钩喙", "锐角头型", "前冲翼线"]
+};
+
+export const animalPersonas: Record<AnimalType, AnimalPersonaConfig> = animalTypes.reduce(
+  (accumulator, animalType) => {
+    accumulator[animalType] = {
+      ...animalPersonaBaseConfigs[animalType],
+      recognitionFeatures: recognitionFeaturesByAnimal[animalType]
+    };
+
+    return accumulator;
+  },
+  {} as Record<AnimalType, AnimalPersonaConfig>
+);
 
 export function createAnimalPersona(animalType: AnimalType, mappingReason?: string): AnimalPersona {
   const base = animalPersonas[animalType];

@@ -38,6 +38,19 @@ export function PersonaCard({
                 </span>
               ))}
             </div>
+            <div className="mt-4 border-t border-[rgba(204,182,162,0.4)] pt-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">识别特征</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {persona.recognitionFeatures.map((item) => (
+                  <span
+                    key={`${persona.animalType}-${item}`}
+                    className="rounded-full bg-[rgba(255,250,245,0.92)] px-3 py-1.5 text-sm font-semibold text-[var(--text-secondary)]"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
