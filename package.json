@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "next": "^15.2.4",
-    "openai": "file:../AgentTravel/node_modules/openai",
+    "openai": "^4.104.0",
     "pg": "^8.13.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
